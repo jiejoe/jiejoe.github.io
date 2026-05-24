@@ -727,8 +727,7 @@
       <div class="exp-item">
         <div class="exp-name">淘宝 × 千问 AI 导购助手</div>
         <div class="exp-desc">
-          负责淘宝端内基于千问大模型的 AI 导购产品设计：<b>AI 收藏合辑</b>（0→1 主导）— LLM 理解收藏商品，自动识别购物兴趣并生成智能合辑；<b>AI 足迹推荐</b> — 从浏览足迹挖掘购买意图；<b>AI 种草</b> — 根据外部内容生成消费转化清单。<br><br>
-          核心工作：定义产品形态和交互方式；与算法团队协作设计 Prompt 和上下文策略；推动基于 Qwen3 的 SFT 后训练；搭建效果评测体系（GSB、意图识别准确性、推荐相关性）；建立 bad case 归因机制。
+          0→1 主导淘宝 AI 导购产品：<b>AI 收藏合辑</b>（LLM 理解收藏，自动生成兴趣合辑）、<b>AI 足迹推荐</b>、<b>AI 种草</b>。与算法团队协作 Prompt/上下文策略和 Qwen3 SFT 后训练，搭建 GSB 评测体系和 bad case 归因机制。
         </div>
         <div class="exp-result">badcase 率 26%→8% · 分类准确性 56%→98% · 0→1 AI 原生导购体验落地</div>
         <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
@@ -740,7 +739,7 @@
       <div class="exp-item">
         <div class="exp-name"><a href="https://apps.apple.com/cn/app/%E6%B7%98%E5%AE%9D-%E4%B8%87%E8%83%BD%E7%9A%84%E6%B7%98%E5%AE%9D/id387682726" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dashed var(--line);">手机淘宝端改版</a> <span class="exp-tag">亿级 DAU</span></div>
         <div class="exp-desc">
-          主牵手淘核心场域改版（首页 / 消息 / 我淘），覆盖 10 亿用户。基于用户分层研究（性别/消费力/平台会员/画像标签等）定义差异化体验策略；优化 DAC、体验满意度指标，通过 A/B 实验数据驱动方案迭代。同时多次担任双11、618大促 PM，负责搜推、市场、营销、互动多场域流量分发和落地。
+          主牵手淘核心场域改版（首页 / 消息 / 我淘），覆盖 10 亿用户。基于用户分层定义差异化体验策略，A/B 实验驱动迭代。多次担任双11、618 大促 PM，负责多场域流量分发。
         </div>
         <div class="exp-result">策略覆盖 10 亿用户 · 大盘成交指标显著正向 · 双11 核心场域效率显著提升</div>
         <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
@@ -873,9 +872,8 @@
       </div>
       <h3>不是所有 Token 都一样值钱。</h3>
       <div class="j-prose">
-        <p>Token 是 AI 时代的算力单位。但同样一份 Token 的成本，在不同产品里换回的价值天差地别。</p>
-        <p>让 Token 单价变贵的关键，不在于换什么模型，而在于这份 Token 嵌入了多深的产业链——它能撬动多大的下游决策、是否带着不可复制的上下文、是否替用户完成了真实世界的动作。</p>
-        <p>一个 Token 触发闲聊回答、触发一次推荐、触发一份合同——成本可能差不多，价值差几个数量级。<em>这是 AI 时代产品经理必须算的商业账</em>。</p>
+        <p>同一份 Token 成本，触发闲聊和触发交易——价值差几个数量级。</p>
+        <p>关键不在模型，而在 Token 嵌入产业链的深度：它撬动多大的下游决策、带着多少不可复制的上下文、是否替用户完成了真实世界的动作。<em>模型决定成本，产品决定价值</em>。</p>
       </div>
       <div class="j-fig">
         <div class="j-fig-label"><span class="n">图 01</span> · Token 嵌入产业链的深度</div>
@@ -917,9 +915,8 @@
       </div>
       <h3>席位生意在被结果生意替代。</h3>
       <div class="j-prose">
-        <p>SaaS 时代的标准生意是按席位卖工具。AI 让另一种生意变得可能：<em>直接卖结果</em>。</p>
-        <p>这次 AI 革命的本质，不是肌肉劳动的效率变革，而是<em>知识劳动的指数级提升</em>。当一个 AI 可以独立完成一份法律咨询、一篇分析报告、一段视频内容——"卖工具席位"就不再成立。</p>
-        <p>对个人用户，付费对象从生成工具变成内容本身。对企业用户，Harvey 让"AI 律所"成为可能，直接卖法律咨询，而不是卖工具席位。</p>
+        <p>AI 让知识劳动指数级提升。当 AI 可以独立完成法律咨询、分析报告、视频内容——按席位卖工具不再成立，<em>直接卖结果</em>成为可能。</p>
+        <p>Harvey 卖法律咨询而非工具席位；可灵/即梦卖内容本身。付费对象从工具迁移到交付物。</p>
       </div>
       <div class="j-fig">
         <div class="j-fig-label"><span class="n">图 02</span> · 席位生意 vs 结果生意</div>
@@ -1007,8 +1004,8 @@
       </div>
       <h3>Agent = Model + Harness</h3>
       <div class="j-prose">
-        <p>Anthropic（Claude Code、Cowork）和 OpenAI（Operator、Codex）验证了同一件事——模型进入应用层的方式不是简单包一层 UI，而是一整套 Harness 工程：memory、工具调用、MCP、multi-agent 编排。</p>
-        <p>更长期的想象空间是产品形态本身——单人使用时，agent 是你的下属；但当 harness 走向团队、组织时，它会演化成什么，<em>还没有成熟的范式</em>。</p>
+        <p>Claude Code、Cowork、Codex 验证了同一件事——模型进入应用层靠的不是套 UI，而是 Harness 工程：memory、工具调用、MCP、multi-agent。</p>
+        <p>单人时 agent 是下属；走向团队和组织时会演化成什么，<em>还没有成熟范式</em>。</p>
       </div>
       <div class="j-fig">
         <div class="j-fig-label"><span class="n">图 04</span> · Model + Harness = Agent</div>
