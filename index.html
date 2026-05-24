@@ -74,11 +74,10 @@
 
   /* ── HERO ── */
   .hero {
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 120px 0 80px;
+    padding: 100px 0 60px;
   }
   .hero-eyebrow {
     font-family: var(--mono);
@@ -645,61 +644,32 @@
 
   <!-- ═══ HERO ═══ -->
   <section class="hero">
-    <div style="display:flex;gap:28px;margin-bottom:24px;align-items:flex-start;flex-wrap:wrap;">
+    <!-- 介绍 -->
+    <div style="display:flex;gap:28px;margin-bottom:20px;align-items:flex-start;flex-wrap:wrap;">
       <img src="avatar.jpg" alt="Q" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:2px solid var(--line);flex-shrink:0;">
       <div style="flex:1;min-width:240px;">
-        <h1 style="font-size:clamp(32px,5vw,44px);margin:0 0 12px;">Hi, I'm Q 👋</h1>
+        <h1 style="font-size:clamp(32px,5vw,44px);margin:0 0 10px;">Hi, I'm Q 👋</h1>
         <p class="hero-desc" style="margin-bottom:0;">
           AI Native PM。负责过手淘亿级用户 App 改版和 AI 原生导购应用，创业阶段从 0 到 1 把产品做到被收购。现在聚焦 Agent 产品在用户场景的落地。
         </p>
       </div>
     </div>
-    <div class="hero-meta">
-      <div>
-        <div class="hero-stat-val">9 年+</div>
-        <div class="hero-stat-label">产品经验</div>
-      </div>
-      <div>
-        <div class="hero-stat-val">亿级</div>
-        <div class="hero-stat-label">DAU 场景</div>
-      </div>
-      <div>
-        <div class="hero-stat-val">600—1000万</div>
-        <div class="hero-stat-label">月 Token 使用量</div>
-      </div>
+
+    <!-- 标签 -->
+    <div class="skills" style="margin-bottom:24px;">
+      <span class="skill pri">9 年+产品经验</span>
+      <span class="skill pri">亿级 DAU</span>
+      <span class="skill pri">月耗 600—1000 万 Token</span>
+      <span class="skill">AI 原生应用</span>
+      <span class="skill">创业 0→1 到被收购</span>
+      <span class="skill">Agent 工作流</span>
     </div>
 
-    <!-- Agent Card -->
-    <div class="agent-card">
-      <div class="agent-header">
-        <span class="agent-title">让 AI 帮你了解我</span>
-        <div class="agent-tabs">
-          <button class="agent-tab active" onclick="switchAgentTab('cc')">Claude Code</button>
-          <button class="agent-tab" onclick="switchAgentTab('codex')">Codex</button>
-          <button class="agent-tab" onclick="switchAgentTab('claw')">OpenClaw</button>
-        </div>
-      </div>
-      <div class="agent-body">
-        <div class="agent-comment" id="agent-comment"></div>
-        <div class="agent-prompt" id="agent-prompt"></div>
-        <button class="agent-copy" id="agent-copy" onclick="copyAgentPrompt()">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          COPY
-        </button>
-      </div>
-      <div class="agent-hint">
-        复制这段话到你常用的 AI 助手，粘贴你的 JD，它会自动读取简历并评估匹配度。
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ═══ EXPERIENCE ═══ -->
-  <section class="section" id="work">
-    <div style="margin-bottom:40px;padding:24px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+    <!-- Looking for / What I bring -->
+    <div style="margin-bottom:24px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:32px;">
       <div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:12px;">I'm looking for</div>
-        <ul style="font-family:var(--serif);font-size:14px;line-height:2;color:#555;list-style:none;padding:0;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:10px;">I'm looking for</div>
+        <ul style="font-family:var(--serif);font-size:13px;line-height:1.9;color:#555;list-style:none;padding:0;">
           <li>更 AI Native 的工作方式</li>
           <li>发现用户场景中有想象力的事情</li>
           <li>不限 B 端 / C 端、Enterprise / Prosumer</li>
@@ -707,8 +677,8 @@
         </ul>
       </div>
       <div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:12px;">What I bring</div>
-        <ul style="font-family:var(--serif);font-size:14px;line-height:2;color:#555;list-style:none;padding:0;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:10px;">What I bring</div>
+        <ul style="font-family:var(--serif);font-size:13px;line-height:1.9;color:#555;list-style:none;padding:0;">
           <li>AI 能力 → 用户价值的判断力</li>
           <li>0→1 到规模化的完整经验</li>
           <li>审美与交互细节兼具的产品设计</li>
@@ -717,6 +687,28 @@
         </ul>
       </div>
     </div>
+
+    <!-- Agent Card (compact) -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--dim);padding:12px 16px;border:1px solid var(--line);background:var(--warm);">
+      <span style="font-family:var(--sans);font-weight:700;font-size:12px;color:var(--ink);">让 AI 帮你了解我</span>
+      <span style="color:var(--dim2);">—</span>
+      <div class="agent-tabs" style="display:flex;gap:0;">
+        <button class="agent-tab active" onclick="switchAgentTab('cc')" style="font-size:10px;padding:2px 8px;">Claude Code</button>
+        <button class="agent-tab" onclick="switchAgentTab('codex')" style="font-size:10px;padding:2px 8px;">Codex</button>
+        <button class="agent-tab" onclick="switchAgentTab('claw')" style="font-size:10px;padding:2px 8px;">OpenClaw</button>
+      </div>
+      <div style="flex:1;min-width:200px;font-size:11px;color:var(--dim2);" id="agent-comment"></div>
+      <button class="agent-copy" id="agent-copy" onclick="copyAgentPrompt()" style="position:static;padding:3px 8px;font-size:9px;">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        COPY
+      </button>
+    </div>
+    <div id="agent-prompt" style="display:none;"></div>
+
+  </section>
+
+  <!-- ═══ EXPERIENCE ═══ -->
+  <section class="section" id="work">
 
     <!-- 阿里 端产品 -->
     <div class="exp">
