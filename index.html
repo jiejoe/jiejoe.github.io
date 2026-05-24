@@ -797,8 +797,29 @@
       <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-bottom:6px;letter-spacing:0.08em;">AI</div>
       <div class="skills" style="margin-top:0;">
         <span class="skill pri clickable" onclick="var v=document.getElementById('vibe-video');v.classList.toggle('show');this.classList.toggle('active')">Vibe Coding</span>
-        <span class="skill pri">个人 Harness</span>
+        <span class="skill pri clickable" onclick="var v=document.getElementById('harness-detail');v.classList.toggle('show');this.classList.toggle('active')">个人 Harness</span>
         <span class="skill pri">Context Engineering</span>
+      </div>
+      <div class="vibe-video-wrap" id="harness-detail" style="text-align:left;">
+        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+          <div style="flex:1;min-width:260px;">
+            <div style="font-family:var(--sans);font-weight:700;font-size:13px;margin-bottom:10px;">OpenClaw 深度实践 · 2025.01 — 2025.03</div>
+            <div style="font-family:var(--sans);font-size:12px;line-height:1.8;color:#555;">
+              <p style="margin-bottom:8px;">将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具高频使用。</p>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-family:var(--mono);font-size:11px;margin-bottom:10px;">
+                <span style="color:var(--dim2);">Token</span><span>月消耗 600 万 — 1000 万</span>
+                <span style="color:var(--dim2);">模型</span><span>前期 Claude Opus → 自建智能路由（Qwen 3.6 + DeepSeek V4）</span>
+                <span style="color:var(--dim2);">工具链</span><span>Discord 多频道多 Agent 编排（搞钱的 / 花钱的 / 做个 Builder）</span>
+                <span style="color:var(--dim2);">现在</span><span>回到 Claude Code，更深入 Harness 工程实践</span>
+              </div>
+              <p style="font-size:11px;color:var(--dim);">从用户视角验证 Agent 产品的真实痛点：上下文污染、多轮累积误差、成本与效果的平衡。</p>
+            </div>
+          </div>
+          <div style="flex:0 0 auto;max-width:160px;">
+            <img src="harness-discord.png" alt="Discord multi-agent workspace" style="width:100%;border-radius:8px;border:1px solid var(--line);">
+            <p style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-top:4px;text-align:center;">Discord 工作空间</p>
+          </div>
+        </div>
       </div>
       <div class="vibe-video-wrap" id="vibe-video">
         <img src="vibe-commits.png" alt="454 contributions on OneDay" style="width:100%;max-width:480px;border-radius:6px;border:1px solid var(--line);">
