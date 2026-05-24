@@ -411,6 +411,8 @@
   }
   .skill:hover { border-color: var(--ink); }
   .skill.pri { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .skill.sec { background: #444; color: var(--paper); border-color: #444; }
+  .skill.soft { background: none; color: var(--dim); border-color: var(--dim2); border-style: dashed; }
 
   /* ── MEDIA GALLERY (click to reveal) ── */
   .exp-gallery {
@@ -792,21 +794,37 @@
     <!-- Skills -->
     <div style="margin-top:48px;">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:12px;">Skills</div>
-      <div class="skills">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-bottom:6px;letter-spacing:0.08em;">AI</div>
+      <div class="skills" style="margin-top:0;">
         <span class="skill pri">Prompt Engineering</span>
         <span class="skill pri clickable" onclick="var v=document.getElementById('vibe-video');v.classList.toggle('show');this.classList.toggle('active')">Vibe Coding</span>
         <span class="skill pri">个人 Harness</span>
-        <span class="skill">Context Engineering</span>
-        <span class="skill">商业分析</span>
-        <span class="skill">用户研究</span>
-        <span class="skill">交互体验</span>
-        <span class="skill">评测体系</span>
-        <span class="skill">A/B 实验</span>
-        <span class="skill">产品运营</span>
+        <span class="skill pri">Context Engineering</span>
       </div>
       <div class="vibe-video-wrap" id="vibe-video">
-        <video src="vibe-demo.mov" autoplay loop muted playsinline></video>
-        <p>Vibe Coding 产出 · AI 宠物伴侣 App 角色动画</p>
+        <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
+          <div>
+            <video src="vibe-demo.mov" autoplay loop muted playsinline></video>
+            <p>AI 陪伴玩具探索 · Vibe Coding 产出</p>
+          </div>
+          <div style="flex:1;min-width:240px;">
+            <img src="vibe-commits.png" alt="454 contributions on OneDay" style="width:100%;border-radius:6px;border:1px solid var(--line);">
+            <p style="margin-top:6px;">内部 AI 社群早期 Contributor · 2025 年初开始高频 AI Coding</p>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-top:14px;margin-bottom:6px;letter-spacing:0.08em;">产品方法</div>
+      <div class="skills" style="margin-top:0;">
+        <span class="skill sec">商业分析</span>
+        <span class="skill sec">用户研究</span>
+        <span class="skill sec">评测体系</span>
+        <span class="skill sec">A/B 实验</span>
+        <span class="skill">交互体验</span>
+        <span class="skill">产品运营</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-top:14px;margin-bottom:6px;letter-spacing:0.08em;">特质</div>
+      <div class="skills" style="margin-top:0;">
+        <span class="skill soft">好奇心</span>
       </div>
     </div>
 
