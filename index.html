@@ -103,25 +103,26 @@
     margin-bottom: 40px;
   }
   .hero-meta {
-    display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
-    padding-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 28px 0;
     border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
   }
   .hero-stat-val {
     font-family: var(--sans);
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.5px;
+    margin-bottom: 4px;
   }
   .hero-stat-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-family: var(--serif);
+    font-size: 13px;
     color: var(--dim);
-    margin-top: 2px;
+    line-height: 1.5;
   }
 
   /* ── SECTIONS ── */
@@ -650,7 +651,7 @@
       <div style="flex:1;min-width:240px;">
         <h1 style="font-size:clamp(32px,5vw,44px);margin:0 0 12px;">Hi, I'm Q 👋</h1>
         <p style="font-family:var(--serif);font-size:15px;line-height:1.9;color:#444;margin-bottom:0;">
-          做过两种产品：手淘亿级用户改版，和从零开始的创业工具（后被收购）。近几年在 AI 应用层，从千问大模型导购到 Agent 工作流，关注的问题是——怎么让 AI 不只是对话，而是真正替用户完成事情。
+          负责过手淘核心场域改版和 AI 导购产品，创业从 0 到 1 把一个设计师工具做到被收购。现在聚焦 Agent 产品怎么真正进入用户场景——不只是聊天做事，而是与人协作，成为超级智能体。
         </p>
       </div>
     </div>
@@ -658,16 +659,16 @@
     <!-- 标签 -->
     <div class="hero-meta">
       <div>
-        <div class="hero-stat-val">亿级</div>
-        <div class="hero-stat-label">DAU 用户产品</div>
+        <div class="hero-stat-val">亿级 DAU</div>
+        <div class="hero-stat-label">手淘核心场域改版</div>
       </div>
       <div>
-        <div class="hero-stat-val">AI 原生</div>
-        <div class="hero-stat-label">应用</div>
+        <div class="hero-stat-val">AI 原生应用</div>
+        <div class="hero-stat-label">千问大模型导购</div>
       </div>
       <div>
-        <div class="hero-stat-val">0→1</div>
-        <div class="hero-stat-label">创业到被收购</div>
+        <div class="hero-stat-val">0→1 到被收购</div>
+        <div class="hero-stat-label">设计师工具创业</div>
       </div>
       <div>
         <div class="hero-stat-val">600—1000万</div>
