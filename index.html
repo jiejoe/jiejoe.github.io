@@ -347,7 +347,7 @@
   .vstage.hi { background: var(--ink); color: var(--paper); }
   .vstage.hi .vstage-n { color: rgba(250,249,246,0.7); }
   .vstage.hi .vstage-eg { color: rgba(250,249,246,0.7); }
-  .varr { display: flex; align-items: center; font-family: var(--mono); color: var(--accent); font-size: 11px; padding: 0 2px; flex-shrink: 0; }
+  .varr { display: flex; align-items: center; justify-content: center; font-family: var(--mono); color: var(--accent); font-size: 14px; padding: 0 4px; flex-shrink: 0; line-height: 1; }
   .vaxis { margin-top: 10px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9.5px; color: var(--dim); letter-spacing: 0.08em; text-transform: uppercase; }
 
   /* two-col compare (fig 2) */
@@ -450,6 +450,37 @@
   .exp-toggle .arrow { transition: transform 0.2s; display: inline-block; font-size: 8px; }
   .exp-toggle.open .arrow { transform: rotate(90deg); }
   .exp-toggle.open { opacity: 0.7; }
+
+  /* ── CAROUSEL ── */
+  .carousel .carousel-track {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .carousel .carousel-track img {
+    width: 100%;
+    display: none;
+    border: none;
+    border-radius: 0;
+  }
+  .carousel .carousel-track img.active { display: block; }
+  .carousel .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .carousel .carousel-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .carousel .carousel-dots span.active { background: var(--ink); }
 
   /* ── VIBE VIDEO ── */
   .vibe-video-wrap {
@@ -636,7 +667,8 @@
 <nav class="nav">
   <div class="nav-logo">Q</div>
   <div class="nav-links">
-    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#practice">Practice</a>
     <a href="#thinking">Thinking</a>
     <a href="#contact">Contact</a>
     <a href="resume.md" target="_blank" style="opacity:0.5;font-size:9px;" title="Markdown for AI agents">·md</a>
@@ -653,7 +685,8 @@
       <div style="flex:1;min-width:240px;">
         <h1 style="font-size:clamp(32px,5vw,44px);margin:0 0 12px;">Hi, I'm Q 👋</h1>
         <p style="font-family:var(--serif);font-size:15px;line-height:1.9;color:#444;margin-bottom:0;">
-          负责过手淘核心场域改版和 AI 导购产品，创业从 0 到 1 把一个设计师工具做到被收购。现在聚焦 Agent 产品怎么真正进入用户场景——不只是聊天做事，而是与人协作，成为超级智能体。
+          负责过淘宝 App 改版和 AI 应用产品落地，创业阶段从 0 到 1 把一个设计师工具做到被收购。<br>
+          持续消耗 Token 在生活方式、生产力、社交、硬件等方向探索 AI 的新场景，正在寻找先进的团队，一起打造更 AI 原生的用户体验。
         </p>
       </div>
     </div>
@@ -707,13 +740,16 @@
 
   </section>
 
-  <!-- ═══ EXPERIENCE ═══ -->
-  <section class="section" id="work">
+  <!-- ═══ 01 ABOUT ME ═══ -->
+  <section class="section" id="about">
     <div class="section-head">
       <span class="section-num">01</span>
-      <span class="section-tag">Work</span>
+      <span class="section-tag">About Me</span>
     </div>
-    <h2>工作经历</h2>
+    <h2>关于我</h2>
+
+    <!-- Career -->
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:16px;">Career</div>
 
     <!-- 阿里 端产品 -->
     <div class="exp">
@@ -749,6 +785,11 @@
         <div class="exp-name">内网 AI Coding 创作工具 <span class="exp-tag">MAU 6W+</span></div>
         <div class="exp-desc">负责阿里内网 AI Coding 创作工具的产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。</div>
         <div class="exp-result">月活 6 万+ · 内部 AI 社群早期 Contributor</div>
+        <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
+        <div class="exp-gallery">
+          <img src="meoo-community.png" alt="Meoo 创意社区首页" loading="lazy">
+          <img src="meoo-coding.png" alt="Meoo AI Coding 创作界面" loading="lazy">
+        </div>
       </div>
     </div>
 
@@ -794,38 +835,9 @@
     <!-- Skills -->
     <div style="margin-top:48px;">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:12px;">Skills</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-bottom:6px;letter-spacing:0.08em;">AI</div>
       <div class="skills" style="margin-top:0;">
-        <span class="skill pri clickable" onclick="var v=document.getElementById('vibe-video');v.classList.toggle('show');this.classList.toggle('active')">Vibe Coding</span>
-        <span class="skill pri clickable" onclick="var v=document.getElementById('harness-detail');v.classList.toggle('show');this.classList.toggle('active')">个人 Harness</span>
+        <span class="skill pri">Vibe Coding</span>
         <span class="skill pri">Context Engineering</span>
-      </div>
-      <div class="vibe-video-wrap" id="harness-detail" style="text-align:left;">
-        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
-          <div style="flex:1;min-width:260px;">
-            <div style="font-family:var(--sans);font-weight:700;font-size:13px;margin-bottom:10px;">OpenClaw 深度实践 · 2025.01 — 2025.03</div>
-            <div style="font-family:var(--sans);font-size:12px;line-height:1.8;color:#555;">
-              <p style="margin-bottom:8px;">将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具爆发式使用。</p>
-              <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-family:var(--mono);font-size:11px;margin-bottom:10px;">
-                <span style="color:var(--dim2);">Token</span><span>月消耗 600 万 — 1000 万</span>
-                <span style="color:var(--dim2);">模型</span><span>前期 Claude Opus → 自建智能路由（Qwen 3.6 + DeepSeek V4）→ 现回到 Claude Code</span>
-                <span style="color:var(--dim2);">工具链</span><span>常用任务 × 频道：Discord（旅行、理财、教育、开发）、飞书（xhs 运营、调研、群聊）、微信（通知）</span>
-              </div>
-              <p style="font-size:11px;color:#555;margin-bottom:6px;">开始时收获大量 aha moment——AGI 真的要来了。但从用户视角看，要让更多人在生活中得到好的 AI 服务、在工作中真正能喝着咖啡管理好 AI，Harness 工程在上下文、记忆、协作等方面还有非常多工作要做。</p>
-            </div>
-          </div>
-          <div style="flex:0 0 auto;max-width:160px;">
-            <img src="harness-discord.png" alt="Discord multi-agent workspace" style="width:100%;border-radius:8px;border:1px solid var(--line);">
-            <p style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-top:4px;text-align:center;">Discord 工作空间</p>
-          </div>
-        </div>
-      </div>
-      <div class="vibe-video-wrap" id="vibe-video">
-        <img src="vibe-commits.png" alt="454 contributions on OneDay" style="width:100%;max-width:480px;border-radius:6px;border:1px solid var(--line);">
-        <p>内部 AI 社群早期 Contributor · 2025 年初开始高频 AI Coding</p>
-      </div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-top:14px;margin-bottom:6px;letter-spacing:0.08em;">产品能力</div>
-      <div class="skills" style="margin-top:0;">
         <span class="skill sec">用户场景</span>
         <span class="skill sec">商业分析</span>
         <span class="skill sec">用户研究</span>
@@ -833,17 +845,6 @@
         <span class="skill sec">评测体系</span>
         <span class="skill sec">A/B 实验</span>
         <span class="skill sec">产品运营</span>
-      </div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--dim2);margin-top:14px;margin-bottom:6px;letter-spacing:0.08em;">特质</div>
-      <div class="skills" style="margin-top:0;">
-        <span class="skill trait clickable" onclick="var v=document.getElementById('curiosity-video');v.classList.toggle('show');this.classList.toggle('active')">好奇心</span>
-        <span class="skill trait">动手派</span>
-        <span class="skill trait">直觉型</span>
-        <span class="skill trait">开发友好型</span>
-      </div>
-      <div class="vibe-video-wrap" id="curiosity-video">
-        <video src="vibe-demo.mov" autoplay loop muted playsinline></video>
-        <p>AI 陪伴玩具探索</p>
       </div>
     </div>
 
@@ -857,14 +858,78 @@
     </div>
   </section>
 
-  <!-- ═══ THINKING ═══ -->
-  <section class="section" id="thinking">
+  <!-- ═══ 02 PRACTICE ═══ -->
+  <section class="section" id="practice">
     <div class="section-head">
       <span class="section-num">02</span>
+      <span class="section-tag">Practice</span>
+    </div>
+    <h2>Side Projects</h2>
+    <p style="font-size:15px;color:#555;margin-bottom:48px;max-width:600px;">基于 OpenClaw 框架，在三个方向探索 Agent 产品如何进入真实生活场景。</p>
+
+    <!-- Project 1: 个人 Harness -->
+    <div class="exp-item" style="margin-bottom:28px;">
+      <div class="exp-name">个人 AI Harness <span class="exp-tag">生活方式 × 生产力</span></div>
+      <div class="exp-desc">
+        <b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br>
+        <b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br>
+        <b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。
+      </div>
+      <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
+      <div class="exp-gallery carousel" data-idx="0">
+        <div class="carousel-track">
+          <img src="harness-discord.png" alt="Discord multi-agent 工作空间" loading="lazy">
+        </div>
+        <div class="carousel-dots"></div>
+      </div>
+    </div>
+
+    <!-- Project 2: 数字分身旅行 -->
+    <div class="exp-item" style="margin-bottom:28px;">
+      <div class="exp-name">数字分身世界旅行实验 <span class="exp-tag">社交 × AIGC</span></div>
+      <div class="exp-desc">
+        <b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。<br>
+        <b>体验设计</b>：每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br>
+        <b>目标</b>：探索视频生成模型的能力边界，以及 AIGC 内容在社交平台的传播可能性。<br>
+        <b>结果</b>：因小红书账号关停，停止运营。验证了当前视频生成在一致性和真实感上的局限。
+      </div>
+      <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
+      <div class="exp-gallery carousel" data-idx="0">
+        <div class="carousel-track">
+          <img src="travel-twin.jpg" alt="数字分身旅行照片" loading="lazy">
+        </div>
+        <div class="carousel-dots"></div>
+      </div>
+    </div>
+
+    <!-- Project 3: 陪伴硬件 -->
+    <div class="exp-item" style="margin-bottom:28px;">
+      <div class="exp-name">AI 陪伴硬件 <span class="exp-tag">陪伴 × 硬件</span></div>
+      <div class="exp-desc">
+        <b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br>
+        <b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br>
+        <b>进度</b>：已有可用的 App 原型和交互 Demo，硬件仍在迭代中。
+      </div>
+      <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
+      <div class="exp-gallery carousel" data-idx="0">
+        <div class="carousel-track">
+          <img src="companion-app.png" alt="萌伴 App 首页" loading="lazy">
+          <img src="companion-call.png" alt="萌伴语音通话界面" loading="lazy">
+          <img src="companion-icon.png" alt="萌伴 App 图标" loading="lazy">
+        </div>
+        <div class="carousel-dots"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 03 THINKING ═══ -->
+  <section class="section" id="thinking">
+    <div class="section-head">
+      <span class="section-num">03</span>
       <span class="section-tag">Thinking</span>
     </div>
     <h2>最近的思考</h2>
-    <p style="font-size:16px;color:#555;margin-bottom:48px;max-width:560px;">在电商和 AI 应用层做产品的过程中，反复在想的一些事。</p>
+    <p style="font-size:16px;color:#555;margin-bottom:48px;max-width:560px;">与你分享我最近的产品思考。</p>
 
     <!-- 判断 1 -->
     <div class="judgment">
@@ -1086,7 +1151,7 @@
   <!-- ═══ CONTACT ═══ -->
   <section class="contact" id="contact">
     <div class="section-head">
-      <span class="section-num">03</span>
+      <span class="section-num">04</span>
       <span class="section-tag">Contact</span>
     </div>
     <div class="contact-grid">
@@ -1162,6 +1227,36 @@
   // init
   document.getElementById('agent-comment').textContent = prompts.cc.comment;
   document.getElementById('agent-prompt').innerHTML = prompts.cc.html;
+
+  // carousel init
+  document.querySelectorAll('.carousel').forEach(function(c) {
+    var imgs = c.querySelectorAll('.carousel-track img');
+    var dots = c.querySelector('.carousel-dots');
+    if (!imgs.length) return;
+    imgs[0].classList.add('active');
+    imgs.forEach(function(img, i) {
+      var dot = document.createElement('span');
+      if (i === 0) dot.classList.add('active');
+      dot.onclick = function() { showSlide(c, i); };
+      dots.appendChild(dot);
+    });
+    if (imgs.length > 1) {
+      c.querySelector('.carousel-track').onclick = function() {
+        var idx = parseInt(c.dataset.idx || 0);
+        showSlide(c, (idx + 1) % imgs.length);
+      };
+    }
+  });
+
+  function showSlide(c, idx) {
+    c.dataset.idx = idx;
+    c.querySelectorAll('.carousel-track img').forEach(function(img, i) {
+      img.classList.toggle('active', i === idx);
+    });
+    c.querySelectorAll('.carousel-dots span').forEach(function(dot, i) {
+      dot.classList.toggle('active', i === idx);
+    });
+  }
 })();
 </script>
 </body>
