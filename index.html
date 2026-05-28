@@ -769,6 +769,27 @@
   }
   .agent-copy:hover { color: var(--ink); border-color: var(--ink); }
   .agent-copy.copied { color: var(--accent); border-color: var(--accent); }
+  .copy-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    z-index: 300;
+    transform: translate(-50%, 12px);
+    opacity: 0;
+    pointer-events: none;
+    padding: 8px 14px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .copy-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
   .agent-hint {
     padding: 10px 20px 14px;
     font-family: var(--mono);
@@ -778,7 +799,6 @@
     border-top: 1px solid var(--line);
     letter-spacing: 0.02em;
   }
-
   /* ── CONTACT ── */
   .contact {
     padding: 60px 0;
@@ -1093,8 +1113,7 @@
           <b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br>
           <b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br>
           <b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。对比了 1.5 到 2.0 不同版本在人物一致性、场景连贯性和动作自然度上的差异。<br><br>
-          <b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，让 AI 尝试了多种故事线——旅行美食打卡、美妙邂逅、旅居悬疑。在内容和图片生成上学习了小红书上旅行博主的排版和内容表达，发布后获得了真人的互动回复。<br><br>
-          <b>产品机制</b>：搭建了定时任务系统，按时区自动发布内容；设计了人物情绪状态机，让角色在不同城市表现出不同的性格面。整套流程从脚本生成、素材制作到发布基本跑通了自动化。
+          <b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，让 AI 尝试了多种故事线——旅行美食打卡、美妙邂逅、旅居悬疑。在内容和图片生成上学习了小红书上旅行博主的排版和内容表达，发布后获得了真人的互动回复。
         </div>
       </div>
     </div>
@@ -1432,6 +1451,7 @@
 <div class="lightbox" id="lightbox" aria-hidden="true">
   <img src="" alt="">
 </div>
+<div class="copy-toast" id="copy-toast" role="status" aria-live="polite">复制成功</div>
 
 <script>
 function switchTab(idx) {
@@ -1442,6 +1462,14 @@ function closeLightbox() {
   var box = document.getElementById('lightbox');
   box.classList.remove('open');
   box.setAttribute('aria-hidden', 'true');
+}
+function showCopyToast() {
+  var toast = document.getElementById('copy-toast');
+  toast.classList.add('show');
+  clearTimeout(window.copyToastTimer);
+  window.copyToastTimer = setTimeout(function() {
+    toast.classList.remove('show');
+  }, 1600);
 }
 (function(){
   document.querySelectorAll('.zoomable').forEach(function(img) {
@@ -1468,8 +1496,8 @@ function closeLightbox() {
     },
     codex: {
       comment: '# 复制到 Codex，粘贴你的 JD 即可评估',
-      html: '<span class="p-str">Fetch </span><span class="p-url">' + base + '</span><span class="p-str"> 了解候选人 Q 的背景，</span><br><span class="p-str">评估优势、差距和岗位匹配度：</span><br><span class="p-place">[粘贴你的 JD]</span>',
-      text: 'Fetch ' + base + ' 了解候选人 Q 的背景，\n评估优势、差距和岗位匹配度：\n[粘贴你的 JD]'
+      html: '<span class="p-str">Fetch </span><span class="p-url">' + base + '</span><span class="p-str"> 了解候选人 Q 的背景，</span><br><span class="p-str">评估优势和岗位匹配度：</span><br><span class="p-place">[粘贴你的 JD]</span>',
+      text: 'Fetch ' + base + ' 了解候选人 Q 的背景，\n评估优势和岗位匹配度：\n[粘贴你的 JD]'
     },
     claw: {
       comment: '# 复制到 OpenClaw，粘贴你的 JD 即可评估',
@@ -1492,10 +1520,25 @@ function closeLightbox() {
 
   window.copyAgentPrompt = function() {
     var text = prompts[current].text;
-    navigator.clipboard.writeText(text).then(function(){
+    function fallbackCopy() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    var write = navigator.clipboard && navigator.clipboard.writeText
+      ? navigator.clipboard.writeText(text).catch(fallbackCopy)
+      : Promise.resolve().then(fallbackCopy);
+    write.then(function(){
       var btn = document.getElementById('agent-copy');
       btn.classList.add('copied');
       btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+      showCopyToast();
       setTimeout(function(){
         btn.classList.remove('copied');
         btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy';

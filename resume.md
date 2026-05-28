@@ -86,8 +86,6 @@ AI dreaming — what if a parallel-world version of me were traveling the world?
 
 **Content creation**: Used LLM to generate travel storylines and lifestyle copy. Had AI explore multiple narrative threads — travel food reviews, chance encounters, expat mystery stories. Studied real Xiaohongshu travel bloggers' layout and content style for both text and image generation. Published content received genuine engagement and replies from real users.
 
-**Product mechanism**: Built scheduled task system for timezone-aware auto-publishing. Designed character emotion state machine for personality variation across cities. End-to-end pipeline from script generation → asset creation → publishing was mostly automated.
-
 ### Personal AI Harness (Productivity · Daily Life)
 
 Moved all daily AI needs (chat, image editing, drawing, coding) entirely to OpenClaw for two consecutive months as primary tool.
