@@ -19,6 +19,10 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+  html,
+  body {
+    overflow-x: hidden;
+  }
   body {
     background: var(--paper);
     color: var(--ink);
@@ -70,6 +74,7 @@
     max-width: 740px;
     margin: 0 auto;
     padding: 0 clamp(20px, 4vw, 24px);
+    width: 100%;
   }
 
   /* ── HERO ── */
@@ -126,6 +131,9 @@
     text-transform: uppercase;
     color: var(--dim);
   }
+  .hero-stat {
+    min-width: 0;
+  }
 
   /* ── SECTIONS ── */
   .section {
@@ -139,6 +147,133 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 40px;
+  }
+  .section-icons {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    margin-left: 12px;
+    vertical-align: middle;
+  }
+  .section-icons img {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    object-fit: cover;
+  }
+
+  /* ── PRACTICE TABS ── */
+  .practice-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 36px;
+  }
+  .practice-tab {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 10px 18px;
+    cursor: pointer;
+    color: var(--dim);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .practice-tab:hover { color: var(--ink); }
+  .practice-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .practice-panel { display: none; }
+  .practice-panel.active { display: block; }
+  .practice-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  .practice-card-media img,
+  .practice-card-media video {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    object-fit: cover;
+  }
+  .practice-card-media .media-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .practice-card-media .media-grid img,
+  .practice-card-media .media-grid video {
+    aspect-ratio: 9/16;
+    object-fit: cover;
+  }
+  .practice-card-media .travel-grid img {
+    aspect-ratio: 9/16;
+    object-position: top;
+    cursor: zoom-in;
+  }
+  .practice-card-media .productivity-shot {
+    display: block;
+    width: min(72%, 300px);
+    margin: 0 auto;
+  }
+  .practice-card-media .harness-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .practice-card-media .harness-grid img {
+    aspect-ratio: 1/2;
+    object-position: top;
+    cursor: zoom-in;
+  }
+  .practice-card-media .companion-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .practice-card-media .companion-grid img,
+  .practice-card-media .companion-grid video {
+    aspect-ratio: 1/2;
+  }
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(17, 17, 17, 0.82);
+    cursor: zoom-out;
+  }
+  .lightbox.open {
+    display: flex;
+  }
+  .lightbox img {
+    max-width: min(92vw, 980px);
+    max-height: 88vh;
+    border-radius: 8px;
+    object-fit: contain;
+    background: var(--paper);
+  }
+  .practice-card-text { font-size: 14px; line-height: 1.8; color: #444; }
+  .practice-card-text h3 {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--ink);
+  }
+  .practice-card-text .tag-line {
+    margin-bottom: 14px;
+  }
+  @media (max-width: 600px) {
+    .practice-card { grid-template-columns: 1fr; }
   }
   .section-num {
     font-family: var(--mono);
@@ -402,6 +537,47 @@
   .design li::before { content: "—"; position: absolute; left: 0; color: var(--dim); }
   .design li strong { font-weight: 500; }
 
+  /* aha moments (fig 6) */
+  .aha-points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .aha-point {
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    padding: 14px 12px;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+  }
+  .aha-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .aha-title {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .aha-desc {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--dim);
+  }
+
   /* ── SKILLS ── */
   .skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   .skill {
@@ -644,15 +820,28 @@
   @media (max-width: 640px) {
     .hero { min-height: auto; padding: 100px 0 60px; }
     .hero h1 { font-size: 32px; }
+    .hero-meta {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 24px;
+    }
+    .hero-stat-val {
+      font-size: 17px;
+      white-space: normal;
+    }
     .section { padding: 56px 0; }
     .vflow { flex-direction: column; gap: 3px; }
     .varr { transform: rotate(90deg); padding: 2px 0; }
     .compare { grid-template-columns: 1fr; }
     .cmp-arr { transform: rotate(90deg); padding: 4px 0; }
+    .aha-points { grid-template-columns: 1fr; }
     .harness-grid { grid-template-columns: 1fr; }
     #value > div { grid-template-columns: 1fr !important; }
-    .nav-links { gap: 16px; }
-    .nav-links a { font-size: 10px; }
+    .nav { padding: 0 14px; }
+    .nav-links { gap: 12px; min-width: 0; }
+    .nav-links a { font-size: 9px; letter-spacing: 0.03em; }
+    .practice-card-media .productivity-shot {
+      width: min(66%, 240px);
+    }
   }
   @media print {
     .nav { display: none; }
@@ -748,7 +937,10 @@
     <h2>关于我</h2>
 
     <!-- Career -->
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);margin-bottom:16px;">Career</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim2);">Career</span>
+      <span class="section-icons"><img src="icon-taobao.png" alt="淘宝" title="淘宝"><img src="icon-oneday.png" alt="OneDay" title="OneDay"><img src="icon-homestyler.png" alt="Homestyler" title="Homestyler"><img src="icon-meijian.png" alt="美间" title="美间"></span>
+    </div>
 
     <!-- 阿里 端产品 -->
     <div class="exp">
@@ -870,60 +1062,81 @@
       <span class="section-num">02</span>
       <span class="section-tag">Practice</span>
     </div>
-    <h2>AI 应用实践</h2>
-    <p style="font-size:15px;color:#555;margin-bottom:48px;max-width:600px;">基于 OpenClaw 框架，探索 Agent 产品如何进入真实用户场景。</p>
+    <h2>探索与实践</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+      <p style="font-size:15px;color:#555;margin:0;max-width:600px;">基于 OpenClaw 框架，探索 Agent 产品如何进入真实用户场景。</p>
+      <span class="section-icons"><img src="icon-openclaw.png" alt="OpenClaw" title="OpenClaw"><img src="icon-travel.png" alt="分身旅行" title="分身旅行"><img src="icon-companion.png" alt="萌伴" title="萌伴"></span>
+    </div>
 
-    <!-- Project 1: 个人 Harness -->
-    <div class="exp-item" style="margin-bottom:28px;">
-      <div class="exp-name"><span class="exp-tag" style="font-size:12px;padding:3px 10px;margin-left:0;margin-right:8px;">生活场景 · 生产力</span>个人 AI Harness</div>
-      <div class="exp-desc">
-        <b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br>
-        <b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br>
-        <b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。
-      </div>
-      <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
-      <div class="exp-gallery carousel" data-idx="0">
-        <div class="carousel-track">
-          <img src="harness-discord.png" alt="Discord multi-agent 工作空间" loading="lazy">
+    <div class="practice-tabs">
+      <button class="practice-tab active" onclick="switchTab(0)">社交 · AIGC</button>
+      <button class="practice-tab" onclick="switchTab(1)">生活场景 · 生产力</button>
+      <button class="practice-tab" onclick="switchTab(2)">陪伴 · 硬件</button>
+    </div>
+
+    <!-- Tab 0: 数字分身旅行 -->
+    <div class="practice-panel active" data-tab="0">
+      <div class="practice-card">
+        <div class="practice-card-media">
+          <div class="media-grid travel-grid" style="grid-template-columns:1fr 1fr 1fr;">
+            <img class="zoomable" src="travel-xhs.png" alt="另一个Q 小红书主页" loading="lazy">
+            <img class="zoomable" src="travel-note.png" alt="巴黎旅行笔记" loading="lazy">
+            <img class="zoomable" src="travel-profile-grid.jpg" alt="另一个我 巴黎主页照片墙" loading="lazy">
+            <img class="zoomable" src="travel-snow-note.jpg" alt="另一个我 巴黎雪天日记" loading="lazy">
+            <img class="zoomable" src="travel-wallet.jpg" alt="另一个我 巴黎旅行花费" loading="lazy">
+            <img class="zoomable" src="travel-map.png" alt="另一个我 旅行地图" loading="lazy">
+          </div>
         </div>
-        <div class="carousel-dots"></div>
+        <div class="practice-card-text">
+          <h3>数字分身世界旅行实验</h3>
+          <div class="tag-line"><span class="exp-tag" style="font-size:11px;padding:2px 8px;">社交 · AIGC</span></div>
+          <b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br>
+          <b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br>
+          <b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。对比了 1.5 到 2.0 不同版本在人物一致性、场景连贯性和动作自然度上的差异。<br><br>
+          <b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，让 AI 尝试了多种故事线——旅行美食打卡、美妙邂逅、旅居悬疑。在内容和图片生成上学习了小红书上旅行博主的排版和内容表达，发布后获得了真人的互动回复。<br><br>
+          <b>产品机制</b>：搭建了定时任务系统，按时区自动发布内容；设计了人物情绪状态机，让角色在不同城市表现出不同的性格面。整套流程从脚本生成、素材制作到发布基本跑通了自动化。
+        </div>
       </div>
     </div>
 
-    <!-- Project 2: 数字分身旅行 -->
-    <div class="exp-item" style="margin-bottom:28px;">
-      <div class="exp-name"><span class="exp-tag" style="font-size:12px;padding:3px 10px;margin-left:0;margin-right:8px;">社交 · AIGC</span>数字分身世界旅行实验</div>
-      <div class="exp-desc">
-        <b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。<br>
-        <b>体验设计</b>：每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br>
-        <b>目标</b>：探索视频生成模型的能力边界，以及 AIGC 内容在社交平台的传播可能性。<br>
-        <b>结果</b>：因小红书账号关停，停止运营。验证了当前视频生成在一致性和真实感上的局限。
-      </div>
-      <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
-      <div class="exp-gallery carousel" data-idx="0">
-        <div class="carousel-track">
-          <img src="travel-twin.jpg" alt="数字分身旅行照片" loading="lazy">
+    <!-- Tab 1: 个人 Harness -->
+    <div class="practice-panel" data-tab="1">
+      <div class="practice-card">
+        <div class="practice-card-media">
+          <div class="media-grid harness-grid">
+            <img class="zoomable" src="harness-discord.png" alt="Discord multi-agent 工作空间" loading="lazy">
+            <img class="zoomable" src="harness-mobile-1.png" alt="个人 Harness 移动端工作流" loading="lazy">
+            <img class="zoomable" src="harness-mobile-2.png" alt="个人 Harness 移动端频道" loading="lazy">
+          </div>
         </div>
-        <div class="carousel-dots"></div>
+        <div class="practice-card-text">
+          <h3>个人 AI Harness</h3>
+          <div class="tag-line"><span class="exp-tag" style="font-size:11px;padding:2px 8px;">生活场景 · 生产力</span></div>
+          <b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br><br>
+          <b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br><br>
+          <b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。
+        </div>
       </div>
     </div>
 
-    <!-- Project 3: 陪伴硬件 -->
-    <div class="exp-item" style="margin-bottom:28px;">
-      <div class="exp-name"><span class="exp-tag" style="font-size:12px;padding:3px 10px;margin-left:0;margin-right:8px;">陪伴 · 硬件</span>AI 陪伴硬件</div>
-      <div class="exp-desc">
-        <b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br>
-        <b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br>
-        <b>进度</b>：已有可用的 App 原型和交互 Demo，硬件仍在迭代中。
-      </div>
-      <button class="exp-toggle" onclick="var g=this.nextElementSibling;g.classList.toggle('open');this.classList.toggle('open')"><span class="arrow">▸</span></button>
-      <div class="exp-gallery carousel" data-idx="0">
-        <div class="carousel-track">
-          <img src="companion-app.png" alt="萌伴 App 首页" loading="lazy">
-          <img src="companion-call.png" alt="萌伴语音通话界面" loading="lazy">
-          <img src="companion-icon.png" alt="萌伴 App 图标" loading="lazy">
+    <!-- Tab 2: 陪伴硬件 -->
+    <div class="practice-panel" data-tab="2">
+      <div class="practice-card">
+        <div class="practice-card-media">
+          <div class="media-grid companion-grid">
+            <video src="companion-idle.mov" autoplay loop muted playsinline style="background:transparent;"></video>
+            <img class="zoomable" src="companion-app.png" alt="萌伴 App 首页" loading="lazy">
+            <img class="zoomable" src="companion-call.png" alt="萌伴语音通话" loading="lazy">
+          </div>
         </div>
-        <div class="carousel-dots"></div>
+        <div class="practice-card-text">
+          <h3>AI 陪伴硬件</h3>
+          <div class="tag-line"><span class="exp-tag" style="font-size:11px;padding:2px 8px;">陪伴 · 硬件</span></div>
+          <b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br>
+          <b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br>
+          <b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。供应链方面，成熟的低延迟语音硬件方案不多，大多缺少声纹识别，端到端延时仍是核心瓶颈。<br><br>
+          <b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。豆包语音也面临同样问题，不过其 iOS SDK 接入流畅，支持自定义 Prompt 和系统级输入，目前正在探索如何将成长记录整合为本地长程记忆，再作为上下文输入给语音模型。<br><br>
+        </div>
       </div>
     </div>
   </section>
@@ -950,7 +1163,7 @@
         <p>一个 Token 触发闲聊回答、触发一次推荐、触发一份合同——成本可能差不多，价值差几个数量级。<em>这是 AI 时代产品经理必须算的商业账</em>。</p>
       </div>
       <div class="j-fig">
-        <div class="j-fig-label"><span class="n">图 01</span> · Token 嵌入产业链的深度</div>
+        <div class="j-fig-label">Token 嵌入产业链的深度</div>
         <div class="vflow">
           <div class="vstage lo">
             <div class="vstage-n">阶段一</div>
@@ -994,7 +1207,7 @@
         <p>对个人用户，付费对象从生成工具变成内容本身。对企业用户，Harvey 让"AI 律所"成为可能，直接卖法律咨询，而不是卖工具席位。</p>
       </div>
       <div class="j-fig">
-        <div class="j-fig-label"><span class="n">图 02</span> · 席位生意 vs 结果生意</div>
+        <div class="j-fig-label">席位生意 vs 结果生意</div>
         <div class="compare">
           <div class="cmp-col old">
             <h4>↓ 在压缩</h4>
@@ -1024,7 +1237,7 @@
         <p>这种格局下，应用层还能建立什么竞争壁垒？从弱到强，五种方向：</p>
       </div>
       <div class="j-fig">
-        <div class="j-fig-label"><span class="n">图 03</span> · 五种护城河 · 弱 → 强</div>
+        <div class="j-fig-label">五种护城河 · 弱 → 强</div>
         <div class="moats">
           <div class="moat">
             <div class="moat-n">1</div>
@@ -1075,7 +1288,7 @@
     <div class="judgment">
       <div class="j-head">
         <span class="j-num">04</span>
-        <span class="j-tag">实践 · Model + Harness</span>
+        <span class="j-tag">工程 · Model + Harness</span>
       </div>
       <h3>Agent = Model + Harness</h3>
       <div class="j-prose">
@@ -1083,7 +1296,7 @@
         <p>更长期的想象空间是产品形态本身——单人使用时，agent 是你的下属；但当 harness 走向团队、组织时，它会演化成什么，<em>还没有成熟的范式</em>。</p>
       </div>
       <div class="j-fig">
-        <div class="j-fig-label"><span class="n">图 04</span> · Model + Harness = Agent</div>
+        <div class="j-fig-label">Model + Harness = Agent</div>
         <div class="stack">
           <div class="stack-in">
             <div class="layer">
@@ -1114,7 +1327,7 @@
       </div>
 
       <div class="j-fig">
-        <div class="j-fig-label"><span class="n">图 05</span> · 产品设计判断</div>
+        <div class="j-fig-label">产品设计判断</div>
         <div class="designs">
           <div class="design">
             <div class="design-head">
@@ -1134,7 +1347,7 @@
             </div>
             <ul>
               <li><strong>沙箱化任务</strong>：每个任务在独立上下文里跑，历史不互相干扰</li>
-              <li><strong>借现成产品结构做隔离</strong>：用 Discord 的 channel/thread 这种自然边界</li>
+              <li><strong>自然的产品交互结构隔离</strong>：如用 Discord 的 channel 这种产品设计</li>
               <li><strong>文件系统作共享内存</strong>：人和 agent 都能读写的笔记，比向量数据库更透明可控</li>
             </ul>
           </div>
@@ -1150,6 +1363,38 @@
           </div>
         </div>
         <div class="j-fig-note">三件事的共同方向是减少人介入的频率，但保留人对关键决策的最终判断。</div>
+      </div>
+    </div>
+
+    <!-- 判断 5 -->
+    <div class="judgment">
+      <div class="j-head">
+        <span class="j-num">05</span>
+        <span class="j-tag">体验 · PMF</span>
+      </div>
+      <h3>制造 Aha Moment</h3>
+      <div class="j-prose">
+        <p>AI 降低了应用制造的技术成本，也会抬高用户对传统互联网产品体验的平均预期。效率提升会越来越容易被复制，AI 应用想靠“更快解决问题”留下用户反而会更难。除了在通用场景中提高解决方案效率，产品设计本身还要从个性化视角提高体验感，创造用户愿意记住的 Aha Moment。</p>
+      </div>
+      <div class="j-fig">
+        <div class="j-fig-label">Aha Moment 的三种来源</div>
+        <div class="aha-points">
+          <div class="aha-point">
+            <div class="aha-dot">01</div>
+            <div class="aha-title">符合直觉的交互</div>
+            <div class="aha-desc">如 GPT 语音助手中，查询等待时打字机键盘的敲击声。</div>
+          </div>
+          <div class="aha-point">
+            <div class="aha-dot">02</div>
+            <div class="aha-title">轻松带入已有环境</div>
+            <div class="aha-desc">如 coding 展示工具自部署一个局域网内的投屏功能。</div>
+          </div>
+          <div class="aha-point">
+            <div class="aha-dot">03</div>
+            <div class="aha-title">轻微超出预期的用户理解</div>
+            <div class="aha-desc">如图片、视频、网页生成时呈现出的视觉效果。</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1184,8 +1429,36 @@
 
 </div>
 
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <img src="" alt="">
+</div>
+
 <script>
+function switchTab(idx) {
+  document.querySelectorAll('.practice-tab').forEach(function(t, i) { t.classList.toggle('active', i === idx); });
+  document.querySelectorAll('.practice-panel').forEach(function(p, i) { p.classList.toggle('active', i === idx); });
+}
+function closeLightbox() {
+  var box = document.getElementById('lightbox');
+  box.classList.remove('open');
+  box.setAttribute('aria-hidden', 'true');
+}
 (function(){
+  document.querySelectorAll('.zoomable').forEach(function(img) {
+    img.addEventListener('click', function() {
+      var box = document.getElementById('lightbox');
+      var preview = box.querySelector('img');
+      preview.src = img.src;
+      preview.alt = img.alt;
+      box.classList.add('open');
+      box.setAttribute('aria-hidden', 'false');
+    });
+  });
+  document.getElementById('lightbox').addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
   var base = location.origin + '/resume.md';
   var prompts = {
     cc: {
