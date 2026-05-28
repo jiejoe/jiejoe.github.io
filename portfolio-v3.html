@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q — Product × AI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --bg: #f7f7f5;
+  --bg-dark: #111;
+  --fg: #1a1a1a;
+  --fg-inv: #f7f7f5;
+  --dim: #6b6b6b;
+  --faint: #999;
+  --line: #e0e0dc;
+  --surface: #eeeee9;
+  --accent: #1a1a1a;
+  --green: #059669;
+  --sans: 'Inter', -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  --serif: 'Playfair Display', 'Songti SC', Georgia, serif;
+  --mono: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --wrap: min(1100px, 90vw);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.6; overflow-x: hidden; }
+
+/* Selection */
+::selection { background: var(--fg); color: var(--bg); }
+
+/* ── NAV ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 clamp(24px, 5vw, 60px); height: 56px;
+  background: rgba(247,247,245,.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  transition: transform .4s var(--ease);
+}
+.nav.hidden { transform: translateY(-100%); }
+.nav-logo { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--fg); text-decoration: none; letter-spacing: -.03em; }
+.nav-links { display: flex; gap: 36px; }
+.nav-links a { font-size: 13px; font-weight: 500; color: var(--dim); text-decoration: none; transition: color .2s; letter-spacing: .02em; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px; background: var(--fg); transition: width .3s var(--ease); }
+.nav-links a:hover { color: var(--fg); }
+.nav-links a:hover::after { width: 100%; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+  padding: 0 clamp(24px, 5vw, 60px); max-width: 1200px; margin: 0 auto;
+}
+.hero-hello { font-family: var(--mono); font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); margin-bottom: 24px; }
+.hero-name {
+  font-family: var(--serif); font-size: clamp(48px, 8vw, 96px); font-weight: 600;
+  line-height: 1.05; letter-spacing: -.04em; margin-bottom: 28px;
+}
+.hero-name .line { display: block; overflow: hidden; }
+.hero-name .line span { display: inline-block; transform: translateY(110%); transition: transform .8s var(--ease); }
+.hero-name .line span.show { transform: translateY(0); }
+.hero-role {
+  font-size: 18px; font-weight: 400; color: var(--dim); max-width: 560px;
+  line-height: 1.7; margin-bottom: 40px;
+  opacity: 0; transform: translateY(20px); transition: all .6s var(--ease) .4s;
+}
+.hero-role.show { opacity: 1; transform: none; }
+.hero-stats {
+  display: flex; flex-wrap: wrap; gap: 40px;
+  opacity: 0; transform: translateY(20px); transition: all .6s var(--ease) .6s;
+}
+.hero-stats.show { opacity: 1; transform: none; }
+.stat { display: flex; flex-direction: column; gap: 4px; }
+.stat-val { font-size: 20px; font-weight: 700; letter-spacing: -.03em; }
+.stat-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.hero-scroll {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--faint); opacity: 0; animation: fadeInScroll 1s var(--ease) 1.2s forwards;
+}
+@keyframes fadeInScroll { to { opacity: 1; } }
+.scroll-line { width: 1px; height: 40px; background: var(--line); position: relative; overflow: hidden; }
+.scroll-line::after { content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 100%; background: var(--fg); animation: scrollDown 2s ease-in-out infinite; }
+@keyframes scrollDown { 0% { top: -100%; } 50% { top: 100%; } 100% { top: 100%; } }
+
+/* ── SECTION ── */
+.section { padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 60px); max-width: 1200px; margin: 0 auto; }
+.section-full { padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 60px); }
+.sec-label {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 56px;
+}
+.sec-num { font-family: var(--mono); font-size: 12px; letter-spacing: .15em; color: var(--faint); }
+.sec-title { font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); }
+.sec-line { flex: 1; height: 1px; background: var(--line); }
+
+/* ── REVEAL ANIMATION ── */
+.reveal { opacity: 0; transform: translateY(32px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+.reveal-delay-3 { transition-delay: .3s; }
+
+/* ── WORKS — EDITORIAL LIST ── */
+.works-list { border-top: 1px solid var(--fg); }
+.work-item {
+  display: grid; grid-template-columns: 48px 1fr; gap: 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer; transition: all .3s var(--ease); position: relative;
+  overflow: hidden;
+}
+.work-item:hover { border-bottom-color: var(--fg); }
+.work-item.active { border-bottom-color: var(--fg); }
+.work-num {
+  font-family: var(--mono); font-size: 11px; color: var(--faint);
+  padding: 28px 0; transition: color .3s; align-self: start;
+}
+.work-item:hover .work-num, .work-item.active .work-num { color: var(--fg); }
+.work-content { padding: 24px 0; }
+.work-title {
+  font-family: var(--serif); font-size: clamp(22px, 3vw, 32px); font-weight: 600;
+  letter-spacing: -.02em; line-height: 1.2; margin-bottom: 8px;
+  transition: transform .3s var(--ease);
+}
+.work-item:hover .work-title { transform: translateX(8px); }
+.work-tagline {
+  font-size: 15px; color: var(--dim); line-height: 1.6; margin-bottom: 10px;
+  max-width: 640px;
+}
+.work-meta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.work-company { font-family: var(--mono); font-size: 11px; letter-spacing: .03em; color: var(--faint); }
+.work-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.work-tags span {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .06em;
+  padding: 2px 8px; border: 1px solid var(--line); color: var(--faint);
+  transition: all .2s;
+}
+.work-item:hover .work-tags span { border-color: var(--dim); color: var(--dim); }
+.work-divider {
+  padding: 12px 0; font-family: var(--mono); font-size: 9px;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--faint);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ── WORK DETAIL ── */
+.work-detail {
+  max-height: 0; overflow: hidden;
+  transition: max-height .5s var(--ease), padding .5s var(--ease);
+  padding: 0 0 0 48px;
+}
+.work-item.active .work-detail { max-height: 2000px; padding: 0 0 32px 48px; }
+.wd-inner { padding-top: 20px; border-top: 1px dashed var(--line); }
+.wd-grid { display: grid; grid-template-columns: 1fr 280px; gap: 32px; align-items: start; }
+.wd-grid.no-media { grid-template-columns: 1fr; }
+.wd-desc { font-size: 15px; line-height: 1.85; color: #444; }
+.wd-desc b { color: var(--fg); font-weight: 600; }
+.wd-result { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); line-height: 2; }
+.wd-result span { display: block; }
+.wd-result span::before { content: '↗ '; }
+.wd-images { display: flex; flex-direction: column; gap: 8px; }
+.wd-images img, .wd-images video {
+  width: 100%; border-radius: 6px; border: 1px solid var(--line);
+  object-fit: cover; cursor: zoom-in; transition: transform .3s var(--ease);
+}
+.wd-images img:hover { transform: scale(1.02); }
+.wd-img-row { display: grid; gap: 6px; }
+.wd-img-row.c2 { grid-template-columns: 1fr 1fr; }
+.wd-img-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.wd-img-row img { aspect-ratio: 3/4; object-position: top; }
+.wd-insight {
+  margin-top: 24px; padding: 20px 24px; background: var(--surface);
+  border-radius: 8px; position: relative;
+}
+.wd-insight::before {
+  content: 'Insight'; position: absolute; top: -8px; left: 16px;
+  background: var(--surface); padding: 0 8px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+}
+.wd-insight p { font-size: 14px; line-height: 1.85; color: #555; font-style: italic; }
+
+/* ── THINKING — DARK SECTION ── */
+.thinking-sec {
+  background: var(--bg-dark); color: var(--fg-inv);
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 60px);
+}
+.thinking-sec .sec-num { color: #555; }
+.thinking-sec .sec-title { color: #888; }
+.thinking-sec .sec-line { background: #333; }
+.thinking-wrap { max-width: 1200px; margin: 0 auto; }
+.thinking-intro { font-size: 15px; color: #888; margin-bottom: 40px; max-width: 480px; }
+.tk-list { display: flex; flex-direction: column; gap: 1px; }
+.tk {
+  border: 1px solid #333; border-radius: 4px;
+  transition: border-color .3s; overflow: hidden;
+}
+.tk:hover { border-color: #555; }
+.tk.open { border-color: #666; }
+.tk-head {
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px 24px; cursor: pointer; user-select: none;
+}
+.tk-num { font-family: var(--mono); font-size: 11px; color: #555; letter-spacing: .1em; flex-shrink: 0; }
+.tk.open .tk-num { color: #999; }
+.tk-title { font-family: var(--serif); font-size: clamp(16px, 2vw, 20px); font-weight: 400; flex: 1; line-height: 1.35; }
+.tk-tag { font-family: var(--mono); font-size: 9px; color: #555; letter-spacing: .06em; flex-shrink: 0; }
+.tk-arrow {
+  font-family: var(--mono); font-size: 14px; color: #555;
+  transition: transform .3s var(--ease); flex-shrink: 0;
+}
+.tk.open .tk-arrow { transform: rotate(90deg); color: #999; }
+.tk-body { display: none; padding: 0 24px 28px; }
+.tk.open .tk-body { display: block; animation: fadeIn .4s var(--ease); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.tk-prose { font-size: 15px; line-height: 1.85; color: #aaa; margin-bottom: 20px; }
+.tk-prose p { margin-bottom: 12px; }
+.tk-prose em { font-style: italic; color: #ccc; }
+
+/* Dark section figures */
+.thinking-sec .fig { margin: 20px 0; padding: 22px 20px; background: #1a1a1a; border: 1px solid #333; position: relative; border-radius: 4px; }
+.thinking-sec .fig-label { position: absolute; top: -9px; left: 14px; background: #1a1a1a; padding: 0 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #666; }
+.thinking-sec .fig-label .n { color: #999; }
+.thinking-sec .fig-note { margin-top: 14px; padding-top: 10px; border-top: 1px dashed #333; font-family: var(--mono); font-size: 10.5px; color: #666; line-height: 1.55; }
+
+/* Value flow */
+.vflow { display: flex; gap: 4px; align-items: stretch; }
+.vs { flex: 1; min-width: 0; padding: 10px 8px; border: 1px solid #444; background: #1a1a1a; border-radius: 3px; }
+.vs-n { font-family: var(--mono); font-size: 9px; color: #666; margin-bottom: 3px; letter-spacing: .1em; }
+.vs-name { font-family: var(--serif); font-size: 14px; font-weight: 400; margin-bottom: 3px; line-height: 1.2; color: var(--fg-inv); }
+.vs-eg { font-family: var(--mono); font-size: 9.5px; color: #666; line-height: 1.4; }
+.vs.lo { opacity: .5; }
+.vs.hi { background: var(--fg-inv); color: var(--bg-dark); }
+.vs.hi .vs-n { color: rgba(26,26,26,.5); }
+.vs.hi .vs-eg { color: rgba(26,26,26,.6); }
+.varr { display: flex; align-items: center; justify-content: center; font-family: var(--mono); color: #555; font-size: 14px; padding: 0 4px; flex-shrink: 0; }
+.vaxis { margin-top: 10px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9.5px; color: #555; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Compare */
+.compare { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 12px; align-items: stretch; }
+.cmp { border: 1px solid #444; padding: 16px; background: #1a1a1a; border-radius: 3px; }
+.cmp.old { opacity: .5; }
+.cmp.new { background: var(--fg-inv); color: var(--bg-dark); }
+.cmp h4 { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #666; margin-bottom: 8px; }
+.cmp.new h4 { color: rgba(26,26,26,.4); }
+.cmp-big { font-family: var(--serif); font-size: 18px; font-weight: 400; line-height: 1.2; margin-bottom: 8px; }
+.cmp-sm { font-family: var(--mono); font-size: 10.5px; line-height: 1.5; color: #666; }
+.cmp.new .cmp-sm { color: rgba(26,26,26,.6); }
+.cmp-arr { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 14px; color: #555; }
+
+/* Moats */
+.moats { display: flex; flex-direction: column; gap: 6px; }
+.moat { display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
+.moat-n { font-family: var(--mono); font-size: 10px; color: #666; padding-top: 12px; text-align: center; }
+.moat-body { background: #1a1a1a; border: 1px solid #333; padding: 10px 14px; border-radius: 3px; }
+.moat-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.moat-name { font-family: var(--serif); font-size: 15px; font-weight: 400; color: var(--fg-inv); }
+.moat-eg { font-family: var(--mono); font-size: 10px; color: #555; }
+.moat-desc { font-family: var(--sans); font-size: 13px; color: #777; margin-top: 4px; line-height: 1.5; }
+.moat-dots { display: flex; gap: 3px; margin-top: 4px; }
+.moat-dots .d { width: 5px; height: 5px; background: var(--fg-inv); border-radius: 50%; }
+.moat-dots .d.off { background: #333; }
+
+/* Stack */
+.stack { display: flex; flex-direction: column; align-items: center; }
+.stack-in { width: 100%; max-width: 400px; }
+.layer { border: 1px solid #444; padding: 14px 16px; text-align: center; margin-bottom: -1px; border-radius: 3px; }
+.layer-n { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #555; margin-bottom: 3px; }
+.layer-n .x { color: #999; }
+.layer-c { font-family: var(--serif); font-size: 15px; font-weight: 400; color: var(--fg-inv); }
+.layer.h { background: #222; }
+.layer.m { background: var(--fg-inv); color: var(--bg-dark); }
+.layer.m .layer-n { color: rgba(26,26,26,.4); }
+.layer.m .layer-c { color: var(--bg-dark); }
+.arr-c { text-align: center; font-family: var(--mono); font-size: 12px; color: #555; padding: 3px 0; }
+.loop-text { margin-top: 20px; font-family: var(--mono); font-size: 11px; color: #666; line-height: 1.7; text-align: center; }
+.loop-text .x { color: #999; margin: 0 4px; }
+
+/* Designs */
+.designs { display: flex; flex-direction: column; gap: 12px; }
+.design { border: 1px solid #444; padding: 14px 16px; background: #1a1a1a; border-radius: 3px; }
+.design-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px dashed #333; }
+.design-head-l { display: flex; gap: 8px; align-items: baseline; }
+.design-num { font-family: var(--mono); font-size: 10px; color: #666; letter-spacing: .1em; }
+.design-title { font-family: var(--serif); font-size: 16px; font-weight: 400; color: var(--fg-inv); }
+.design-q { font-family: var(--mono); font-size: 10px; color: #555; font-style: italic; }
+.design ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.design li { font-size: 14px; line-height: 1.55; padding-left: 14px; position: relative; color: #aaa; }
+.design li::before { content: "—"; position: absolute; left: 0; color: #555; }
+.design li strong { font-weight: 500; color: var(--fg-inv); }
+
+/* Aha points */
+.aha-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.aha-point { border: 1px solid #444; background: #1a1a1a; padding: 14px 12px; min-height: 140px; display: flex; flex-direction: column; border-radius: 4px; }
+.aha-dot { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #444; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; color: #666; margin-bottom: 12px; }
+.aha-title { font-family: var(--serif); font-size: 16px; font-weight: 400; line-height: 1.25; margin-bottom: 8px; color: var(--fg-inv); }
+.aha-desc { font-size: 13px; line-height: 1.55; color: #777; }
+
+/* ── ABOUT ── */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+.about-heading { font-family: var(--serif); font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -.02em; margin-bottom: 20px; line-height: 1.15; }
+.about-desc { font-size: 16px; line-height: 1.85; color: #555; margin-bottom: 32px; }
+.contact-list { display: flex; flex-direction: column; gap: 14px; }
+.ct-item { display: flex; flex-direction: column; gap: 2px; }
+.ct-label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--faint); }
+.ct-val { font-size: 14px; color: var(--fg); }
+.ct-val a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--line); transition: border-color .2s; }
+.ct-val a:hover { border-color: var(--fg); }
+
+/* Resume area */
+.resume-area { margin-bottom: 32px; }
+.resume-area h3 { font-family: var(--sans); font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.dl-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 28px; background: var(--fg); color: var(--bg);
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer; border-radius: 6px;
+  transition: all .2s var(--ease);
+}
+.dl-btn:hover { background: #333; transform: translateY(-1px); }
+.dl-btn svg { flex-shrink: 0; }
+.dl-versions { margin-top: 16px; }
+.dl-versions-label { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+.dl-versions-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.dl-ver {
+  padding: 7px 16px; border: 1px solid var(--line); background: var(--bg);
+  font-family: var(--sans); font-size: 12px; cursor: pointer; border-radius: 4px;
+  transition: all .2s; color: var(--fg);
+}
+.dl-ver:hover { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+.dl-jd { display: flex; gap: 6px; margin-top: 12px; }
+.dl-jd input {
+  flex: 1; padding: 8px 14px; border: 1px solid var(--line); background: var(--bg);
+  font-family: var(--sans); font-size: 12px; outline: none; border-radius: 4px;
+  transition: border-color .2s;
+}
+.dl-jd input:focus { border-color: var(--fg); }
+.dl-jd button {
+  padding: 8px 18px; border: 1px solid var(--fg); background: var(--fg); color: var(--bg);
+  font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 4px;
+  transition: all .2s;
+}
+.dl-jd button:hover { background: #333; }
+
+/* Agent card */
+.ag-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.ag-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 8px; }
+.ag-title { font-size: 13px; font-weight: 600; }
+.ag-tabs { display: flex; gap: 0; }
+.ag-tab {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
+  padding: 4px 12px; color: var(--faint); cursor: pointer; border: 1px solid transparent;
+  background: none; transition: all .2s; border-radius: 3px;
+}
+.ag-tab:hover { color: var(--fg); }
+.ag-tab.active { color: var(--fg); background: var(--surface); border-color: var(--line); }
+.ag-body { padding: 20px; }
+.ag-prompt {
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.8; color: var(--fg);
+  white-space: pre-wrap; word-wrap: break-word; background: var(--surface);
+  padding: 14px; border: 1px solid var(--line); border-radius: 6px;
+}
+.ag-prompt .p-url { color: var(--green); }
+.ag-prompt .p-place { color: var(--dim); }
+.ag-copy {
+  background: var(--bg); border: 1px solid var(--line); color: var(--dim);
+  padding: 6px 14px; cursor: pointer; font-family: var(--mono); font-size: 9px;
+  letter-spacing: .05em; transition: all .2s; display: inline-flex;
+  align-items: center; gap: 4px; border-radius: 4px; margin-top: 12px;
+}
+.ag-copy:hover { color: var(--fg); border-color: var(--fg); }
+.ag-copy.copied { color: var(--green); border-color: var(--green); }
+.ag-dl-wrap { border-top: 1px solid var(--line); margin-top: 16px; padding: 16px 20px; }
+.ag-dl {
+  background: none; border: 1px solid var(--line); color: var(--dim);
+  padding: 6px 14px; font-family: var(--mono); font-size: 9px;
+  letter-spacing: .05em; transition: all .2s; display: inline-flex;
+  align-items: center; gap: 4px; border-radius: 4px; text-decoration: none;
+}
+.ag-dl:hover { color: var(--fg); border-color: var(--fg); }
+
+/* ── FOOTER ── */
+.footer {
+  padding: 32px clamp(24px, 5vw, 60px); max-width: 1200px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; color: var(--faint);
+}
+
+/* ── LIGHTBOX ── */
+.lb { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,.88); cursor: zoom-out; backdrop-filter: blur(8px); }
+.lb.open { display: flex; }
+.lb img { max-width: min(92vw, 1000px); max-height: 88vh; border-radius: 8px; object-fit: contain; }
+.toast { position: fixed; left: 50%; bottom: 32px; z-index: 300; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; padding: 10px 18px; background: var(--fg); color: var(--bg); font-family: var(--mono); font-size: 11px; border-radius: 6px; transition: opacity .2s, transform .2s; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .hero { min-height: 85vh; padding-top: 80px; }
+  .hero-stats { gap: 20px 28px; }
+  .work-item { grid-template-columns: 36px 1fr; }
+  .work-tags { display: none; }
+  .work-detail { padding-left: 36px; }
+  .work-item.active .work-detail { padding-left: 36px; }
+  .wd-grid { grid-template-columns: 1fr; }
+  .wd-images { order: -1; }
+  .about-grid { grid-template-columns: 1fr; gap: 48px; }
+  .vflow { flex-direction: column; gap: 3px; }
+  .varr { transform: rotate(90deg); padding: 2px 0; }
+  .compare { grid-template-columns: 1fr; }
+  .cmp-arr { transform: rotate(90deg); padding: 4px 0; }
+  .aha-points { grid-template-columns: 1fr; }
+  .nav-links { gap: 20px; }
+  .hero-scroll { display: none; }
+}
+@media print { .nav, .hero-scroll { display: none; } .hero { min-height: auto; padding: 32px 0; } }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a class="nav-logo" href="#">Q.</a>
+  <div class="nav-links">
+    <a href="#works">Works</a>
+    <a href="#thinking">Thinking</a>
+    <a href="#about">About</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-hello">Product × AI</div>
+  <h1 class="hero-name">
+    <span class="line"><span>Hi, I'm Q.</span></span>
+    <span class="line"><span>I build AI products</span></span>
+    <span class="line"><span>people actually use.</span></span>
+  </h1>
+  <p class="hero-role">一个有着亿级用户产品和 0→1 创业经验的 PM，过去一年深度参与 AI 应用层方向探索，擅长把模型能力变成用户愿意反复使用的产品。</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-val">9 年+</div><div class="stat-label">产品经验</div></div>
+    <div class="stat"><div class="stat-val">亿级 DAU</div><div class="stat-label">用户产品</div></div>
+    <div class="stat"><div class="stat-val">AI 原生</div><div class="stat-label">应用</div></div>
+    <div class="stat"><div class="stat-val">0→1</div><div class="stat-label">创业到被收购</div></div>
+    <div class="stat"><div class="stat-val">600—1000万</div><div class="stat-label">月消耗Token</div></div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- WORKS -->
+<section class="section" id="works">
+  <div class="sec-label reveal">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Selected Works</span>
+    <span class="sec-line"></span>
+  </div>
+  <div class="works-list" id="works-list"></div>
+</section>
+
+<!-- THINKING -->
+<section class="thinking-sec" id="thinking">
+  <div class="thinking-wrap">
+    <div class="sec-label reveal">
+      <span class="sec-num">02</span>
+      <span class="sec-title">Thinking</span>
+      <span class="sec-line"></span>
+    </div>
+    <p class="thinking-intro reveal">与你分享我最近的产品思考。</p>
+    <div class="tk-list">
+
+      <!-- 思考 1 -->
+      <div class="tk reveal">
+        <div class="tk-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="tk-num">01</span><span class="tk-title">不是所有 Token 都一样值钱</span><span class="tk-tag">商业 · Token Economics</span><span class="tk-arrow">▸</span>
+        </div>
+        <div class="tk-body">
+          <div class="tk-prose"><p>Token 是 AI 时代的算力单位。但同样一份 Token 的成本，在不同产品里换回的价值天差地别。</p><p>让 Token 单价变贵的关键，不在于换什么模型，而在于这份 Token 嵌入了多深的产业链——它能撬动多大的下游决策、是否带着不可复制的上下文、是否替用户完成了真实世界的动作。</p><p>一个 Token 触发闲聊回答、触发一次推荐、触发一份合同——成本可能差不多，价值差几个数量级。<em>这是 AI 时代产品经理必须算的商业账</em>。</p></div>
+          <div class="fig"><div class="fig-label">Token 嵌入产业链的深度</div>
+            <div class="vflow"><div class="vs lo"><div class="vs-n">阶段一</div><div class="vs-name">触发对话</div><div class="vs-eg">闲聊 · 问答 · 搜索</div></div><div class="varr">→</div><div class="vs"><div class="vs-n">阶段二</div><div class="vs-name">触发推荐</div><div class="vs-eg">商品 · 内容 · 服务</div></div><div class="varr">→</div><div class="vs"><div class="vs-n">阶段三</div><div class="vs-name">触发决策</div><div class="vs-eg">报告 · 分析 · 方案</div></div><div class="varr">→</div><div class="vs hi"><div class="vs-n">阶段四</div><div class="vs-name">触发交易</div><div class="vs-eg">下单 · 签约 · 动作</div></div></div>
+            <div class="vaxis"><span>Token 单价低</span><span>Token 单价高</span></div>
+            <div class="fig-note">模型决定 Token 的成本，产品决定 Token 的价值。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 思考 2 -->
+      <div class="tk reveal">
+        <div class="tk-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="tk-num">02</span><span class="tk-title">席位生意在被结果生意替代</span><span class="tk-tag">商业 · 计费方式</span><span class="tk-arrow">▸</span>
+        </div>
+        <div class="tk-body">
+          <div class="tk-prose"><p>SaaS 时代的标准生意是按席位卖工具。AI 让另一种生意变得可能：<em>直接卖结果</em>。</p><p>这次 AI 革命的本质，不是肌肉劳动的效率变革，而是<em>知识劳动的指数级提升</em>。当一个 AI 可以独立完成一份法律咨询、一篇分析报告、一段视频内容——"卖工具席位"就不再成立。</p><p>对个人用户，付费对象从生成工具变成内容本身。对企业用户，Harvey 让"AI 律所"成为可能，直接卖法律咨询，而不是卖工具席位。</p></div>
+          <div class="fig"><div class="fig-label">席位生意 vs 结果生意</div>
+            <div class="compare"><div class="cmp old"><h4>↓ 在压缩</h4><div class="cmp-big">按席位 × 卖工具</div><div class="cmp-sm">Salesforce · Workday · Atlassian<br>传统通用办公 SaaS</div></div><div class="cmp-arr">→</div><div class="cmp new"><h4>↑ 在生长</h4><div class="cmp-big">按结果 × 嵌入产业链</div><div class="cmp-sm">Harvey · Sierra · Decagon<br>可灵 · 即梦 · 数字人内容</div></div></div>
+            <div class="fig-note">知识劳动可以被指数级放大——卖席位失去了合理性。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 思考 3 -->
+      <div class="tk reveal">
+        <div class="tk-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="tk-num">03</span><span class="tk-title">应用层的产品如何建立竞争壁垒？</span><span class="tk-tag">竞争 · 应用层护城河</span><span class="tk-arrow">▸</span>
+        </div>
+        <div class="tk-body">
+          <div class="tk-prose"><p>2026 年最大的产业变化，是模型厂直接进入应用层。Cowork 一周内带走了约 $2 万亿 SaaS 市值、Claude Code 在编程领域形成强劲竞争。</p><p>这种格局下，应用层还能建立什么竞争壁垒？从弱到强，五种方向：</p></div>
+          <div class="fig"><div class="fig-label">五种护城河 · 弱 → 强</div>
+            <div class="moats">
+              <div class="moat"><div class="moat-n">1</div><div class="moat-body"><div class="moat-row"><div class="moat-name">分发与客户关系</div><span class="moat-eg">字节 · 微信 · 钉钉</span></div><div class="moat-desc">用户和销售网络的开拓成本极高，单靠模型能力起不来。</div><div class="moat-dots"><span class="d"></span><span class="d off"></span><span class="d off"></span><span class="d off"></span><span class="d off"></span></div></div></div>
+              <div class="moat"><div class="moat-n">2</div><div class="moat-body"><div class="moat-row"><div class="moat-name">闭环数据</div><span class="moat-eg">Harvey · Abridge · Sierra</span></div><div class="moat-desc">用户私域数据加业务流程沉淀的领域数据，通用 API 接触不到。</div><div class="moat-dots"><span class="d"></span><span class="d"></span><span class="d off"></span><span class="d off"></span><span class="d off"></span></div></div></div>
+              <div class="moat"><div class="moat-n">3</div><div class="moat-body"><div class="moat-row"><div class="moat-name">替行业背锅</div><span class="moat-eg">Sierra · Stripe · Replit</span></div><div class="moat-desc">决策出错需要承担专业责任。需要法律实体、保险、SLA 配套。</div><div class="moat-dots"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d off"></span><span class="d off"></span></div></div></div>
+              <div class="moat"><div class="moat-n">4</div><div class="moat-body"><div class="moat-row"><div class="moat-name">垂直监管壁垒</div><span class="moat-eg">医疗 · 金融 · 法律</span></div><div class="moat-desc">合规、准入、责任认定的硬门槛，纯技术能力突破不了。</div><div class="moat-dots"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d off"></span></div></div></div>
+              <div class="moat"><div class="moat-n">5</div><div class="moat-body"><div class="moat-row"><div class="moat-name">物理世界</div><span class="moat-eg">1X · 宇树 · 具身智能</span></div><div class="moat-desc">机器人、硬件、供应链——需要长期沉淀的资源。</div><div class="moat-dots"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span></div></div></div>
+            </div>
+            <div class="fig-note">共同点：都不是技术能力本身，而是信任、关系、责任、监管、物理沉淀。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 思考 4 -->
+      <div class="tk reveal">
+        <div class="tk-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="tk-num">04</span><span class="tk-title">Agent = Model + Harness</span><span class="tk-tag">工程 · Model + Harness</span><span class="tk-arrow">▸</span>
+        </div>
+        <div class="tk-body">
+          <div class="tk-prose"><p>Anthropic（Claude Code、Cowork）和 OpenAI（Operator、Codex）验证了同一件事——模型进入应用层的方式不是简单包一层 UI，而是一整套 Harness 工程：memory、工具调用、MCP、multi-agent 编排。</p><p>更长期的想象空间是产品形态本身——单人使用时，agent 是你的下属；但当 harness 走向团队、组织时，它会演化成什么，<em>还没有成熟的范式</em>。</p></div>
+          <div class="fig"><div class="fig-label">Model + Harness = Agent</div>
+            <div class="stack"><div class="stack-in"><div class="layer"><div class="layer-n"><span class="x">III.</span> 用户感知</div><div class="layer-c">Agent 产品体验</div></div><div class="arr-c">↓ ↑</div><div class="layer h"><div class="layer-n"><span class="x">II.</span> Harness 工程</div><div class="layer-c">Memory · Tool · MCP · Multi-Agent</div></div><div class="arr-c">↓ ↑</div><div class="layer m"><div class="layer-n"><span class="x">I.</span> 基座模型</div><div class="layer-c">Foundation Model</div></div></div><div class="loop-text">模型变强 <span class="x">→</span> Harness 体验更好 <span class="x">→</span> 用户更多<br>用户更多 <span class="x">→</span> 数据更多 <span class="x">→</span> 模型变更强</div></div>
+            <div class="fig-note">三层互相喂养，构成飞轮。</div>
+          </div>
+          <div class="tk-prose" style="margin-top:24px"><p>通过实践，对 harness 怎么做得好的几个产品设计判断：</p></div>
+          <div class="fig"><div class="fig-label">产品设计判断</div>
+            <div class="designs">
+              <div class="design"><div class="design-head"><div class="design-head-l"><span class="design-num">01</span><span class="design-title">减少暂停点</span></div><span class="design-q">"每次都问反而比手动累"</span></div><ul><li><strong>风险分级自治</strong>：低风险动作自动做、高风险才问</li><li><strong>偏好沉淀</strong>：用户做过的决策模式记下来，同类场景直接套用</li><li><strong>反向问询</strong>：先给一版让用户吐槽，比让用户描述需求容易</li></ul></div>
+              <div class="design"><div class="design-head"><div class="design-head-l"><span class="design-num">02</span><span class="design-title">上下文不污染</span></div><span class="design-q">"长对话会让 agent 越走越偏"</span></div><ul><li><strong>沙箱化任务</strong>：每个任务在独立上下文里跑，历史不互相干扰</li><li><strong>自然的产品交互结构隔离</strong>：如用 Discord 的 channel 这种产品设计</li><li><strong>文件系统作共享内存</strong>：人和 agent 都能读写的笔记，比向量数据库更透明可控</li></ul></div>
+              <div class="design"><div class="design-head"><div class="design-head-l"><span class="design-num">03</span><span class="design-title">错误不累积</span></div><span class="design-q">"修补型 agent 越改越乱"</span></div><ul><li><strong>果断回滚不打补丁</strong>：LLM 不擅长局部修改，整段重来比逐处修补更经济</li><li><strong>多 Agent 分层</strong>：执行 + 价值判断分开，让错误在层间被发现</li></ul></div>
+            </div>
+            <div class="fig-note">三件事的共同方向是减少人介入的频率，但保留人对关键决策的最终判断。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 思考 5 -->
+      <div class="tk reveal">
+        <div class="tk-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="tk-num">05</span><span class="tk-title">制造 Aha Moment</span><span class="tk-tag">体验 · PMF</span><span class="tk-arrow">▸</span>
+        </div>
+        <div class="tk-body">
+          <div class="tk-prose"><p>AI 降低了应用制造的技术成本，也会抬高用户对传统互联网产品体验的平均预期。效率提升会越来越容易被复制，AI 应用想靠"更快解决问题"留下用户反而会更难。除了在通用场景中提高解决方案效率，产品设计本身还要从个性化视角提高体验感，创造用户愿意记住的 Aha Moment。</p></div>
+          <div class="fig"><div class="fig-label">Aha Moment 的三种来源</div>
+            <div class="aha-points">
+              <div class="aha-point"><div class="aha-dot">01</div><div class="aha-title">符合直觉的交互</div><div class="aha-desc">如 GPT 语音助手中，查询等待时打字机键盘的敲击声。</div></div>
+              <div class="aha-point"><div class="aha-dot">02</div><div class="aha-title">轻松带入已有环境</div><div class="aha-desc">如 coding 展示工具自部署一个局域网内的投屏功能。</div></div>
+              <div class="aha-point"><div class="aha-dot">03</div><div class="aha-title">轻微超出预期的用户理解</div><div class="aha-desc">如图片、视频、网页生成时呈现出的视觉效果。</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="sec-label reveal">
+    <span class="sec-num">03</span>
+    <span class="sec-title">About</span>
+    <span class="sec-line"></span>
+  </div>
+  <div class="about-grid">
+    <div class="about-left reveal">
+      <h2 class="about-heading">联系我</h2>
+      <p class="about-desc">目前对 AI 原生产品在用户场景的落地都十分感兴趣，个人助手、生产力、内容、社交、硬件方向都是非常有趣的方向。如果你有很多类似的思潮想要交流，或者是需要一个 AI native 的产品人、工程师、分析师，欢迎联系我。</p>
+      <div class="contact-list">
+        <div class="ct-item"><div class="ct-label">Phone</div><div class="ct-val">15258318600</div></div>
+        <div class="ct-item"><div class="ct-label">Email</div><div class="ct-val"><a href="mailto:jiejoe2017@gmail.com">jiejoe2017@gmail.com</a></div></div>
+        <div class="ct-item"><div class="ct-label">Location</div><div class="ct-val">杭州 / 上海</div></div>
+        <div class="ct-item"><div class="ct-label">Language</div><div class="ct-val">中 / 英 / 日</div></div>
+      </div>
+    </div>
+    <div class="about-right reveal reveal-delay-2">
+      <div class="ag-card">
+        <div class="ag-head">
+          <span class="ag-title">让 AI 帮你了解我</span>
+          <div class="ag-tabs">
+            <button class="ag-tab active" onclick="switchAgent('cc')">Claude Code</button>
+            <button class="ag-tab" onclick="switchAgent('codex')">Codex</button>
+            <button class="ag-tab" onclick="switchAgent('claw')">OpenClaw</button>
+          </div>
+        </div>
+        <div class="ag-body">
+          <div class="ag-prompt" id="ag-prompt"></div>
+          <button class="ag-copy" id="ag-copy" onclick="copyAgent()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY</button>
+        </div>
+        <div class="ag-dl-wrap">
+          <a class="ag-dl" href="resume.pdf" download><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 获取 Q 的 PDF 简历</a>
+        </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><span>Q · 2026</span><span>会随实践更新</span></footer>
+
+<!-- LIGHTBOX & TOAST -->
+<div class="lb" id="lb"><img src="" alt=""></div>
+<div class="toast" id="toast">复制成功</div>
+
+<script>
+/* ══ PROJECT DATA ══ */
+var P=[
+{id:'taobao-ai',name:'淘宝 AI 导购',group:'work',title:'淘宝 × 千问 AI 导购助手',tagline:'0→1 主导淘宝 AI 导购，让模型理解用户收藏，自动生成兴趣合辑',meta:'阿里巴巴 · 端产品 · 产品专家 · 2024—now',tags:['AI','LLM','0→1','SFT','评测体系'],desc:'0→1 主导淘宝 AI 导购产品：<b>AI 收藏合辑</b>（LLM 理解收藏，自动生成兴趣合辑）、<b>AI 足迹推荐</b>、<b>AI 种草</b>。与算法团队协作 Prompt/上下文策略和 Qwen3 SFT 后训练，搭建 GSB 评测体系和 bad case 归因机制。',result:'badcase 率 26%→8% · 分类准确性 56%→98% · 0→1 AI 原生导购体验落地',insight:'AI 在电商中的价值不在于推荐更多商品，而在于帮用户理解自己还没说出口的需求。从 bad case 归因到 SFT 优化，每一步都是在缩短"用户真实意图"和"系统理解"之间的距离。',images:['ai-shopping-1.png','ai-shopping-2.png'],imgLayout:'1col'},
+{id:'taobao-revamp',name:'手淘端改版',group:'work',title:'手机淘宝端改版',tagline:'主牵手淘核心场域改版，覆盖 10 亿用户，数据驱动迭代',meta:'阿里巴巴 · 端产品 · 亿级 DAU · 2024—now',tags:['亿级DAU','用户产品','A/B实验','大促'],desc:'主牵手淘核心场域改版（首页/消息/我淘），覆盖 10 亿用户。基于用户分层定义差异化体验策略，A/B 实验驱动迭代。多次担任双11、618 大促 PM，负责多场域流量分发。',result:'策略覆盖 10 亿用户 · 大盘成交指标显著正向 · 双11 核心场域效率显著提升',insight:'亿级 DAU 场域里，"改版"不是视觉刷新，而是一场流量再分配。每个像素的变动都有成交链路的因果。数据驱动不是看数字，是找到数字背后的用户行为解释。',images:['taobao.png','taobao-revamp.png'],imgLayout:'1col'},
+{id:'ai-coding',name:'AI Coding 工具',group:'work',title:'内网 AI Coding 创作工具',tagline:'负责阿里内网 AI Coding 工具产品运营，月活 6W+',meta:'阿里巴巴 · MAU 6W+ · Contributor',tags:['MAU 6W+','产品运营','AI Coding'],desc:'负责阿里内网 AI Coding 创作工具的产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。',result:'月活 6 万+ · 内部 AI 社群早期 Contributor',insight:'最好的产品推广不是写文章，而是让自己先变成重度用户。前期 Bug Fix Contributor 的经历让我对产品问题有体感，这比任何用户调研都直接。',images:['coding-contributions.png','meoo-community.png','meoo-coding.png','showcase-demo.png'],imgLayout:'2x2'},
+{id:'homestyler',name:'Homestyler AI',group:'work',title:'Homestyler AI Designer',tagline:'照片一键生成 AI 效果图，定义生图质量评测标准',meta:'阿里巴巴 · 设计家 · 2020—2023 · 国际版付费',tags:['图生图','模型微调','国际版付费','AIGC'],desc:'照片或 3D 方案一键生成 AI 效果图。定义生图质量多维评测标准，与算法团队制定模型微调方案。负责国内外版 C 端产品。',result:'国际版上线付费 · 设计场景生图质量持续提升',insight:'AIGC 的评测难点不在技术指标，而在于"好不好看"很难量化。最终有效的方案是：把"好看"拆解成可操作的维度（风格一致性、空间合理性、细节保真），再让人评+模型评交叉验证。',images:['homestyler.png'],imgLayout:'1col'},
+{id:'retail-ai',name:'新零售 AI',group:'work',title:'新零售 AI 导购工具',tagline:'为线下家居门店设计 AI 工具，单店 GMV 100W+',meta:'阿里巴巴 · 设计家 · 0→1 主导',tags:['AIGC','0→1','GMV','设计工作流'],desc:'为线下家居门店导购设计 AI 设计工具。用 2D 家具搭配快速出场景设计效果图，帮助门店导购快速设计出搭配效果。从 0 到 1 主导，商品图自动阴影、照片还原 3D 场景、智能搭配推荐。',result:'单店 GMV 100W+ · 替代 50% 驻店设计师人力',insight:'0→1 的产品不是在实验室里想出来的，是在门店里泡出来的。100W+ GMV 的背后是无数次驻店观察：导购在什么环节卡住、客户在什么时刻犹豫。',images:[],imgLayout:'none'},
+{id:'meijian',name:'美间 Moodboard',group:'work',title:'美间 Moodboard 设计工具',tagline:'4 号员工，主导产品从 0 到规模化，被收购退出',meta:'美间科技 · 产品负责人 · 4 号员工 · 2016—2019',tags:['创业','0→1','商业化','80W+注册'],desc:'软装设计采购桌面 App。作为 4 号员工主导产品从 0 到规模化：定义核心功能、搭建"设计师带货"商业模式、建立社群运营体系。公司后被群核科技收购（2026 IPO）。',result:'80W+ 注册 · 周活 9W+ · 复购 60%+ · 双11 GMV 1000W · 两轮融资 · 被收购退出',insight:'创业产品最核心的决策是发现"用户付费的时刻"——不是他注册的时候，不是他使用的时候，而是他觉得"没有这个工具我做不到"的时候。',images:['meijian.png'],imgLayout:'1col'},
+{id:'travel',name:'数字分身旅行',group:'explore',title:'数字分身世界旅行实验',tagline:'用 AI 生成数字人，让她代替我环游世界',meta:'个人探索 · 社交 · AIGC',tags:['社交','AIGC','数字人','视频生成'],desc:'<b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br><b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br><b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。<br><br><b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，发布后获得了真人的互动回复。',result:'',insight:'',images:['travel-xhs.png','travel-note.png','travel-profile-grid.jpg','travel-snow-note.jpg','travel-wallet.jpg','travel-map.png'],imgLayout:'3x2'},
+{id:'harness',name:'个人 AI Harness',group:'explore',title:'个人 AI Harness',tagline:'连续两月用 AI 处理所有生活需求，月消耗千万 Token',meta:'个人探索 · 生活场景 · 生产力',tags:['生活场景','生产力','OpenClaw','Multi-Agent'],desc:'<b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br><br><b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br><br><b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。',result:'月消耗 600—1000 万 Token',insight:'',images:['harness-discord.png','harness-mobile-1.png','harness-mobile-2.png'],imgLayout:'3col'},
+{id:'companion',name:'AI 陪伴硬件',group:'explore',title:'AI 陪伴硬件',tagline:'手搓树莓派 AI 陪伴玩具，作为礼物送给女儿',meta:'个人探索 · 陪伴 · 硬件',tags:['陪伴','硬件','树莓派','语音交互'],desc:'<b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br><b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br><b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。<br><br><b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。',result:'',insight:'',images:['companion-app.png','companion-call.png'],imgLayout:'2col',video:'companion-idle.mov'}
+];
+
+/* ══ RENDER WORKS ══ */
+(function(){
+  var list = document.getElementById('works-list');
+  var lastG = '', html = '';
+  html += '<div class="work-divider">工作项目</div>';
+  P.forEach(function(p, i) {
+    var g = p.group || 'work';
+    if (g !== lastG && lastG) html += '<div class="work-divider">探索项目</div>';
+    lastG = g;
+
+    var hasMedia = p.images.length > 0 || p.video;
+    var imgH = '';
+    if (p.images.length) {
+      if (p.imgLayout === '3x2' || p.imgLayout === '2x2') {
+        var cls = p.imgLayout === '3x2' ? 'c3' : 'c2';
+        imgH = '<div class="wd-img-row ' + cls + '">' + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>';
+      } else if (p.imgLayout === '3col') {
+        imgH = '<div class="wd-img-row c3">' + (p.video ? '<video src="' + p.video + '" autoplay loop muted playsinline style="border-radius:6px;border:1px solid var(--line);aspect-ratio:9/16;object-fit:cover"></video>' : '') + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy" style="aspect-ratio:9/16;object-position:top">' }).join('') + '</div>';
+      } else if (p.imgLayout === '2col') {
+        imgH = '<div class="wd-img-row c2">' + (p.video ? '<video src="' + p.video + '" autoplay loop muted playsinline style="border-radius:6px;border:1px solid var(--line)"></video>' : '') + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>';
+      } else {
+        imgH = p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('');
+      }
+    } else if (p.video) {
+      imgH = '<video src="' + p.video + '" autoplay loop muted playsinline style="width:100%;border-radius:6px;border:1px solid var(--line)"></video>';
+    }
+
+    var resultH = p.result ? '<div class="wd-result">' + p.result.split(' · ').map(function(r){ return '<span>' + r + '</span>' }).join('') + '</div>' : '';
+
+    html += '<div class="work-item reveal" data-idx="' + i + '" onclick="toggleWork(this,' + i + ')">'
+      + '<div class="work-num">' + String(i + 1).padStart(2, '0') + '</div>'
+      + '<div class="work-content">'
+      + '<div class="work-title">' + p.title + '</div>'
+      + '<div class="work-tagline">' + (p.tagline || '') + '</div>'
+      + '<div class="work-meta-row">'
+      + '<span class="work-company">' + p.meta + '</span>'
+      + '<div class="work-tags">' + p.tags.map(function(t){ return '<span>' + t + '</span>' }).join('') + '</div>'
+      + '</div>'
+      + '<div class="work-detail"><div class="wd-inner">'
+      + '<div class="wd-grid' + (hasMedia ? '' : ' no-media') + '">'
+      + '<div><div class="wd-desc">' + p.desc + '</div>' + resultH + '</div>'
+      + (hasMedia ? '<div class="wd-images">' + imgH + '</div>' : '')
+      + '</div>'
+      + '</div></div>'
+      + '</div></div>';
+  });
+  list.innerHTML = html;
+})();
+
+function toggleWork(el, idx) {
+  var wasActive = el.classList.contains('active');
+  document.querySelectorAll('.work-item').forEach(function(item){ item.classList.remove('active'); });
+  if (!wasActive) {
+    el.classList.add('active');
+    setTimeout(function(){ bindZoom(); }, 100);
+  }
+}
+
+/* ══ HERO ANIMATION ══ */
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    document.querySelectorAll('.hero-name .line span').forEach(function(span, i) {
+      setTimeout(function() { span.classList.add('show'); }, i * 120);
+    });
+  }, 200);
+  setTimeout(function() { document.querySelector('.hero-role').classList.add('show'); }, 500);
+  setTimeout(function() { document.querySelector('.hero-stats').classList.add('show'); }, 700);
+});
+
+/* ══ SCROLL REVEAL ══ */
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+
+/* ══ NAV HIDE ON SCROLL ══ */
+var lastScroll = 0;
+window.addEventListener('scroll', function() {
+  var st = window.pageYOffset;
+  var nav = document.getElementById('nav');
+  if (st > lastScroll && st > 100) nav.classList.add('hidden');
+  else nav.classList.remove('hidden');
+  lastScroll = st;
+}, { passive: true });
+
+/* ══ LIGHTBOX ══ */
+function bindZoom() {
+  document.querySelectorAll('.zoomable').forEach(function(img) {
+    if (img.dataset.b) return;
+    img.dataset.b = '1';
+    img.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var lb = document.getElementById('lb');
+      lb.querySelector('img').src = img.src;
+      lb.classList.add('open');
+    });
+  });
+}
+document.getElementById('lb').addEventListener('click', function() { this.classList.remove('open'); });
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') document.getElementById('lb').classList.remove('open');
+});
+
+/* ══ AGENT PROMPT ══ */
+(function() {
+  var base = location.origin + '/resume.md';
+  var ap = {
+    cc: { c: '', h: '<span>读取 </span><span class="p-url">' + base + '</span><span> 了解 Q 的背景，</span><br><span>总结她的核心能力和项目经历。</span>', t: '读取 ' + base + ' 了解 Q 的背景，\n总结她的核心能力和项目经历。' },
+    codex: { c: '', h: '<span>Fetch </span><span class="p-url">' + base + '</span><span> 了解 Q 的背景，</span><br><span>总结她的核心能力和项目经历。</span>', t: 'Fetch ' + base + ' 了解 Q 的背景，\n总结她的核心能力和项目经历。' },
+    claw: { c: '', h: '<span>WebFetch </span><span class="p-url">' + base + '</span><span> 了解 Q 的背景，</span><br><span>总结她的核心能力和项目经历。</span>', t: 'WebFetch ' + base + ' 了解 Q 的背景，\n总结她的核心能力和项目经历。' }
+  };
+  var cur = 'cc';
+  window.switchAgent = function(key) {
+    cur = key;
+    document.querySelectorAll('.ag-tab').forEach(function(t) { t.classList.remove('active'); });
+    event.target.classList.add('active');
+    document.getElementById('ag-prompt').innerHTML = ap[key].h;
+  };
+  window.copyAgent = function() {
+    var text = ap[cur].t;
+    function fb() { var ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+    var pr = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text).catch(fb) : Promise.resolve().then(fb);
+    pr.then(function() {
+      var btn = document.getElementById('ag-copy'); btn.classList.add('copied'); btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+      var toast = document.getElementById('toast'); toast.classList.add('show'); clearTimeout(window._ct); window._ct = setTimeout(function() { toast.classList.remove('show'); }, 1600);
+      setTimeout(function() { btn.classList.remove('copied'); btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY'; }, 2000);
+    });
+  };
+  document.getElementById('ag-prompt').innerHTML = ap.cc.h;
+})();
+</script>
+</body>
+</html>
