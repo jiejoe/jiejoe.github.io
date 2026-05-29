@@ -75,10 +75,10 @@ Advanced teams building more AI-native user experiences. Specifically:
   - Co-designed Prompt/context strategies and Qwen3 SFT training pipeline with the algorithm team.
   - Built GSB evaluation framework, intent-accuracy metrics, and bad-case attribution system.
   - Results: bad-case rate **26% → 8%**, classification accuracy **56% → 98%**, first AI-native shopping experience landed.
-- **Taobao App Redesign (Billion-DAU)**:
-  - Led core page redesigns (Home / Messages / Profile) covering **1B+ users**.
-  - Differentiated experience strategies via user segmentation (gender, spending power, membership tiers).
-  - Multiple Double-11 / 618 campaign PM — cross-zone traffic distribution.
+- **Taobao App Redesign (Billion-DAU)**: core page redesigns (Home / Messages / Profile) covering **1B+ users**, A/B-driven iteration.
+  - Home redesign: segmented users by portrait (membership × gender × age × spending power × behavior tags), designed differentiated channels and user flows; core metrics **DAC** (daily transacting users) and scenario click count (≈ CTR × frequency).
+  - Double-11 / 618 campaign PM: owned overall traffic distribution — marketing campaign venues, interactive venues, home channels (incl. search & feed) — responsible for page click-through conversion; designed activity mechanics and carrying paths from a product perspective.
+  - Case: one Double-11, combined livestream red-envelope-rain gameplay for traffic acquisition, precisely targeting long-cycle livestream-camping users, carried via vertical short-video — period average **CTR >8%, ROI >40%** vs. prior years.
   - Results: significant GMV uplift, Double-11 core-zone efficiency improvement.
 - **Internal AI Coding Creation Tool (MAU 60K+)**:
   - Product operations: launch articles and tutorials, user-community operation, early bug-fix contribution.

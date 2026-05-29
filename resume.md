@@ -42,10 +42,11 @@ Product Manager with 9+ years spanning billion-DAU consumer products and 0→1 s
 - Results: bad case rate 26%→8%, classification accuracy 56%→98%, first AI-native shopping experience landed
 
 **Taobao App Redesign (Billion-DAU)**
-- Led core page redesigns (Home / Messages / Profile) covering 1B+ users
-- Defined differentiated experience strategies through user segmentation (gender, spending power, membership tiers)
-- Multiple Double-11 / 618 campaign PM — managed cross-zone traffic distribution
-- Results: significant GMV uplift, Double-11 core zone efficiency improvement
+- Led core page redesigns (Home / Messages / Profile) covering 1B+ users; A/B-driven iteration
+- **Home redesign**: segmented users by portrait (membership × gender × age × spending power × behavior tags), designed differentiated channels and user flows; core metrics DAC (daily transacting users) and scenario click count (≈ CTR × frequency)
+- **Double-11 / 618 campaigns (PM)**: owned overall traffic distribution — marketing campaign venues, interactive venues, and home channels (incl. search & feed) — responsible for page click-through conversion; designed activity mechanics and carrying paths from a product perspective
+- **Case**: one Double-11, combined livestream red-envelope-rain gameplay for traffic acquisition, precisely targeting users who camp livestreams across the long promo cycle, carried via vertical short-video — period average CTR >8%, ROI >40% vs. prior years
+- Results: significant GMV uplift, Double-11 core-zone efficiency improvement
 
 **Internal AI Coding Creation Tool (MAU 60K+)**
 - Product operations for Alibaba internal AI Coding creation tool: wrote launch articles and tutorials, operated user communities, and contributed early bug fixes
