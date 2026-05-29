@@ -57,8 +57,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
   font-family: var(--serif); font-size: clamp(48px, 8vw, 96px); font-weight: 600;
   line-height: 1.05; letter-spacing: -.04em; margin-bottom: 28px;
 }
-.hero-name .line { display: block; overflow: hidden; }
-.hero-name .line span { display: inline-block; transform: translateY(110%); transition: transform .8s var(--ease); }
+.hero-name .line { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.1em; }
+.hero-name .line span { display: inline-block; transform: translateY(120%); transition: transform .8s var(--ease); }
 .hero-name .line span.show { transform: translateY(0); }
 .hero-role {
   font-size: 18px; font-weight: 400; color: var(--dim); max-width: 560px;
@@ -88,6 +88,29 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 /* ── SECTION ── */
 .section { padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 60px); max-width: 1200px; margin: 0 auto; }
 .section-full { padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 60px); }
+
+/* ── EXPERIENCE TIMELINE ── */
+.exp-intro { font-size: 16px; color: #888; margin: -16px 0 48px; }
+.exp-list { position: relative; padding-left: 32px; }
+.exp-list::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 1px; background: var(--line); }
+.exp-item { position: relative; margin-bottom: 48px; }
+.exp-item:last-child { margin-bottom: 0; }
+.exp-item::before {
+  content: ''; position: absolute; left: -36px; top: 7px;
+  width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--dim); background: var(--bg);
+}
+.exp-item.now::before { background: var(--fg); border-color: var(--fg); }
+.exp-period { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--faint); margin-bottom: 6px; }
+.exp-role { font-family: var(--serif); font-size: clamp(18px, 2.5vw, 22px); font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+.exp-org { font-size: 12px; color: var(--dim); letter-spacing: .02em; margin-bottom: 8px; }
+.exp-desc { font-size: 13px; color: var(--dim); line-height: 1.7; max-width: 520px; }
+.exp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.exp-tags span {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .04em;
+  padding: 2px 8px; border: 1px solid var(--line); border-radius: 3px; color: var(--faint);
+}
+.exp-sub { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.exp-sub .exp-period { font-size: 9px; }
 .sec-label {
   display: flex; align-items: center; gap: 16px; margin-bottom: 56px;
 }
@@ -138,8 +161,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 }
 .work-item:hover .work-tags span { border-color: var(--dim); color: var(--dim); }
 .work-divider {
-  padding: 12px 0; font-family: var(--mono); font-size: 9px;
-  letter-spacing: .2em; text-transform: uppercase; color: var(--faint);
+  padding: 16px 0; font-family: var(--sans); font-size: 16px;
+  letter-spacing: .04em; color: var(--dim);
   border-bottom: 1px solid var(--line);
 }
 
@@ -153,6 +176,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .wd-inner { padding-top: 20px; border-top: 1px dashed var(--line); }
 .wd-grid { display: grid; grid-template-columns: 1fr 280px; gap: 32px; align-items: start; }
 .wd-grid.no-media { grid-template-columns: 1fr; }
+.wd-grid.wide { grid-template-columns: minmax(0,.85fr) minmax(0,1.5fr); }
+.wd-feature-img { aspect-ratio: auto !important; object-fit: contain !important; background: #fff; }
 .wd-desc { font-size: 15px; line-height: 1.85; color: #444; }
 .wd-desc b { color: var(--fg); font-weight: 600; }
 .wd-result { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); line-height: 2; }
@@ -188,7 +213,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .thinking-sec .sec-title { color: #888; }
 .thinking-sec .sec-line { background: #333; }
 .thinking-wrap { max-width: 1200px; margin: 0 auto; }
-.thinking-intro { font-size: 15px; color: #888; margin-bottom: 40px; max-width: 480px; }
+.thinking-intro { font-size: 16px; color: #888; margin-bottom: 40px; max-width: 480px; }
 .tk-list { display: flex; flex-direction: column; gap: 1px; }
 .tk {
   border: 1px solid #333; border-radius: 4px;
@@ -298,7 +323,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 /* ── ABOUT ── */
 .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
 .about-heading { font-family: var(--serif); font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -.02em; margin-bottom: 20px; line-height: 1.15; }
-.about-desc { font-size: 16px; line-height: 1.85; color: #555; margin-bottom: 32px; }
+.about-desc { font-size: 16px; line-height: 1.85; color: var(--fg); margin-bottom: 20px; }
+.about-desc-sm { font-size: 14px; line-height: 1.85; color: var(--dim); margin-bottom: 32px; }
 .contact-list { display: flex; flex-direction: column; gap: 14px; }
 .ct-item { display: flex; flex-direction: column; gap: 2px; }
 .ct-label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--faint); }
@@ -361,22 +387,24 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 }
 .ag-prompt .p-url { color: var(--green); }
 .ag-prompt .p-place { color: var(--dim); }
+.ag-copy-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 12px; }
+.ag-hint { font-size: 12px; line-height: 1.5; color: var(--dim); flex: 1; }
 .ag-copy {
   background: var(--bg); border: 1px solid var(--line); color: var(--dim);
   padding: 6px 14px; cursor: pointer; font-family: var(--mono); font-size: 9px;
   letter-spacing: .05em; transition: all .2s; display: inline-flex;
-  align-items: center; gap: 4px; border-radius: 4px; margin-top: 12px;
+  align-items: center; gap: 4px; border-radius: 4px; flex-shrink: 0;
 }
 .ag-copy:hover { color: var(--fg); border-color: var(--fg); }
 .ag-copy.copied { color: var(--green); border-color: var(--green); }
-.ag-dl-wrap { border-top: 1px solid var(--line); margin-top: 16px; padding: 16px 20px; }
+.ag-dl-wrap { border-top: 1px solid var(--line); margin-top: 16px; padding: 16px 20px; text-align: center; }
 .ag-dl {
-  background: none; border: 1px solid var(--line); color: var(--dim);
+  background: none; border: none; color: var(--dim);
   padding: 6px 14px; font-family: var(--mono); font-size: 9px;
   letter-spacing: .05em; transition: all .2s; display: inline-flex;
   align-items: center; gap: 4px; border-radius: 4px; text-decoration: none;
 }
-.ag-dl:hover { color: var(--fg); border-color: var(--fg); }
+.ag-dl:hover { color: var(--fg); }
 
 /* ── FOOTER ── */
 .footer {
@@ -401,7 +429,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
   .work-tags { display: none; }
   .work-detail { padding-left: 36px; }
   .work-item.active .work-detail { padding-left: 36px; }
-  .wd-grid { grid-template-columns: 1fr; }
+  .wd-grid, .wd-grid.wide { grid-template-columns: 1fr; }
   .wd-images { order: -1; }
   .about-grid { grid-template-columns: 1fr; gap: 48px; }
   .vflow { flex-direction: column; gap: 3px; }
@@ -411,6 +439,9 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
   .aha-points { grid-template-columns: 1fr; }
   .nav-links { gap: 20px; }
   .hero-scroll { display: none; }
+  .wd-img-row.c3 { grid-template-columns: 1fr 1fr; }
+  .wd-img-row.c2 { grid-template-columns: 1fr 1fr; }
+  .about-desc-sm { font-size: 13px; }
 }
 @media print { .nav, .hero-scroll { display: none; } .hero { min-height: auto; padding: 32px 0; } }
 </style>
@@ -421,6 +452,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 <nav class="nav" id="nav">
   <a class="nav-logo" href="#">Q.</a>
   <div class="nav-links">
+    <a href="#experience">Experience</a>
     <a href="#works">Works</a>
     <a href="#thinking">Thinking</a>
     <a href="#about">About</a>
@@ -449,10 +481,54 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
   </div>
 </section>
 
+<!-- EXPERIENCE -->
+<section class="section" id="experience">
+  <div class="sec-label reveal">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Experience</span>
+    <span class="sec-line"></span>
+  </div>
+  <p class="exp-intro reveal">我的成长路径有些非典型。</p>
+  <div class="exp-list">
+
+    <div class="exp-item now reveal">
+      <div class="exp-period">2024 — NOW</div>
+      <div class="exp-role">产品专家</div>
+      <div class="exp-org">阿里巴巴 · 淘宝产品团队</div>
+      <div class="exp-desc">AI 原生导购产品落地 0→1，主牵手淘核心场域改版。</div>
+      <div class="exp-tags"><span>AI × 电商</span><span>亿级 DAU</span><span>LLM</span><span>0→1</span></div>
+      <div class="exp-sub">
+        <div class="exp-period">2020 — 2023</div>
+        <div class="exp-role">设计工具产品</div>
+        <div class="exp-org">阿里巴巴 · 每平每屋设计家</div>
+        <div class="exp-desc">Homestyler 照片一键生成 AI 效果图，定义生图质量评测标准。为线下门店打造导购工具，单店 GMV 100W+。</div>
+        <div class="exp-tags"><span>AIGC</span><span>国际版付费</span><span>新零售</span></div>
+      </div>
+    </div>
+
+    <div class="exp-item reveal">
+      <div class="exp-period">2016 — 2019</div>
+      <div class="exp-role">产品负责人 · 4 号员工</div>
+      <div class="exp-org">美间科技 · 创业 → 被收购</div>
+      <div class="exp-desc">软装设计工具从 0 到规模化：80W+ 注册，双11 GMV 千万。搭建"设计师带货"商业模式，公司被群核科技收购。</div>
+      <div class="exp-tags"><span>创业</span><span>0→1</span><span>商业化</span><span>被收购退出</span></div>
+    </div>
+
+    <div class="exp-item reveal">
+      <div class="exp-period">2011 — 2015</div>
+      <div class="exp-role">日本经济文化 · 东亚研究</div>
+      <div class="exp-org">西安外国语大学 × 日本武蔵大学</div>
+      <div class="exp-desc">翻译方向，公派交换于日本武蔵大学，参与 NLP 机器翻译语料库研究。实习于环球时报任编译记者，负责亚洲新闻。</div>
+      <div class="exp-tags"><span>跨学科教育背景</span><span>NLP</span><span>中 / 英 / 日</span></div>
+    </div>
+
+  </div>
+</section>
+
 <!-- WORKS -->
 <section class="section" id="works">
   <div class="sec-label reveal">
-    <span class="sec-num">01</span>
+    <span class="sec-num">02</span>
     <span class="sec-title">Selected Works</span>
     <span class="sec-line"></span>
   </div>
@@ -463,11 +539,11 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 <section class="thinking-sec" id="thinking">
   <div class="thinking-wrap">
     <div class="sec-label reveal">
-      <span class="sec-num">02</span>
+      <span class="sec-num">03</span>
       <span class="sec-title">Thinking</span>
       <span class="sec-line"></span>
     </div>
-    <p class="thinking-intro reveal">与你分享我最近的产品思考。</p>
+    <p class="thinking-intro reveal">在build的过程中，我的认知也不断在更新。</p>
     <div class="tk-list">
 
       <!-- 思考 1 -->
@@ -566,14 +642,14 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 <!-- ABOUT -->
 <section class="section" id="about">
   <div class="sec-label reveal">
-    <span class="sec-num">03</span>
+    <span class="sec-num">04</span>
     <span class="sec-title">About</span>
     <span class="sec-line"></span>
   </div>
   <div class="about-grid">
     <div class="about-left reveal">
       <h2 class="about-heading">联系我</h2>
-      <p class="about-desc">目前对 AI 原生产品在用户场景的落地都十分感兴趣，个人助手、生产力、内容、社交、硬件方向都是非常有趣的方向。如果你有很多类似的思潮想要交流，或者是需要一个 AI native 的产品人、工程师、分析师，欢迎联系我。</p>
+      <p class="about-desc">我热爱 Build，并享受为更多的人创造价值。如今还是 AGI 非常早期的阶段，推动这一切的发展，需要用户场景的聚焦和落地。如果你有很多类似的思潮想要交流，或者是需要一个 AI native 的产品人、工程师、分析师，欢迎联系我。</p>
       <div class="contact-list">
         <div class="ct-item"><div class="ct-label">Phone</div><div class="ct-val">15258318600</div></div>
         <div class="ct-item"><div class="ct-label">Email</div><div class="ct-val"><a href="mailto:jiejoe2017@gmail.com">jiejoe2017@gmail.com</a></div></div>
@@ -593,7 +669,10 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
         </div>
         <div class="ag-body">
           <div class="ag-prompt" id="ag-prompt"></div>
-          <button class="ag-copy" id="ag-copy" onclick="copyAgent()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY</button>
+          <div class="ag-copy-row">
+            <span class="ag-hint">复制到你常用的 AI 助手，读取简历帮你快速了解。</span>
+            <button class="ag-copy" id="ag-copy" onclick="copyAgent()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY</button>
+          </div>
         </div>
         <div class="ag-dl-wrap">
           <a class="ag-dl" href="resume.pdf" download><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 获取 Q 的 PDF 简历</a>
@@ -611,31 +690,33 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 <script>
 /* ══ PROJECT DATA ══ */
 var P=[
-{id:'taobao-ai',name:'淘宝 AI 导购',group:'work',title:'淘宝 × 千问 AI 导购助手',tagline:'0→1 主导淘宝 AI 导购，让模型理解用户收藏，自动生成兴趣合辑',meta:'阿里巴巴 · 端产品 · 产品专家 · 2024—now',tags:['AI','LLM','0→1','SFT','评测体系'],desc:'0→1 主导淘宝 AI 导购产品：<b>AI 收藏合辑</b>（LLM 理解收藏，自动生成兴趣合辑）、<b>AI 足迹推荐</b>、<b>AI 种草</b>。与算法团队协作 Prompt/上下文策略和 Qwen3 SFT 后训练，搭建 GSB 评测体系和 bad case 归因机制。',result:'badcase 率 26%→8% · 分类准确性 56%→98% · 0→1 AI 原生导购体验落地',insight:'AI 在电商中的价值不在于推荐更多商品，而在于帮用户理解自己还没说出口的需求。从 bad case 归因到 SFT 优化，每一步都是在缩短"用户真实意图"和"系统理解"之间的距离。',images:['ai-shopping-1.png','ai-shopping-2.png'],imgLayout:'1col'},
-{id:'taobao-revamp',name:'手淘端改版',group:'work',title:'手机淘宝端改版',tagline:'主牵手淘核心场域改版，覆盖 10 亿用户，数据驱动迭代',meta:'阿里巴巴 · 端产品 · 亿级 DAU · 2024—now',tags:['亿级DAU','用户产品','A/B实验','大促'],desc:'主牵手淘核心场域改版（首页/消息/我淘），覆盖 10 亿用户。基于用户分层定义差异化体验策略，A/B 实验驱动迭代。多次担任双11、618 大促 PM，负责多场域流量分发。',result:'策略覆盖 10 亿用户 · 大盘成交指标显著正向 · 双11 核心场域效率显著提升',insight:'亿级 DAU 场域里，"改版"不是视觉刷新，而是一场流量再分配。每个像素的变动都有成交链路的因果。数据驱动不是看数字，是找到数字背后的用户行为解释。',images:['taobao.png','taobao-revamp.png'],imgLayout:'1col'},
-{id:'ai-coding',name:'AI Coding 工具',group:'work',title:'内网 AI Coding 创作工具',tagline:'负责阿里内网 AI Coding 工具产品运营，月活 6W+',meta:'阿里巴巴 · MAU 6W+ · Contributor',tags:['MAU 6W+','产品运营','AI Coding'],desc:'负责阿里内网 AI Coding 创作工具的产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。',result:'月活 6 万+ · 内部 AI 社群早期 Contributor',insight:'最好的产品推广不是写文章，而是让自己先变成重度用户。前期 Bug Fix Contributor 的经历让我对产品问题有体感，这比任何用户调研都直接。',images:['coding-contributions.png','meoo-community.png','meoo-coding.png','showcase-demo.png'],imgLayout:'2x2'},
-{id:'homestyler',name:'Homestyler AI',group:'work',title:'Homestyler AI Designer',tagline:'照片一键生成 AI 效果图，定义生图质量评测标准',meta:'阿里巴巴 · 设计家 · 2020—2023 · 国际版付费',tags:['图生图','模型微调','国际版付费','AIGC'],desc:'照片或 3D 方案一键生成 AI 效果图。定义生图质量多维评测标准，与算法团队制定模型微调方案。负责国内外版 C 端产品。',result:'国际版上线付费 · 设计场景生图质量持续提升',insight:'AIGC 的评测难点不在技术指标，而在于"好不好看"很难量化。最终有效的方案是：把"好看"拆解成可操作的维度（风格一致性、空间合理性、细节保真），再让人评+模型评交叉验证。',images:['homestyler.png'],imgLayout:'1col'},
-{id:'retail-ai',name:'新零售 AI',group:'work',title:'新零售 AI 导购工具',tagline:'为线下家居门店设计 AI 工具，单店 GMV 100W+',meta:'阿里巴巴 · 设计家 · 0→1 主导',tags:['AIGC','0→1','GMV','设计工作流'],desc:'为线下家居门店导购设计 AI 设计工具。用 2D 家具搭配快速出场景设计效果图，帮助门店导购快速设计出搭配效果。从 0 到 1 主导，商品图自动阴影、照片还原 3D 场景、智能搭配推荐。',result:'单店 GMV 100W+ · 替代 50% 驻店设计师人力',insight:'0→1 的产品不是在实验室里想出来的，是在门店里泡出来的。100W+ GMV 的背后是无数次驻店观察：导购在什么环节卡住、客户在什么时刻犹豫。',images:[],imgLayout:'none'},
-{id:'meijian',name:'美间 Moodboard',group:'work',title:'美间 Moodboard 设计工具',tagline:'4 号员工，主导产品从 0 到规模化，被收购退出',meta:'美间科技 · 产品负责人 · 4 号员工 · 2016—2019',tags:['创业','0→1','商业化','80W+注册'],desc:'软装设计采购桌面 App。作为 4 号员工主导产品从 0 到规模化：定义核心功能、搭建"设计师带货"商业模式、建立社群运营体系。公司后被群核科技收购（2026 IPO）。',result:'80W+ 注册 · 周活 9W+ · 复购 60%+ · 双11 GMV 1000W · 两轮融资 · 被收购退出',insight:'创业产品最核心的决策是发现"用户付费的时刻"——不是他注册的时候，不是他使用的时候，而是他觉得"没有这个工具我做不到"的时候。',images:['meijian.png'],imgLayout:'1col'},
-{id:'travel',name:'数字分身旅行',group:'explore',title:'数字分身世界旅行实验',tagline:'用 AI 生成数字人，让她代替我环游世界',meta:'个人探索 · 社交 · AIGC',tags:['社交','AIGC','数字人','视频生成'],desc:'<b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br><b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br><b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。<br><br><b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，发布后获得了真人的互动回复。',result:'',insight:'',images:['travel-xhs.png','travel-note.png','travel-profile-grid.jpg','travel-snow-note.jpg','travel-wallet.jpg','travel-map.png'],imgLayout:'3x2'},
-{id:'harness',name:'个人 AI Harness',group:'explore',title:'个人 AI Harness',tagline:'连续两月用 AI 处理所有生活需求，月消耗千万 Token',meta:'个人探索 · 生活场景 · 生产力',tags:['生活场景','生产力','OpenClaw','Multi-Agent'],desc:'<b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br><br><b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br><br><b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。',result:'月消耗 600—1000 万 Token',insight:'',images:['harness-discord.png','harness-mobile-1.png','harness-mobile-2.png'],imgLayout:'3col'},
-{id:'companion',name:'AI 陪伴硬件',group:'explore',title:'AI 陪伴硬件',tagline:'手搓树莓派 AI 陪伴玩具，作为礼物送给女儿',meta:'个人探索 · 陪伴 · 硬件',tags:['陪伴','硬件','树莓派','语音交互'],desc:'<b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br><b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br><b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。<br><br><b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。',result:'',insight:'',images:['companion-app.png','companion-call.png'],imgLayout:'2col',video:'companion-idle.mov'}
+{id:'taobao-ai',name:'淘宝 AI 导购',group:'work',title:'淘宝 × 千问 AI 导购助手',tagline:'0→1 主导淘宝 AI 导购，让模型理解用户收藏，自动生成兴趣合辑',meta:'阿里巴巴 · 端产品 · 产品专家 · 2024—now',tags:['AI','LLM','0→1','SFT','评测体系'],desc:'0→1 主导淘宝 AI 导购产品：<b>AI 收藏合辑</b>（LLM 理解收藏，自动生成兴趣合辑）、<b>AI 足迹推荐</b>、<b>AI 种草</b>。与算法团队协作 Prompt/上下文策略和 Qwen3 SFT 后训练，搭建 GSB 评测体系和 bad case 归因机制。',result:'badcase 率 26%→8% · 分类准确性 56%→98% · 0→1 AI 原生导购体验落地',insight:'',images:['ai-shopping-1.png','ai-shopping-2.png'],imgLayout:'1col'},
+{id:'taobao-revamp',name:'手淘端改版',group:'work',title:'手机淘宝端改版',tagline:'主牵手淘核心场域改版，覆盖 10 亿用户，数据驱动迭代',meta:'阿里巴巴 · 端产品 · 亿级 DAU · 2024—now',tags:['亿级DAU','用户产品','A/B实验','大促'],desc:'主牵手淘核心场域改版（首页/消息/我淘），覆盖 10 亿用户。基于用户分层定义差异化体验策略，A/B 实验驱动迭代。多次担任双11、618 大促 PM，负责多场域流量分发。',result:'策略覆盖 10 亿用户 · 大盘成交指标显著正向 · 双11 核心场域效率显著提升',insight:'',images:['taobao.png','taobao-revamp.png'],imgLayout:'1col'},
+{id:'design-tools',name:'设计师设计工具',group:'work',title:'设计师设计工具',tagline:'从创业到阿里，围绕设计师工作流打造产品工具链',meta:'美间科技 + 阿里巴巴 · 2016—2023',tags:['创业','0→1','AIGC','国际版付费','商业化'],desc:'<b><a href="https://www.meijian.com" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:3px">美间 Moodboard 设计工具</a></b>（美间科技 · 4 号员工 · 2016—2019）<br>软装设计采购桌面 App。作为 4 号员工主导产品从 0 到规模化：定义核心功能、搭建"设计师带货"商业模式、建立社群运营体系。公司后被群核科技收购（2026 IPO）。<br><br><b>新零售 AI 导购工具</b>（阿里巴巴 · 设计家 · 0→1 主导）<br>为线下家居门店导购设计 AI 设计工具。用 2D 家具搭配快速出场景设计效果图，帮助门店导购快速设计出搭配效果。从 0 到 1 主导，商品图自动阴影、照片还原 3D 场景、智能搭配推荐。<br><br><b><a href="https://www.homestyler.com" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Homestyler AI Designer</a></b>（阿里巴巴 · 设计家 · 2020—2023 · 国际版付费）<br>照片或 3D 方案一键生成 AI 效果图。定义生图质量多维评测标准，与算法团队制定模型微调方案。负责国内外版 C 端产品。',result:'80W+ 注册 · 被收购退出 · 单店 GMV 100W+ · 国际版上线付费',insight:'',images:['meijian.png','homestyler.png'],imgLayout:'1col'},
+{id:'ai-coding',name:'AI Coding 创作工具',group:'explore',title:'AI Coding 工具',tagline:'25 年初开始 vibe coding，在浪潮之巅感受知识工作者的生产力变革',meta:'阿里巴巴 · MAU 6W+ · Contributor',tags:['通用','生产力'],desc:'负责阿里内网 AI Coding 创作工具的产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。',result:'月活 6 万+ · 内部 AI 社群早期 Contributor',insight:'',images:['coding-contributions.png','meoo-community.png','meoo-coding.png','showcase-demo.png'],imgLayout:'feature'},
+{id:'harness',name:'个人 AI Harness',group:'explore',title:'OpenClaw 实践',tagline:'26 年 1 月，新的产品范式改变了 AI 的工作环境，帮我处理工作、生活的所有增量需求',meta:'个人探索 · 生活场景 · 生产力',tags:['个人 AI Harness','OpenClaw','Multi-Agent','生产力'],desc:'<b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br><br><b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br><br><b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。',result:'月消耗 600—1000 万 Token',insight:'',images:['harness-discord.png','harness-mobile-1.png','harness-mobile-2.png'],imgLayout:'3col'},
+{id:'travel',name:'数字分身旅行',group:'explore',title:'社交 × AIGC',tagline:'用 AI 生成数字人，让她代替我在社交平台经营旅行内容',meta:'个人探索 · 社交 · AIGC',tags:['数字分身世界旅行实验','数字人','视频生成','社交'],desc:'<b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br><b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br><b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。<br><br><b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，发布后获得了真人的互动回复。',result:'',insight:'',images:['travel-xhs.png','travel-note.png','travel-profile-grid.jpg','travel-snow-note.jpg','travel-wallet.jpg','travel-map.png'],imgLayout:'3x2'},
+{id:'companion',name:'AI 陪伴硬件',group:'explore',title:'陪伴 × 硬件',tagline:'还在尝试手搓树莓派 AI 陪伴玩具，用小孩子的直觉探索新的场景',meta:'个人探索 · 陪伴 · 硬件',tags:['AI 陪伴硬件','树莓派','语音交互','陪伴'],desc:'<b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br><b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br><b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。<br><br><b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。',result:'',insight:'',images:['companion-app.png','companion-call.png'],imgLayout:'2col',video:'companion-idle.mov'}
 ];
 
 /* ══ RENDER WORKS ══ */
 (function(){
   var list = document.getElementById('works-list');
   var lastG = '', html = '';
-  html += '<div class="work-divider">工作项目</div>';
+  html += '<div class="work-divider">我为很多的用户创造过产品</div>';
   P.forEach(function(p, i) {
     var g = p.group || 'work';
-    if (g !== lastG && lastG) html += '<div class="work-divider">探索项目</div>';
+    if (g !== lastG && lastG) html += '<div class="work-divider">有了AI后创作成为了更本能的选择</div>';
     lastG = g;
 
     var hasMedia = p.images.length > 0 || p.video;
     var imgH = '';
     if (p.images.length) {
-      if (p.imgLayout === '3x2' || p.imgLayout === '2x2') {
+      if (p.imgLayout === 'feature') {
+        var first = p.images[0], rest = p.images.slice(1);
+        imgH = '<img class="zoomable wd-feature-img" src="' + first + '" loading="lazy">'
+          + (rest.length ? '<div class="wd-img-row c3">' + rest.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>' : '');
+      } else if (p.imgLayout === '3x2' || p.imgLayout === '2x2') {
         var cls = p.imgLayout === '3x2' ? 'c3' : 'c2';
         imgH = '<div class="wd-img-row ' + cls + '">' + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>';
       } else if (p.imgLayout === '3col') {
@@ -661,7 +742,7 @@ var P=[
       + '<div class="work-tags">' + p.tags.map(function(t){ return '<span>' + t + '</span>' }).join('') + '</div>'
       + '</div>'
       + '<div class="work-detail"><div class="wd-inner">'
-      + '<div class="wd-grid' + (hasMedia ? '' : ' no-media') + '">'
+      + '<div class="wd-grid' + (hasMedia ? '' : ' no-media') + (p.imgLayout === 'feature' ? ' wide' : '') + '">'
       + '<div><div class="wd-desc">' + p.desc + '</div>' + resultH + '</div>'
       + (hasMedia ? '<div class="wd-images">' + imgH + '</div>' : '')
       + '</div>'
@@ -734,9 +815,9 @@ document.addEventListener('keydown', function(e) {
 (function() {
   var base = location.origin + '/resume.md';
   var ap = {
-    cc: { c: '', h: '<span>读取 </span><span class="p-url">' + base + '</span><span> 了解 Q 的背景，</span><br><span>总结她的核心能力和项目经历。</span>', t: '读取 ' + base + ' 了解 Q 的背景，\n总结她的核心能力和项目经历。' },
-    codex: { c: '', h: '<span>Fetch </span><span class="p-url">' + base + '</span><span> 了解 Q 的背景，</span><br><span>总结她的核心能力和项目经历。</span>', t: 'Fetch ' + base + ' 了解 Q 的背景，\n总结她的核心能力和项目经历。' },
-    claw: { c: '', h: '<span>WebFetch </span><span class="p-url">' + base + '</span><span> 了解 Q 的背景，</span><br><span>总结她的核心能力和项目经历。</span>', t: 'WebFetch ' + base + ' 了解 Q 的背景，\n总结她的核心能力和项目经历。' }
+    cc: { c: '', h: '<span>读取 </span><span class="p-url">' + base + '</span><span> 了解候选人 Q 的背景，</span><br><span>然后评估她是否适合以下岗位：</span><br><span class="p-place">[粘贴你的 JD]</span>', t: '读取 ' + base + ' 了解候选人 Q 的背景，\n然后评估她是否适合以下岗位：\n[粘贴你的 JD]' },
+    codex: { c: '', h: '<span>Fetch </span><span class="p-url">' + base + '</span><span> 了解候选人 Q 的背景，</span><br><span>评估优势和岗位匹配度：</span><br><span class="p-place">[粘贴你的 JD]</span>', t: 'Fetch ' + base + ' 了解候选人 Q 的背景，\n评估优势和岗位匹配度：\n[粘贴你的 JD]' },
+    claw: { c: '', h: '<span>WebFetch </span><span class="p-url">' + base + '</span><span> 了解候选人 Q 的背景，</span><br><span>评估她与以下岗位的匹配度：</span><br><span class="p-place">[粘贴你的 JD]</span>', t: 'WebFetch ' + base + ' 了解候选人 Q 的背景，\n评估她与以下岗位的匹配度：\n[粘贴你的 JD]' }
   };
   var cur = 'cc';
   window.switchAgent = function(key) {
