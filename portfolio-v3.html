@@ -46,6 +46,9 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px; background: var(--fg); transition: width .3s var(--ease); }
 .nav-links a:hover { color: var(--fg); }
 .nav-links a:hover::after { width: 100%; }
+.nav-links a.nav-md { font-family: var(--mono); font-size: 11px; color: var(--faint); border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; }
+.nav-links a.nav-md::after { display: none; }
+.nav-links a.nav-md:hover { color: var(--fg); border-color: var(--fg); }
 
 /* ── HERO ── */
 .hero {
@@ -321,7 +324,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .aha-desc { font-size: 13px; line-height: 1.55; color: #777; }
 
 /* ── ABOUT ── */
-.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: stretch; }
+.about-right { display: flex; }
 .about-heading { font-family: var(--serif); font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -.02em; margin-bottom: 20px; line-height: 1.15; }
 .about-desc { font-size: 16px; line-height: 1.85; color: var(--fg); margin-bottom: 20px; }
 .about-desc-sm { font-size: 14px; line-height: 1.85; color: var(--dim); margin-bottom: 32px; }
@@ -368,7 +372,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .dl-jd button:hover { background: #333; }
 
 /* Agent card */
-.ag-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.ag-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; width: 100%; }
 .ag-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 8px; }
 .ag-title { font-size: 13px; font-weight: 600; }
 .ag-tabs { display: flex; gap: 0; }
@@ -379,11 +383,11 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 }
 .ag-tab:hover { color: var(--fg); }
 .ag-tab.active { color: var(--fg); background: var(--surface); border-color: var(--line); }
-.ag-body { padding: 20px; }
+.ag-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
 .ag-prompt {
   font-family: var(--mono); font-size: 11.5px; line-height: 1.8; color: var(--fg);
   white-space: pre-wrap; word-wrap: break-word; background: var(--surface);
-  padding: 14px; border: 1px solid var(--line); border-radius: 6px;
+  padding: 14px; border: 1px solid var(--line); border-radius: 6px; flex: 1;
 }
 .ag-prompt .p-url { color: var(--green); }
 .ag-prompt .p-place { color: var(--dim); }
@@ -456,6 +460,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
     <a href="#works">Works</a>
     <a href="#thinking">Thinking</a>
     <a href="#about">About</a>
+    <a class="nav-md" href="q.md" target="_blank">Q.md for Agent</a>
   </div>
 </nav>
 
@@ -670,18 +675,16 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
         <div class="ag-body">
           <div class="ag-prompt" id="ag-prompt"></div>
           <div class="ag-copy-row">
-            <span class="ag-hint">复制到你常用的 AI 助手，读取简历帮你快速了解。</span>
+            <span class="ag-hint">复制这段话到你常用的 AI 助手，粘贴你的 JD，它会自动读取简历并评估匹配度。</span>
             <button class="ag-copy" id="ag-copy" onclick="copyAgent()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY</button>
           </div>
         </div>
-        <div class="ag-dl-wrap">
-          <a class="ag-dl" href="resume.pdf" download><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 获取 Q 的 PDF 简历</a>
-        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<footer class="footer"><span>Q · 2026</span><span>会随实践更新</span></footer>
+<footer class="footer"><span>Q · 2026</span></footer>
 
 <!-- LIGHTBOX & TOAST -->
 <div class="lb" id="lb"><img src="" alt=""></div>
@@ -696,7 +699,7 @@ var P=[
 {id:'ai-coding',name:'AI Coding 创作工具',group:'explore',title:'AI Coding 工具',tagline:'25 年初开始 vibe coding，在浪潮之巅感受知识工作者的生产力变革',meta:'阿里巴巴 · MAU 6W+ · Contributor',tags:['通用','生产力'],desc:'负责阿里内网 AI Coding 创作工具的产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。',result:'月活 6 万+ · 内部 AI 社群早期 Contributor',insight:'',images:['coding-contributions.png','meoo-community.png','meoo-coding.png','showcase-demo.png'],imgLayout:'feature'},
 {id:'harness',name:'个人 AI Harness',group:'explore',title:'OpenClaw 实践',tagline:'26 年 1 月，新的产品范式改变了 AI 的工作环境，帮我处理工作、生活的所有增量需求',meta:'个人探索 · 生活场景 · 生产力',tags:['个人 AI Harness','OpenClaw','Multi-Agent','生产力'],desc:'<b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br><br><b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br><br><b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。',result:'月消耗 600—1000 万 Token',insight:'',images:['harness-discord.png','harness-mobile-1.png','harness-mobile-2.png'],imgLayout:'3col'},
 {id:'travel',name:'数字分身旅行',group:'explore',title:'社交 × AIGC',tagline:'用 AI 生成数字人，让她代替我在社交平台经营旅行内容',meta:'个人探索 · 社交 · AIGC',tags:['数字分身世界旅行实验','数字人','视频生成','社交'],desc:'<b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br><b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br><b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。<br><br><b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，发布后获得了真人的互动回复。',result:'',insight:'',images:['travel-xhs.png','travel-note.png','travel-profile-grid.jpg','travel-snow-note.jpg','travel-wallet.jpg','travel-map.png'],imgLayout:'3x2'},
-{id:'companion',name:'AI 陪伴硬件',group:'explore',title:'陪伴 × 硬件',tagline:'还在尝试手搓树莓派 AI 陪伴玩具，用小孩子的直觉探索新的场景',meta:'个人探索 · 陪伴 · 硬件',tags:['AI 陪伴硬件','树莓派','语音交互','陪伴'],desc:'<b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br><b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br><b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。<br><br><b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。',result:'',insight:'',images:['companion-app.png','companion-call.png'],imgLayout:'2col',video:'companion-idle.mov'}
+{id:'companion',name:'AI 陪伴硬件',group:'explore',title:'陪伴 × 硬件',tagline:'还在尝试手搓树莓派 AI 陪伴玩具，用小孩子的直觉探索新的场景',meta:'个人探索 · 陪伴 · 硬件',tags:['AI 陪伴硬件','树莓派','语音交互','陪伴'],desc:'<b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br><b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br><b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。<br><br><b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。',result:'',insight:'',images:['companion-app.png','companion-call.png'],imgLayout:'2col',videos:['companion-idle.mov','91.MP4']}
 ];
 
 /* ══ RENDER WORKS ══ */
@@ -709,7 +712,9 @@ var P=[
     if (g !== lastG && lastG) html += '<div class="work-divider">有了AI后创作成为了更本能的选择</div>';
     lastG = g;
 
-    var hasMedia = p.images.length > 0 || p.video;
+    var vids = p.videos || (p.video ? [p.video] : []);
+    var hasMedia = p.images.length > 0 || vids.length > 0;
+    var vidH = function(extra){ return vids.map(function(v){ return '<video src="' + v + '" autoplay loop muted playsinline style="border-radius:6px;border:1px solid var(--line)' + (extra || '') + '"></video>' }).join(''); };
     var imgH = '';
     if (p.images.length) {
       if (p.imgLayout === 'feature') {
@@ -720,14 +725,14 @@ var P=[
         var cls = p.imgLayout === '3x2' ? 'c3' : 'c2';
         imgH = '<div class="wd-img-row ' + cls + '">' + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>';
       } else if (p.imgLayout === '3col') {
-        imgH = '<div class="wd-img-row c3">' + (p.video ? '<video src="' + p.video + '" autoplay loop muted playsinline style="border-radius:6px;border:1px solid var(--line);aspect-ratio:9/16;object-fit:cover"></video>' : '') + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy" style="aspect-ratio:9/16;object-position:top">' }).join('') + '</div>';
+        imgH = '<div class="wd-img-row c3">' + vidH(';aspect-ratio:9/16;object-fit:cover') + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy" style="aspect-ratio:9/16;object-position:top">' }).join('') + '</div>';
       } else if (p.imgLayout === '2col') {
-        imgH = '<div class="wd-img-row c2">' + (p.video ? '<video src="' + p.video + '" autoplay loop muted playsinline style="border-radius:6px;border:1px solid var(--line)"></video>' : '') + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>';
+        imgH = '<div class="wd-img-row c2">' + vidH() + p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('') + '</div>';
       } else {
         imgH = p.images.map(function(s){ return '<img class="zoomable" src="' + s + '" loading="lazy">' }).join('');
       }
-    } else if (p.video) {
-      imgH = '<video src="' + p.video + '" autoplay loop muted playsinline style="width:100%;border-radius:6px;border:1px solid var(--line)"></video>';
+    } else if (vids.length) {
+      imgH = vidH(';width:100%');
     }
 
     var resultH = p.result ? '<div class="wd-result">' + p.result.split(' · ').map(function(r){ return '<span>' + r + '</span>' }).join('') + '</div>' : '';
