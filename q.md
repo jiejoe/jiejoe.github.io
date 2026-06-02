@@ -28,14 +28,30 @@ building side projects that push Agent products into real user scenarios.
 - **Full 0→1-to-scale lifecycle**: Meijian from employee #4 to acquisition — product
   definition, growth, monetization, M&A integration. Not just a big-co cog, not just demos.
 - **Hands-on builder**: writes code and builds agents, not a PM who draws prototypes and
-  waits for dev. Ran a personal Harness for months at ~10M tokens/month; hit context
-  pollution, memory loss, and multi-agent infinite loops. Knows the hard part of agent
+  waits for dev. Ran a personal Harness for months at ~10M tokens/month; dealt with issues
+  like context pollution and memory loss. Knows the hard part of agent
   products is not model calls — it's Harness engineering.
 - **Deep agent-architecture practice**: memory design, tool-use orchestration, MCP
   integration, multi-agent layering — iterated repeatedly in real side projects, not from articles.
 - **User-product intuition**: 9 years of consumer products — billion-DAU redesigns and
   niche designer-tool community ops. Knows the gap between "users keep coming back" and
   "it technically works."
+- **C-end growth / conversion / retention**: skilled at breaking down typical user scenarios,
+  user-flow analysis, and behavior analysis. In Taobao campaigns owned traffic distribution and
+  page click-through conversion; validated experience & conversion efficiency through event-tracking
+  analysis, metric monitoring, and version retrospectives; iterated via A/B experiments
+  (livestream-acquisition period avg CTR >8%, ROI >40%). At Meijian: 60%+ tool repurchase, 90K WAU.
+- **Monetization & carrying-path design**: at Meijian designed the "designer-as-seller" business
+  model and e-commerce infrastructure (category / product / search / order / commission / membership
+  tiers / image-search); Homestyler international launched paid with 15 head enterprise renewals;
+  in Taobao campaigns designed carrying paths from multi-wave campaign mechanics.
+- **Prompt design & productization**: designs Prompt structure from the user's goal; optimizes the
+  gap between Prompt, model output, and the user's editing experience. In Taobao AI shopping,
+  Prompt/Context strategy + Qwen3 SFT labeling rules + GSB eval & attribution cut bad-case 26%→8%,
+  classification accuracy 56%→98%.
+- **AI native / heavy user**: heavy user of Claude Code / Codex / OpenClaw at 6–10M tokens/month;
+  shipped full Workflow and Agent applications; understands SOTA model boundaries — first-hand
+  judgment on what makes a good AI experience.
 
 ## Context (Current Status)
 - Status: actively looking for the next opportunity (Agent product / Agent infra direction)
@@ -49,7 +65,7 @@ building side projects that push Agent products into real user scenarios.
 Advanced teams building more AI-native user experiences. Specifically:
 - **Agent products**: not a ChatGPT wrapper — products that genuinely bring AI into users'
   work and life flows; teams with real needs in Harness engineering, context design, memory architecture.
-- **AI-native consumer products**: designed around AI capability from day one, not "add an AI feature" on a legacy product.
+- **AI-native products**: designed around AI capability from day one, not "add an AI feature" on a legacy product.
 - **Teams valuing product judgment over pure tech background**: not an algorithm engineer,
   but knows how to turn algorithm capability into user value and define what "good" means.
 - **Ambitious early teams or new directions in mature companies**: has done both 0→1 and scale;
@@ -76,7 +92,7 @@ Advanced teams building more AI-native user experiences. Specifically:
   - Built GSB evaluation framework, intent-accuracy metrics, and bad-case attribution system.
   - Results: bad-case rate **26% → 8%**, classification accuracy **56% → 98%**, first AI-native shopping experience landed.
 - **Taobao App Redesign (Billion-DAU)**: core page redesigns (Home / Messages / Profile) covering **1B+ users**, A/B-driven iteration.
-  - Home redesign: segmented users by portrait (membership × gender × age × spending power × behavior tags), designed differentiated channels and user flows; core metrics **DAC** (daily transacting users) and scenario click count (≈ CTR × frequency).
+  - Home redesign: segmented users by portrait (membership × gender × age × spending power × behavior tags), designed differentiated channels and user flows; validated experience & conversion efficiency through event-tracking analysis, metric monitoring, and version retrospectives; core metrics **DAC** (daily transacting users) and scenario click count (≈ CTR × frequency).
   - Double-11 / 618 campaign PM: owned overall traffic distribution — marketing campaign venues, interactive venues, home channels (incl. search & feed) — responsible for page click-through conversion; designed activity mechanics and carrying paths from a product perspective.
   - Case: one Double-11, combined livestream red-envelope-rain gameplay for traffic acquisition, precisely targeting long-cycle livestream-camping users, carried via vertical short-video — period average **CTR >8%, ROI >40%** vs. prior years.
   - Results: significant GMV uplift, Double-11 core-zone efficiency improvement.
@@ -85,18 +101,23 @@ Advanced teams building more AI-native user experiences. Specifically:
   - Bridged real user feedback, engineering iteration, and internal AI adoption.
 
 ### Alibaba — Homestyler — Product Expert (2020–2023)
-- **Homestyler AI Designer (international, paid)**: photo/3D scene one-click AI rendering;
-  defined multi-dimensional quality-evaluation standards for AI-generated images; designed
-  fine-tuning strategies bridging algorithm metrics and user-perceived quality. (https://www.homestyler.com)
+- **Homestyler AI Designer (image-to-image, international, paid)**: photo/3D scene one-click AI rendering;
+  designed product flow and optimized the gap between Prompt, model output, and the user's editing experience;
+  defined multi-dimensional quality-evaluation standards for AI-generated images.
+  Results: international version launched paid, **15 head enterprise merchants renewed**. (https://www.homestyler.com)
 - **AIG-3D**: 3D-scene AI platform — 3D model generation, 2D→3D restoration, LLM-driven conversational design.
-- **Retail AI Design Tool**: AI tool chain for offline furniture stores; single-store GMV **1M+ RMB**, replaced **50%** of in-store designer headcount.
+- **Retail AI Design Tool (offline-store AI app, 0→1)**: AI tool chain for offline furniture stores —
+  auto image-shadowing, photo-to-3D restoration, smart re-creation matching, batch ordering;
+  single-store GMV **1M+ RMB**, large-furniture bundle orders **30%** of orders, replaced **50%** of in-store designer headcount.
 - AIGC experience: home-design image generation, 3D video rendering, digital human, Stable Diffusion / ComfyUI workflow product design.
 
 ### Meijian Tech — Product Lead — Employee #4 (2016–2019)
-- **Meijian Moodboard (0→1 → acquired)**: interior-design procurement desktop App; led from scratch.
-  - Defined core features, built "designer-as-influencer" business model, established community operations.
-  - Acquired by Qunhe Tech (群核科技, IPO in progress).
-  - Results: **800K+** registered users, **90K+** WAU, **60%+** repurchase rate, Double-11 GMV **10M+ RMB**, 2 funding rounds.
+- **Meijian Moodboard — creation tool / community / monetization (0→1 → acquired)**: interior-design procurement desktop App; led from scratch (market/user research → prototype validation → scaled growth).
+  - Designed editor, image-search, scheme templates, and collaboration around designers' real workflow; built designer work-sharing platform and enterprise version.
+  - Acquired by Qunhe Tech (群核科技, 2026 IPO).
+  - Results: **800K+** registered, **90K+** WAU, **60%+** tool repurchase, 2 funding rounds.
+- **Procurement-rebate platform & membership e-commerce App — monetization closed loop**: designed the "designer-as-seller" business model and e-commerce infrastructure (category, product, search, order, commission, membership tiers, image-search).
+  - Results: Double-11 GMV **10M RMB**, app registrations **500K+**, **60K+** WAU.
 
 ## Memory (Short-term / Working — Personal Harness & Side Projects)
 Built on the OpenClaw framework, exploring how Agent products enter real user scenarios.
@@ -146,9 +167,11 @@ Built on the OpenClaw framework, exploring how Agent products enter real user sc
 
 ## Skills
 - Agent Architecture & Orchestration · Harness Engineering · Vibe Coding (Claude Code)
-- Prompt Engineering · Context Engineering · Memory System Design · MCP Server
+- Prompt Engineering & Tuning (productization) · Context Engineering · Memory System Design · MCP Server
 - AI Product 0→1 · Evaluation System Design · Multi-Agent Orchestration
-- User Product Design (C-end, billion-DAU) · A/B Experimentation & Data-driven Decisions
+- User Insight (user research · scenario distillation · user-flow analysis · behavior analysis)
+- Data Analysis (A/B experiments · metric definition · event-tracking analysis · user growth) · Data-driven Decisions
+- User Product Design (C-end, billion-DAU) · Monetization · Campaign Mechanics Design · Cross-team Delivery
 - AIGC Product Design (image gen, 3D, digital human) · Business Analysis · User Research
 - Interaction Design · Product Operations
 
