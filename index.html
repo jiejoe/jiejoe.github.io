@@ -52,13 +52,19 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 
 /* ── HERO ── */
 .hero {
-  min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
-  padding: 0 clamp(24px, 5vw, 60px); max-width: 1200px; margin: 0 auto;
+  min-height: 100vh; display: flex; align-items: center;
+  padding: 96px clamp(24px, 5vw, 60px) 80px; max-width: 1200px; margin: 0 auto;
 }
+.hero-grid {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: clamp(40px, 6vw, 88px); align-items: center; width: 100%;
+}
+.hero-side { min-width: 0; opacity: 0; transform: translateY(24px); transition: all .7s var(--ease) .85s; }
+.hero-side.show { opacity: 1; transform: none; }
 .hero-hello { font-family: var(--mono); font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); margin-bottom: 24px; }
 .hero-name {
-  font-family: var(--serif); font-size: clamp(48px, 8vw, 96px); font-weight: 600;
-  line-height: 1.05; letter-spacing: -.04em; margin-bottom: 28px;
+  font-family: var(--serif); font-size: clamp(38px, 5vw, 64px); font-weight: 600;
+  line-height: 1.08; letter-spacing: -.04em; margin-bottom: 28px;
 }
 .hero-name .line { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.1em; }
 .hero-name .line span { display: inline-block; transform: translateY(120%); transition: transform .8s var(--ease); }
@@ -324,12 +330,12 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .aha-desc { font-size: 13px; line-height: 1.55; color: #777; }
 
 /* ── ABOUT ── */
-.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-.about-right { display: flex; }
+.about-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(40px, 6vw, 80px); align-items: start; }
+.about-right { display: flex; flex-direction: column; padding-top: 8px; }
 .about-heading { font-family: var(--serif); font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -.02em; margin-bottom: 20px; line-height: 1.15; }
 .about-desc { font-size: 16px; line-height: 1.85; color: var(--fg); margin-bottom: 20px; }
 .about-desc-sm { font-size: 14px; line-height: 1.85; color: var(--dim); margin-bottom: 32px; }
-.contact-list { display: flex; flex-direction: column; gap: 14px; }
+.contact-list { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 32px; }
 .ct-item { display: flex; flex-direction: column; gap: 2px; }
 .ct-label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--faint); }
 .ct-val { font-size: 14px; color: var(--fg); }
@@ -372,7 +378,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .dl-jd button:hover { background: #333; }
 
 /* Agent card */
-.ag-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; width: 100%; }
+.ag-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; width: 100%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 8px 32px rgba(0,0,0,.04); }
 .ag-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 8px; }
 .ag-title { font-size: 13px; font-weight: 600; }
 .ag-tabs { display: flex; gap: 0; }
@@ -386,7 +392,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 .ag-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
 .ag-prompt {
   font-family: var(--mono); font-size: 11.5px; line-height: 1.8; color: var(--fg);
-  white-space: pre-wrap; word-wrap: break-word; background: var(--surface);
+  white-space: pre-wrap; word-wrap: break-word; background: var(--bg);
   padding: 14px; border: 1px solid var(--line); border-radius: 6px;
 }
 .ag-prompt .p-url { color: var(--green); }
@@ -427,7 +433,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .hero { min-height: 85vh; padding-top: 80px; }
+  .hero { min-height: auto; padding: 88px 20px 56px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 44px; }
   .hero-stats { gap: 20px 28px; }
   .work-item { grid-template-columns: 36px 1fr; }
   .work-tags { display: none; }
@@ -470,19 +477,42 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
 
 <!-- HERO -->
 <section class="hero" id="hero">
-  <div class="hero-hello">Product × AI</div>
-  <h1 class="hero-name">
-    <span class="line"><span>Hi, I'm Q.</span></span>
-    <span class="line"><span>I build AI products</span></span>
-    <span class="line"><span>people actually use.</span></span>
-  </h1>
-  <p class="hero-role">一个有着亿级用户产品和 0→1 创业经验的 PM，过去一年深度参与 AI 应用层方向探索，擅长把模型能力变成用户愿意反复使用的产品。</p>
-  <div class="hero-stats">
-    <div class="stat"><div class="stat-val">9 年+</div><div class="stat-label">产品经验</div></div>
-    <div class="stat"><div class="stat-val">亿级 DAU</div><div class="stat-label">用户产品</div></div>
-    <div class="stat"><div class="stat-val">AI 原生</div><div class="stat-label">应用</div></div>
-    <div class="stat"><div class="stat-val">0→1</div><div class="stat-label">创业到被收购</div></div>
-    <div class="stat"><div class="stat-val">600—1000万</div><div class="stat-label">月消耗Token</div></div>
+  <div class="hero-grid">
+    <div class="hero-main">
+      <div class="hero-hello">Product × AI</div>
+      <h1 class="hero-name">
+        <span class="line"><span>Hi, I'm Q.</span></span>
+        <span class="line"><span>I build AI products</span></span>
+        <span class="line"><span>people actually use.</span></span>
+      </h1>
+      <p class="hero-role">一个有着亿级用户产品和 0→1 创业经验的 PM，过去一年深度参与 AI 应用层方向探索，擅长把模型能力变成用户愿意反复使用的产品。</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-val">9 年+</div><div class="stat-label">产品经验</div></div>
+        <div class="stat"><div class="stat-val">亿级 DAU</div><div class="stat-label">用户产品</div></div>
+        <div class="stat"><div class="stat-val">AI 原生</div><div class="stat-label">应用</div></div>
+        <div class="stat"><div class="stat-val">0→1</div><div class="stat-label">创业到被收购</div></div>
+        <div class="stat"><div class="stat-val">600—1000万</div><div class="stat-label">月消耗Token</div></div>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div class="ag-card">
+        <div class="ag-head">
+          <span class="ag-title">让 AI 帮你了解我</span>
+          <div class="ag-tabs">
+            <button class="ag-tab active" onclick="switchAgent('cc')">Claude Code</button>
+            <button class="ag-tab" onclick="switchAgent('codex')">Codex</button>
+            <button class="ag-tab" onclick="switchAgent('claw')">OpenClaw</button>
+          </div>
+        </div>
+        <div class="ag-body">
+          <div class="ag-prompt" id="ag-prompt"></div>
+          <div class="ag-copy-row">
+            <span class="ag-hint">复制这段话到你常用的 AI 助手，粘贴你的 JD，它会自动读取简历并评估匹配度。</span>
+            <button class="ag-copy" id="ag-copy" onclick="copyAgent()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="hero-scroll">
     <span>Scroll</span>
@@ -658,30 +688,13 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webki
   <div class="about-grid">
     <div class="about-left reveal">
       <p class="about-desc">我热爱 Build，并享受为更多的人创造价值。想要通过聚焦用户场景的落地，参与并推动 AGI 的发展。如果你有很多类似的思潮想要交流，或者是需要一个 AI native 的产品人、工程师、分析师，欢迎联系我。</p>
+    </div>
+    <div class="about-right reveal reveal-delay-2">
       <div class="contact-list">
         <div class="ct-item"><div class="ct-label">Phone</div><div class="ct-val">15258318600</div></div>
         <div class="ct-item"><div class="ct-label">Email</div><div class="ct-val"><a href="mailto:jiejoe2017@gmail.com">jiejoe2017@gmail.com</a></div></div>
         <div class="ct-item"><div class="ct-label">Location</div><div class="ct-val">杭州 / 上海</div></div>
         <div class="ct-item"><div class="ct-label">Language</div><div class="ct-val">中 / 英 / 日</div></div>
-      </div>
-    </div>
-    <div class="about-right reveal reveal-delay-2">
-      <div class="ag-card">
-        <div class="ag-head">
-          <span class="ag-title">让 AI 帮你了解我</span>
-          <div class="ag-tabs">
-            <button class="ag-tab active" onclick="switchAgent('cc')">Claude Code</button>
-            <button class="ag-tab" onclick="switchAgent('codex')">Codex</button>
-            <button class="ag-tab" onclick="switchAgent('claw')">OpenClaw</button>
-          </div>
-        </div>
-        <div class="ag-body">
-          <div class="ag-prompt" id="ag-prompt"></div>
-          <div class="ag-copy-row">
-            <span class="ag-hint">复制这段话到你常用的 AI 助手，粘贴你的 JD，它会自动读取简历并评估匹配度。</span>
-            <button class="ag-copy" id="ag-copy" onclick="copyAgent()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> COPY</button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -699,7 +712,7 @@ var P=[
 {id:'taobao-ai',name:'淘宝 AI 导购',group:'work',title:'淘宝 × 千问 AI 导购助手',tagline:'0→1 落地AI 导购应用，让模型理解用户收藏，自动生成兴趣合辑',meta:'阿里巴巴 · 端产品 · 产品专家 · 2025',tags:['AI','LLM','0→1','SFT','评测体系'],desc:'0→1 落地AI 导购应用：<b>AI 收藏合辑</b>（LLM 理解收藏，自动生成兴趣合辑）、<b>AI 足迹推荐</b>、<b>AI 种草</b>。与算法团队协作 Prompt/上下文策略和 Qwen3 SFT 后训练，搭建 GSB 评测体系和 bad case 归因机制。',result:'badcase 率 26%→8% · 分类准确性 56%→98% · 0→1 AI 原生导购体验落地',insight:'',images:['ai-shopping-1.png','ai-shopping-2.png'],imgLayout:'1col'},
 {id:'taobao-revamp',name:'手淘端改版',group:'work',title:'手机淘宝端改版',tagline:'主牵手淘核心场域改版，覆盖 10 亿用户，数据驱动迭代',meta:'阿里巴巴 · 端产品 · 亿级 DAU · 2024—now',tags:['亿级DAU','用户产品','A/B实验','大促'],desc:'主牵手淘核心场域改版（首页/消息/我淘），覆盖 10 亿用户。基于用户分层定义差异化体验策略，A/B 实验驱动迭代。多次担任双11、618 大促 PM，负责多场域流量分发。<br><br><b>首页改版</b>：基于用户画像（会员 × 性别 × 年龄层 × 消费力 × 行为标签）做分层拆解，设计差异化频道与用户动线；以 DAC（单日成交用户数）和场景点击数（≈ CTR × 频次）为核心指标。<br><br><b>双11 大促</b>：负责整体流量分发——营销大促会场、互动会场、首页各频道（含搜索、信息流），并对页面点击转化率负责，从产品视角设计活动机制与承载链路。<br><br><b>代表案例</b>：某年双11 结合直播间红包雨玩法投放引流，精准挖掘长周期内"蹲直播"的大促用户，产品上用竖屏短视频承接，周期内平均 CTR 超 8%、ROI 超往年 40%。',result:'策略覆盖 10 亿用户 · 大盘成交指标显著正向 · 双11 核心场域效率显著提升 · 直播引流周期均 CTR >8%、ROI 超往年 40%',insight:'',images:['taobao.png','taobao-revamp.png'],imgLayout:'1col'},
 {id:'design-tools',name:'设计师设计工具',group:'work',title:'设计师设计工具',tagline:'从创业到阿里，围绕设计师工作流打造产品工具链',meta:'美间科技 + 阿里巴巴 · 2016—2023',tags:['创业','0→1','AIGC','国际版付费','商业化'],desc:'<b><a href="https://www.meijian.com" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:3px">美间 Moodboard 设计工具</a></b>（美间科技 · 4 号员工 · 2016—2019）<br>软装设计采购桌面 App。作为 4 号员工主导产品从 0 到规模化：定义核心功能、搭建"设计师带货"商业模式、建立社群运营体系。公司后被群核科技收购（2026 IPO）。<br><br><b>新零售 AI 导购工具</b>（阿里巴巴 · 设计家 · 0→1 主导）<br>为线下家居门店导购设计 AI 设计工具。用 2D 家具搭配快速出场景设计效果图，帮助门店导购快速设计出搭配效果。从 0 到 1 主导，商品图自动阴影、照片还原 3D 场景、智能搭配推荐。<br><br><b><a href="https://www.homestyler.com" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Homestyler AI Designer</a></b>（阿里巴巴 · 设计家 · 2020—2023 · 国际版付费）<br>照片或 3D 方案一键生成 AI 效果图。定义生图质量多维评测标准，与算法团队制定模型微调方案。负责国内外版 C 端产品。',result:'80W+ 注册 · 被收购退出 · 单店 GMV 100W+ · 国际版上线付费',insight:'',images:['meijian.png','homestyler.png'],imgLayout:'1col'},
-{id:'ai-coding',name:'AI Coding 创作工具',group:'explore',title:'AI Coding 工具',tagline:'25 年初开始 vibe coding，在浪潮之巅感受知识工作者的生产力变革',meta:'阿里巴巴 · MAU 6W+ · Contributor',tags:['通用','生产力'],desc:'负责阿里内网 AI Coding 创作工具的产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。',result:'月活 6 万+ · 内部 AI 社群早期 Contributor',insight:'',images:['coding-contributions.png','meoo-community.png','meoo-coding.png','showcase-demo.png'],imgLayout:'feature'},
+{id:'ai-coding',name:'AI Coding 创作工具',group:'explore',title:'AI Coding 工具',tagline:'25 年初开始 vibe coding，在浪潮之巅感受知识工作者的生产力变革',meta:'阿里巴巴 · 日活 2W+ · 2025',tags:['通用','生产力','全栈生成','Agent SDK'],desc:'提出并推动平台从"纯前端生成"演进到<b>全栈 / AI 应用</b>：主导<b>简易后端服务代码生成</b>（数据库自动生成 + 可访问链接）、<b>AI Workflow / Agent SDK / HSF API 调用与联通</b>（现以 Skill 承载）的产品定义与落地。<br><br>主导 PM 使用体验优化：<b>应用内图床</b>（不依赖外部服务器）、<b>点击区块编辑</b>（对话/语音改应用时点击区块把上下文带入输入框）、优化分享模式等。<br><br>同时负责产品运营：撰写宣传文章和使用教程、运营交流群、作为前期 Bug Fix Contributor 参与产品迭代。',result:'内网日活 2 万+/天 · 日创作用户 6 千+（2025.09）· 内部 AI 社群早期 Contributor',insight:'',images:['coding-contributions.png','meoo-community.png','meoo-coding.png','showcase-demo.png'],imgLayout:'feature'},
 {id:'harness',name:'个人 AI Harness',group:'explore',title:'OpenClaw 实践',tagline:'26 年 1 月，新的产品范式改变了 AI 的工作环境，帮我处理工作、生活的所有增量需求',meta:'个人探索 · 生活场景 · 生产力',tags:['个人 AI Harness','OpenClaw','Multi-Agent','生产力'],desc:'<b>背景</b>：将生活中所有 AI 增量需求（聊天、P 图、绘画、Coding）完全交给 OpenClaw，连续两个月作为主力工具使用。<br><br><b>做法</b>：按场景拆分频道——Discord（旅行、理财、教育、开发）、飞书（运营、调研、群聊）、微信（通知），前期用 Claude Opus，后自建智能路由（Qwen 3.6 + DeepSeek V4），现回归 Claude Code。<br><br><b>收获</b>：月消耗 600—1000 万 Token，大量 aha moment。但也发现要让更多人在生活中得到好的 AI 服务，Harness 工程在上下文、记忆、协作方面还有大量工作要做。',result:'月消耗 600—1000 万 Token',insight:'',images:['harness-discord.png','harness-mobile-1.png','harness-mobile-2.png'],imgLayout:'3col'},
 {id:'travel',name:'数字分身旅行',group:'explore',title:'社交 × AIGC',tagline:'用 AI 生成数字人，让她代替我在社交平台经营旅行内容',meta:'个人探索 · 社交 · AIGC',tags:['数字分身世界旅行实验','数字人','视频生成','社交'],desc:'<b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br><b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br><b>图片/视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。<br><br><b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，发布后获得了真人的互动回复。',result:'',insight:'',images:['travel-xhs.png','travel-note.png','travel-profile-grid.jpg','travel-snow-note.jpg','travel-wallet.jpg','travel-map.png'],imgLayout:'3x2'},
 {id:'companion',name:'AI 陪伴硬件',group:'explore',title:'陪伴 × 硬件',tagline:'还在尝试手搓树莓派 AI 陪伴玩具，用小孩子的直觉探索新的场景',meta:'个人探索 · 陪伴 · 硬件',tags:['AI 陪伴硬件','树莓派','语音交互','陪伴'],desc:'<b>初衷</b>：手搓一个 AI 陪伴玩具，作为礼物送给女儿。<br><br><b>做法</b>：基于树莓派制作硬件原型，用 OpenClaw 做长程任务管理和对话调度；同时开发了配套 App，支持语音通话、互动表情、成长记录等功能。<br><br><b>硬件侧</b>：嵌入式 Vibe Coding 成功率不高，硬件编程工具链还不成熟。但可以用 OpenClaw 控制已有能力，如转头、拍照。<br><br><b>语音交互</b>：4 岁以下儿童完全可以与语音助手自然对话，但牙牙学语阶段口齿不清导致 ASR 识别率明显下降。',result:'',insight:'',images:['companion-app.png','companion-call.png'],imgLayout:'2col',videos:['companion-idle.mov','91.MP4']}
@@ -778,6 +791,7 @@ window.addEventListener('load', function() {
   }, 200);
   setTimeout(function() { document.querySelector('.hero-role').classList.add('show'); }, 500);
   setTimeout(function() { document.querySelector('.hero-stats').classList.add('show'); }, 700);
+  setTimeout(function() { var s = document.querySelector('.hero-side'); if (s) s.classList.add('show'); }, 900);
 });
 
 /* ══ SCROLL REVEAL ══ */

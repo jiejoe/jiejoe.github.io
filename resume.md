@@ -52,10 +52,10 @@ Product Manager with 9+ years spanning billion-DAU consumer products and 0→1 s
 - **Case**: one Double-11, combined livestream red-envelope-rain gameplay for traffic acquisition, precisely targeting users who camp livestreams across the long promo cycle, carried via vertical short-video — period average CTR >8%, ROI >40% vs. prior years
 - Results: significant GMV uplift, Double-11 core-zone efficiency improvement
 
-**Internal AI Coding Creation Tool (MAU 60K+)**
-- Product operations for Alibaba internal AI Coding creation tool: wrote launch articles and tutorials, operated user communities, and contributed early bug fixes
-- Helped bridge real user feedback, engineering iteration, and internal AI adoption
-- Results: 60K+ MAU, early contributor in Alibaba internal AI creation community
+**Internal AI Coding Creation Tool (Full-stack / AI App Generation)**
+- Proposed and drove the platform's evolution from "frontend-only page generation" to full-stack / AI applications: led product definition and delivery of lightweight backend-service code generation (auto-provisioned database + accessible links) and AI Workflow / Agent SDK / HSF API invocation & connectivity (now carried as Skills)
+- Led PM-facing creation experience improvements: in-app image hosting without external servers; click-to-edit blocks that inject selected UI context into chat / voice prompts to resolve ambiguous references; improved sharing modes
+- Results: ~20K internal DAU and ~6K daily creators as of 2025.09; helped PMs and non-engineering users turn natural-language ideas into deployable internal tools and AI apps
 
 ### Alibaba — Homestyler — Product Expert (2020–2023)
 

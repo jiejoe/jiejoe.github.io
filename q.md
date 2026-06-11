@@ -76,8 +76,10 @@ Advanced teams building more AI-native user experiences. Specifically:
   OpenClaw side projects; memory / context / tool-use / multi-agent product judgment.
 - **Consumer AI PM**: AI-native shopping; digital-persona travel experiment; AI companion app;
   Aha-Moment design; retention-oriented interaction design.
-- **AI Coding / Developer Tools / Internal Productivity PM**: internal AI Coding creation tool
-  operations; early bug-fix contribution; coding workflow demos; personal Claude Code / OpenClaw at 6–10M tokens/month.
+- **AI Coding / Developer Tools / Internal Productivity PM**: drove internal AI Coding creation tool
+  from frontend-only generation to full-stack / AI apps (~20K internal DAU, ~6K daily creators);
+  PM-facing creation-experience design; product operations and early bug-fix contribution;
+  personal Claude Code / OpenClaw usage at 6–10M tokens/month.
 - **AIGC / Creative Tool PM**: Homestyler AI Designer; retail AI design tool; image/video
   generation experiments (Sora / Seedance / Kling); quality evaluation for generated images.
 - **0→1 / Startup / Growth PM**: Meijian from employee #4 to acquisition; Taobao billion-DAU
@@ -96,9 +98,11 @@ Advanced teams building more AI-native user experiences. Specifically:
   - Double-11 / 618 campaign PM: owned overall traffic distribution — marketing campaign venues, interactive venues, home channels (incl. search & feed) — responsible for page click-through conversion; designed activity mechanics and carrying paths from a product perspective.
   - Case: one Double-11, combined livestream red-envelope-rain gameplay for traffic acquisition, precisely targeting long-cycle livestream-camping users, carried via vertical short-video — period average **CTR >8%, ROI >40%** vs. prior years.
   - Results: significant GMV uplift, Double-11 core-zone efficiency improvement.
-- **Internal AI Coding Creation Tool (MAU 60K+)**:
-  - Product operations: launch articles and tutorials, user-community operation, early bug-fix contribution.
-  - Bridged real user feedback, engineering iteration, and internal AI adoption.
+- **Internal AI Coding Creation Tool (Full-stack / AI App Generation)**:
+  - Proposed and drove the platform's evolution from "frontend-only page generation" to **full-stack / AI applications**: led product definition and delivery of lightweight backend-service code generation (auto-provisioned database + accessible links) and AI Workflow / Agent SDK / HSF API invocation & connectivity (now carried as Skills).
+  - Led PM-facing creation-experience improvements: in-app image hosting (no external servers); click-to-edit blocks — clicking a UI block while revising the app via chat/voice injects that block's context into the input box; improved sharing modes.
+  - Product operations: launch articles and tutorials, user-community operation, early bug-fix contribution. Bridged real user feedback, engineering iteration, and internal AI adoption.
+  - Results: **~20K internal DAU**, **~6K daily creators** (2025.09).
 
 ### Alibaba — Homestyler — Product Expert (2020–2023)
 - **Homestyler AI Designer (image-to-image, international, paid)**: photo/3D scene one-click AI rendering;
