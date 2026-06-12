@@ -164,11 +164,19 @@ async def ark_request(method: str, path: str, **kwargs) -> dict:
         return resp.json()
 
 
-async def generate_character_image(photo_base64: str) -> str:
+def species_constraint(species: str) -> str:
+    """物种习性约束：防止模型按猫狗默认脑补（错误的食物/尾巴/解剖特征）"""
+    s = (species or "").strip() or "宠物"
+    return (f"这是一只{s}。所有动作、姿态、食物和道具都必须符合{s}的真实习性与"
+            f"解剖特征（尾巴形态与长度、四肢与身体比例、进食方式与食物种类），"
+            f"不得出现其他物种的特征或猫狗化的道具。")
+
+
+async def generate_character_image(photo_base64: str, species: str = "宠物") -> str:
     """Step 1: Seedream 生成角色设定图，返回 URL"""
     data = {
         "model": SEEDREAM_MODEL,
-        "prompt": CHARACTER_PROMPT,
+        "prompt": species_constraint(species) + "\n" + CHARACTER_PROMPT,
         "image": f"data:image/jpeg;base64,{photo_base64}",
         "response_format": "url",
         "watermark": False,
@@ -178,9 +186,10 @@ async def generate_character_image(photo_base64: str) -> str:
     return result["data"][0]["url"]
 
 
-async def submit_video_task(character_url: str, action: str) -> str:
+async def submit_video_task(character_url: str, action: str, species: str = "宠物") -> str:
     """Step 2: Seedance 提交视频生成任务，返回 task_id"""
-    prompt = ACTION_PROMPTS[action]
+    sp = (species or "").strip() or "宠物"
+    prompt = ACTION_PROMPTS[action].replace("宠物", sp) + species_constraint(sp)
     data = {
         "model": SEEDANCE_MODEL,
         "content": [
@@ -344,7 +353,7 @@ def process_action_video(mp4_path: str, webp_path: str, mov_path: str, pose_path
 
 
 # ===== Background Generation Pipeline =====
-async def generate_pet_pipeline(pet_id: str, photo_base64: str):
+async def generate_pet_pipeline(pet_id: str, photo_base64: str, species: str = "宠物"):
     """完整的宠物生成流水线"""
     pet_dir = GENERATED_DIR / pet_id
     pet_dir.mkdir(parents=True, exist_ok=True)
@@ -357,7 +366,7 @@ async def generate_pet_pipeline(pet_id: str, photo_base64: str):
         save_pets_db()
         print(f"[{pet_id}] Step 1: Generating character image...")
 
-        char_url = await generate_character_image(photo_base64)
+        char_url = await generate_character_image(photo_base64, species)
         char_path = str(pet_dir / "character.jpg")
         await download_file(char_url, char_path)
         pets_db[pet_id]["characterImage"] = f"/generated/{pet_id}/character.jpg"
@@ -373,7 +382,7 @@ async def generate_pet_pipeline(pet_id: str, photo_base64: str):
 
         task_ids = {}
         for action in ACTIONS:
-            task_id = await submit_video_task(char_url, action)
+            task_id = await submit_video_task(char_url, action, species)
             task_ids[action] = task_id
             print(f"  Submitted {action}: {task_id}")
             await asyncio.sleep(1)  # 避免限流
@@ -459,6 +468,7 @@ async def create_pet(
     background_tasks: BackgroundTasks,
     photo: UploadFile = File(...),
     name: str = Form("小可爱"),
+    species: str = Form("宠物"),
     receipt: str = Form(None),
     x_device_id: str = Header(None, alias="X-Device-Id"),
 ):
@@ -497,6 +507,7 @@ async def create_pet(
     pets_db[pet_id] = {
         "petId": pet_id,
         "name": name,
+        "species": species,
         "deviceId": x_device_id,
         "status": "queued",
         "step": 0,
@@ -509,7 +520,7 @@ async def create_pet(
     save_pets_db()
 
     # 后台生成
-    background_tasks.add_task(generate_pet_pipeline, pet_id, photo_b64)
+    background_tasks.add_task(generate_pet_pipeline, pet_id, photo_b64, species)
 
     return {"petId": pet_id, "status": "queued"}
 

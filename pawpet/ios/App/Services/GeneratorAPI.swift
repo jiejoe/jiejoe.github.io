@@ -35,7 +35,7 @@ enum GeneratorAPI {
     }
 
     /// 上传照片开始生成，返回 petId
-    static func createPet(photo: UIImage, name: String, receipt: String?) async throws -> String {
+    static func createPet(photo: UIImage, name: String, species: String = "宠物", receipt: String?) async throws -> String {
         guard let jpeg = photo.jpegData(compressionQuality: 0.85) else {
             throw URLError(.cannotCreateFile)
         }
@@ -50,6 +50,7 @@ enum GeneratorAPI {
             body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n".data(using: .utf8)!)
         }
         field("name", name)
+        field("species", species)
         if let receipt { field("receipt", receipt) }
         body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
         body.append(jpeg)

@@ -11,6 +11,46 @@ struct AmbientPalette {
     let textSecondary: Color
     let isNight: Bool
 
+    /// 人设底色（每只宠物的身份色），与时段光混合
+    private static func personaTint(_ persona: PetPersona) -> (top: (Double, Double, Double), bottom: (Double, Double, Double)) {
+        switch persona {
+        case .aloof:  return ((0.96, 0.94, 0.90), (0.89, 0.85, 0.79)) // 奶灰暖米
+        case .sunny:  return ((1.00, 0.95, 0.82), (0.99, 0.86, 0.60)) // 活力橙黄
+        case .clingy: return ((0.93, 0.93, 1.00), (0.83, 0.83, 0.96)) // 蓝紫梦幻
+        case .dreamy: return ((1.00, 0.93, 0.97), (0.91, 0.84, 0.98)) // 粉紫马卡龙
+        }
+    }
+
+    private static func mix(_ a: (Double, Double, Double), _ b: (Double, Double, Double), _ t: Double) -> Color {
+        Color(red: a.0 + (b.0 - a.0) * t,
+              green: a.1 + (b.1 - a.1) * t,
+              blue: a.2 + (b.2 - a.2) * t)
+    }
+
+    /// 人设色 × 时段光：白天保留宠物身份色（混入时段光 35%），夜间统一压暗
+    static func palette(for slot: TimeSlot, persona: PetPersona) -> AmbientPalette {
+        let base = palette(for: slot)
+        if base.isNight { return base } // 夜色统一，星光下身份色让位
+        let tint = personaTint(persona)
+        let slotRGB = slotLightRGB(for: slot)
+        return AmbientPalette(
+            bg: [mix(tint.top, slotRGB.top, 0.35), mix(tint.bottom, slotRGB.bottom, 0.35)],
+            glow: base.glow, glowPos: base.glowPos,
+            textPrimary: base.textPrimary, textSecondary: base.textSecondary,
+            isNight: false)
+    }
+
+    /// 各时段的"光色"（用于调制人设底色）
+    private static func slotLightRGB(for slot: TimeSlot) -> (top: (Double, Double, Double), bottom: (Double, Double, Double)) {
+        switch slot {
+        case .earlyMorning: return ((1.0, 0.94, 0.85), (1.0, 0.86, 0.70))   // 晨光偏金
+        case .forenoon, .noon: return ((0.97, 0.99, 1.0), (0.90, 0.95, 1.0)) // 白昼偏冷透
+        case .afternoon: return ((1.0, 0.96, 0.88), (1.0, 0.90, 0.75))      // 午后偏暖
+        case .evening: return ((0.98, 0.86, 0.80), (0.90, 0.76, 0.85))      // 暮色金紫
+        case .night, .lateNight: return ((0.5, 0.5, 0.6), (0.4, 0.4, 0.5))
+        }
+    }
+
     static func palette(for slot: TimeSlot) -> AmbientPalette {
         switch slot {
         case .earlyMorning: // 清晨：奶白透进暖橘晨光
@@ -57,12 +97,13 @@ struct AmbientPalette {
     }
 }
 
-/// 组件背景（containerBackground 用）：渐变 + 角落光晕 + 夜间微星
+/// 组件背景（containerBackground 用）：人设色×时段光渐变 + 角落光晕 + 夜间微星
 struct AmbientBackground: View {
     let slot: TimeSlot
+    var persona: PetPersona = .aloof
 
     var body: some View {
-        let p = AmbientPalette.palette(for: slot)
+        let p = AmbientPalette.palette(for: slot, persona: persona)
         ZStack {
             LinearGradient(colors: p.bg, startPoint: .top, endPoint: .bottom)
             // 环境光晕（radial，很轻）

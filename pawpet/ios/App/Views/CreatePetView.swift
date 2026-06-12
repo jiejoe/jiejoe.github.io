@@ -19,6 +19,7 @@ struct CreatePetView: View {
     @State private var quota: GeneratorAPI.Quota?
     @State private var photoItem: PhotosPickerItem?
     @State private var petName = ""
+    @State private var petSpecies = ""
     @State private var progressMessage = "排队中…"
     @State private var progressStep = 0
     @State private var progressCharURL: URL?
@@ -146,6 +147,26 @@ struct CreatePetView: View {
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal, 40)
 
+            // 物种信息注入生成提示词：动作、食物、习性按真实物种来（羊驼不吃猫粮）
+            VStack(spacing: 8) {
+                TextField("它是什么动物？如：猫、柯基、羊驼", text: $petSpecies)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal, 40)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(["猫", "狗", "兔子", "仓鼠", "鹦鹉", "羊驼"], id: \.self) { s in
+                            Button(s) { petSpecies = s }
+                                .font(.caption)
+                                .padding(.horizontal, 12).padding(.vertical, 6)
+                                .background(Capsule().fill(petSpecies == s
+                                    ? Color.accentColor.opacity(0.2)
+                                    : Color(.secondarySystemBackground)))
+                        }
+                    }
+                    .padding(.horizontal, 40)
+                }
+            }
+
             let free = quota?.is_free_for_me == true || (quota?.free_remaining ?? 0) > 0
             let hasCredit = purchases.generationCredits > 0
 
@@ -255,6 +276,7 @@ struct CreatePetView: View {
                 if !free { purchases.consumeCredit() }
                 let petID = try await GeneratorAPI.createPet(
                     photo: photo, name: petName,
+                    species: petSpecies.isEmpty ? "宠物" : petSpecies,
                     receipt: free ? nil : "credit") // TODO: 上线换成真实收据
                 UserDefaults.standard.set(petID, forKey: "pawpet.pendingPetID")
                 UserDefaults.standard.set(petName, forKey: "pawpet.pendingPetName")

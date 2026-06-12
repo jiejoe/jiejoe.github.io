@@ -63,7 +63,7 @@ struct WidgetGalleryView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 14) {
                     ZStack {
-                        AmbientBackground(slot: slot)
+                        AmbientBackground(slot: slot, persona: pet.persona)
                         AmbientSmallView(slot: slot, copyLine: line) {
                             PetFrameImage(petID: pet.id, action: slot.action(for: pet))
                         }
@@ -73,7 +73,7 @@ struct WidgetGalleryView: View {
                     .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
 
                     ZStack {
-                        AmbientBackground(slot: slot)
+                        AmbientBackground(slot: slot, persona: pet.persona)
                         AmbientMediumView(slot: slot, copyLine: line, companionLine: companion) {
                             PetFrameImage(petID: pet.id, action: slot.action(for: pet))
                         }

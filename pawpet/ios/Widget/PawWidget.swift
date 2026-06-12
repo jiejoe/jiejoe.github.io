@@ -86,7 +86,7 @@ struct PawPetWidget: Widget {
         StaticConfiguration(kind: "PawPetWidget", provider: PetTimelineProvider()) { entry in
             PawWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
-                    AmbientBackground(slot: entry.slot)
+                    AmbientBackground(slot: entry.slot, persona: entry.pet.persona)
                 }
                 .widgetURL(URL(string: "pawpet://pet/\(entry.pet.id)"))
         }
