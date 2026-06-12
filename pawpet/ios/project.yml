@@ -66,3 +66,13 @@ targets:
         CFBundleDisplayName: 爪爪桌宠组件
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
+schemes:
+  PawPet:
+    build:
+      targets:
+        PawPet: all
+    run:
+      config: Debug
+      storeKitConfiguration: PawPet.storekit # Xcode 运行时本地内购测试
+    archive:
+      config: Release

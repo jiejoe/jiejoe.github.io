@@ -9,6 +9,7 @@ struct HomeView: View {
     @State private var copyLine: String = ""
     @State private var idleTicks = 0
     @State private var heartBurst = false
+    @State private var foodDrop = false
     @State private var soundPlayer: AVAudioPlayer?
 
     private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
@@ -79,13 +80,13 @@ struct HomeView: View {
     private var petStage: some View {
         ZStack {
             Ellipse()
-                .fill(Color.black.opacity(0.08))
-                .frame(width: 170, height: 20)
+                .fill(Color.black.opacity(0.10))
+                .frame(width: 230, height: 26)
                 .blur(radius: 10)
-                .offset(y: 118)
+                .offset(y: 168)
 
             if action == .sleep {
-                Text("💤").font(.system(size: 30)).offset(x: 90, y: -110)
+                Text("💤").font(.system(size: 32)).offset(x: 110, y: -140)
             }
 
             Group {
@@ -95,16 +96,27 @@ struct HomeView: View {
                     PetFrameImage(petID: pet.id, action: availableAction)
                 }
             }
-            .frame(width: 250, height: 250)
+            .frame(width: 350, height: 350)
             .onTapGesture { pat() }
 
             if heartBurst {
                 ForEach(0..<6, id: \.self) { i in
                     Text(["💕", "✨", "💖", "⭐", "💫", "🩷"][i])
-                        .font(.system(size: 22))
-                        .offset(x: CGFloat.random(in: -90...90),
-                                y: CGFloat.random(in: -140 ... -60))
+                        .font(.system(size: 24))
+                        .offset(x: CGFloat.random(in: -110...110),
+                                y: CGFloat.random(in: -170 ... -70))
                         .transition(.scale.combined(with: .opacity))
+                }
+            }
+
+            // 喂食：粮粒从上方落到宠物嘴边
+            if foodDrop {
+                ForEach(0..<4, id: \.self) { i in
+                    Text(["🍖", "🐟", "🥫", "🍗"][i])
+                        .font(.system(size: 20))
+                        .offset(x: CGFloat(i - 2) * 28 + 14, y: foodDrop ? 80 : -180)
+                        .opacity(foodDrop ? 0 : 1)
+                        .animation(.easeIn(duration: 0.8).delay(Double(i) * 0.12), value: foodDrop)
                 }
             }
         }
@@ -127,21 +139,33 @@ struct HomeView: View {
             .background(Capsule().fill(theme.bubbleBackground))
     }
 
+    /// 互动条：动词 + emoji，简单直接
     private var actionBar: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        let interactions: [(emoji: String, verb: String, target: PetAction)] = [
+            ("🖐", "摸摸", .happy), ("🍖", "喂饭", .eat), ("🦴", "遛弯", .walk),
+            ("🫧", "洗脸", .lick), ("🙃", "翻肚皮", .belly), ("🧘", "伸懒腰", .stretch),
+            ("😴", "哄睡", .sleep),
+        ].filter { pet.actions.contains($0.target) }
+
+        return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
-                ForEach(pet.actions, id: \.self) { a in
+                ForEach(interactions, id: \.verb) { item in
                     Button {
-                        play(a)
+                        if item.target == .happy { pat() }
+                        else if item.target == .eat { feed() }
+                        else { play(item.target) }
                     } label: {
-                        Text(a.displayName)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule().fill(a == action ? theme.accent : Color.white.opacity(0.6))
-                            )
-                            .foregroundStyle(a == action ? Color.white : theme.textPrimary)
+                        HStack(spacing: 5) {
+                            Text(item.emoji).font(.system(size: 15))
+                            Text(item.verb)
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        }
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 9)
+                        .background(
+                            Capsule().fill(item.target == action ? theme.accent : Color.white.opacity(0.65))
+                        )
+                        .foregroundStyle(item.target == action ? Color.white : theme.textPrimary)
                     }
                 }
             }
@@ -157,34 +181,53 @@ struct HomeView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { heartBurst = false }
     }
 
+    private func feed() {
+        foodDrop = false
+        play(.eat)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { foodDrop = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { foodDrop = false }
+    }
+
     private func play(_ a: PetAction) {
         action = a
         idleTicks = 0
-        refreshCopy()
-        if let url = PetMedia.soundURL(petID: pet.id, action: a) {
+        // 做什么就说什么：动作专属台词（按实际能播的动作取，避免文不对景）
+        let played = pet.actions.contains(a) ? a : .idle
+        copyLine = CopyLibrary.actionLine(played, persona: pet.persona, petName: pet.name)
+        if let url = PetMedia.soundURL(petID: pet.id, action: played) {
             soundPlayer = try? AVAudioPlayer(contentsOf: url)
             soundPlayer?.volume = 0.5
             soundPlayer?.play()
         }
     }
 
-    /// 5 秒一拍的状态机：无操作逐步 yawn → sleep，偶尔随机小动作
+    /// 5 秒一拍的状态机：无操作逐步 yawn → sleep，偶尔随机小动作。
+    /// 自主行为也带专属台词——它做什么就嘟囔什么
     private func tick() {
         idleTicks += 1
         switch idleTicks {
-        case 6: action = .yawn          // 30s
-        case 8: action = .idle
-        case 12: action = .walk         // 60s 遛个弯
-        case 14: action = .idle
-        case 24: action = .sleep        // 120s 睡了
+        case 6: autoPlay(.yawn)          // 30s
+        case 8: autoPlay(.idle)
+        case 12: autoPlay(.walk)         // 60s 遛个弯
+        case 14: autoPlay(.idle)
+        case 24: autoPlay(.sleep)        // 120s 睡了
         default:
             if action == .idle && idleTicks % 5 == 0 && Bool.random() {
-                action = [.lick, .stretch].filter { pet.actions.contains($0) }.randomElement() ?? .idle
+                let a = [.lick, .stretch].filter { pet.actions.contains($0) }.randomElement()
+                autoPlay(a ?? .idle)
             } else if [.lick, .stretch].contains(action) && idleTicks % 2 == 0 {
-                action = .idle
+                autoPlay(.idle)
+            } else if action == .idle && idleTicks % 4 == 0 {
+                refreshCopy() // 发呆时换换心里话
             }
         }
-        if idleTicks % 4 == 0 { refreshCopy() }
+    }
+
+    /// 自主行为：换动作 + 配台词，但不打断"无操作计时"
+    private func autoPlay(_ a: PetAction) {
+        guard pet.actions.contains(a) || a == .idle else { return }
+        action = a
+        copyLine = CopyLibrary.actionLine(a, persona: pet.persona, petName: pet.name)
     }
 
     private func refreshCopy() {

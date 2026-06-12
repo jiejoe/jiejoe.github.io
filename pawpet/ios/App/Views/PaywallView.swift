@@ -61,7 +61,34 @@ struct PaywallView: View {
                             .buttonStyle(.plain)
                         }
                         if purchases.products.isEmpty {
-                            ProgressView("商品加载中…")
+                            // 真机直装拿不到商品：本地 StoreKit 配置只在 Xcode 运行时注入，
+                            // 正式商品要等 App Store Connect 配置生效
+                            VStack(spacing: 10) {
+                                Text("内购商品尚未上线")
+                                    .font(.subheadline.bold())
+                                Text("正式版将通过 App Store 提供购买；开发版可用下方按钮模拟购买流程")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                #if DEBUG
+                                Button {
+                                    purchases.debugGrantCredit()
+                                    dismiss()
+                                    onPurchased()
+                                } label: {
+                                    Text("模拟购买 · 单次生成 ¥18")
+                                        .font(.subheadline.bold())
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.accentColor.opacity(0.9)))
+                                        .foregroundStyle(.white)
+                                }
+                                #endif
+                            }
+                            .padding(16)
+                            .background(RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(.secondarySystemBackground)))
                         }
                     }
                     .padding(.horizontal, 20)

@@ -37,6 +37,25 @@ enum CopyLibrary {
         return (c.day ?? 0) * 96 + (c.hour ?? 0) * 4 + (c.minute ?? 0) / 15
     }
 
+    /// 动作专属台词：宠物正在做什么，就说对应的话（互动反馈用）
+    static func actionLine(_ action: PetAction, persona: PetPersona, petName: String) -> String {
+        let pools: [PetAction: [String]] = [
+            .idle: ["{name}在发呆，眼神逐渐放空…", "安静地待着，也很好", "在想你，别打扰"],
+            .yawn: ["哈——啊，有点困了", "困意来袭…", "打个哈欠，脑子重启中"],
+            .lick: ["毛要舔得整整齐齐", "洗脸ing，马上就好", "精致是刻在骨子里的"],
+            .walk: ["出发！巡逻领地", "走两步，消消食", "哒哒哒哒…"],
+            .sleep: ["嘘…{name}睡着了", "呼…呼…", "做了个有你的梦"],
+            .happy: ["好舒服～再摸一下嘛", "尾巴都要摇飞了！", "最喜欢你了！"],
+            .eat: ["唔！是好吃的味道！", "干饭！干饭！", "谢谢投喂，爱你！"],
+            .belly: ["肚皮只对你一个人开放", "来嘛，rua 一下", "毫无防备.jpg"],
+            .stretch: ["伸—个—大—懒—腰！", "筋骨拉满，重新做猫", "你也起来伸一个？"],
+        ]
+        let pool = pools[action] ?? []
+        guard !pool.isEmpty else { return petName }
+        return pool[Int.random(in: 0..<pool.count)]
+            .replacingOccurrences(of: "{name}", with: petName)
+    }
+
     /// 陪伴里程碑：特别的日子说特别的话（优先级高于普通陪伴文案）
     static func milestoneLine(days: Int) -> String? {
         switch days {

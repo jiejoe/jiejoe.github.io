@@ -58,6 +58,14 @@ final class PurchaseManager: ObservableObject {
         await refreshEntitlements()
     }
 
+    #if DEBUG
+    /// 开发版模拟购买：商品未上线时走通完整付费流程
+    func debugGrantCredit() {
+        generationCredits += 1
+        UserDefaults.standard.set(generationCredits, forKey: "pawpet.credits")
+    }
+    #endif
+
     func consumeCredit() {
         guard generationCredits > 0 else { return }
         generationCredits -= 1

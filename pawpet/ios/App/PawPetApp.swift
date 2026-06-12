@@ -10,17 +10,12 @@ struct PawPetApp: App {
             RootView()
                 .environmentObject(petStore)
                 .environmentObject(purchases)
-                .onOpenURL { url in
-                    // pawpet://pet/<id> 从组件点进来直接看这只宠物
-                    if url.host == "pet", let id = url.pathComponents.dropFirst().first {
-                        petStore.select(petID: id)
-                    }
-                }
         }
     }
 }
 
 struct RootView: View {
+    @EnvironmentObject var petStore: PetStore
     // 截图/调试用：xcrun simctl launch ... --args -debugTab 1
     @State private var tab = UserDefaults.standard.integer(forKey: "debugTab")
 
@@ -38,6 +33,13 @@ struct RootView: View {
             SettingsView()
                 .tabItem { Label("我的", systemImage: "person.fill") }
                 .tag(3)
+        }
+        .onOpenURL { url in
+            // pawpet://pet/<id> 从组件点进来：直接回小窝看这只宠物的动态
+            if url.host == "pet", let id = url.pathComponents.dropFirst().first {
+                petStore.select(petID: id)
+                tab = 0
+            }
         }
     }
 }
