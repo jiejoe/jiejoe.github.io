@@ -3,13 +3,28 @@ import Foundation
 /// 情感化文案库：按人设 × 时段，给组件和 App 提供台词
 enum CopyLibrary {
 
-    /// 取一句台词。`seed` 用日期+小时做种子，保证组件同一时段稳定、跨时段变化
+    /// 取一句台词。`seed` 用日期+小时做种子，保证组件同一时段稳定、跨时段变化。
+    /// 约 1/3 概率换成「关心你」的提醒档（Widgetable 验证的碎碎念情绪价值）
     static func line(persona: PetPersona, slot: TimeSlot, petName: String, seed: Int? = nil) -> String {
+        let s = seed ?? defaultSeed()
+        if abs(s) % 3 == 2, let care = careLines[slot], !care.isEmpty {
+            return care[abs(s / 3) % care.count]
+        }
         let pool = lines[persona]?[slot] ?? []
         guard !pool.isEmpty else { return "\(petName)在等你回家" }
-        let s = seed ?? defaultSeed()
         return pool[abs(s) % pool.count].replacingOccurrences(of: "{name}", with: petName)
     }
+
+    /// 关心型提醒（跨人设通用，借宠物口吻照顾用户）
+    private static let careLines: [TimeSlot: [String]] = [
+        .earlyMorning: ["记得吃早饭，不许空腹出门", "今天也要好好吃饭哦", "出门前喝口水嘛"],
+        .forenoon: ["坐久了就学我伸个懒腰", "工作再忙，水杯不能空", "眼睛累了就看看我"],
+        .noon: ["你吃午饭了没？我先吃了", "再忙也要按时吃饭！", "饭后散两步，像我一样"],
+        .afternoon: ["三点啦，起来活动活动", "喝水提醒：第 N 杯了吗", "肩膀酸了吧？转一转"],
+        .evening: ["晚饭别凑合，好好犒劳自己", "到家了就把烦恼关在门外", "今天辛苦啦，我都看见了"],
+        .night: ["热水泡泡脚，舒服得很", "手机放远点，陪我待会儿", "今天的你已经很棒了"],
+        .lateNight: ["别熬夜了，我都困了", "再不睡我可要生气了哦", "梦里我陪你，快睡"],
+    ]
 
     static func defaultSeed(date: Date = Date()) -> Int {
         let c = Calendar.current.dateComponents([.day, .hour], from: date)
