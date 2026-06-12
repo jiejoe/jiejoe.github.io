@@ -31,6 +31,25 @@ enum CopyLibrary {
         return (c.day ?? 0) * 24 + (c.hour ?? 0)
     }
 
+    /// 一刻钟一个种子：组件 15 分钟换一拍，台词/姿势自然流动
+    static func quarterSeed(date: Date = Date()) -> Int {
+        let c = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
+        return (c.day ?? 0) * 96 + (c.hour ?? 0) * 4 + (c.minute ?? 0) / 15
+    }
+
+    /// 陪伴里程碑：特别的日子说特别的话（优先级高于普通陪伴文案）
+    static func milestoneLine(days: Int) -> String? {
+        switch days {
+        case 7: return "我们认识一周啦 🎉"
+        case 14: return "第 14 天，默契加倍"
+        case 30: return "满月纪念日！抱一个 🎈"
+        case 100: return "第 100 天，比心 💯"
+        case 365: return "一周年！你是我的家人 🎂"
+        case 520: return "第 520 天，我爱你"
+        default: return nil
+        }
+    }
+
     /// 陪伴天数的一句话
     static func companionLine(days: Int) -> String {
         switch days {
