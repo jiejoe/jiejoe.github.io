@@ -2,6 +2,26 @@ import SwiftUI
 import AVFoundation
 import WidgetKit
 
+/// 触觉反馈：常驻 generator + prepare，避免首次触发被系统丢弃
+enum Haptics {
+    private static let impact = UIImpactFeedbackGenerator(style: .medium)
+    private static let notify = UINotificationFeedbackGenerator()
+    private static let light = UIImpactFeedbackGenerator(style: .light)
+
+    static func pat() {
+        impact.prepare()
+        impact.impactOccurred(intensity: 1.0)
+    }
+    static func success() {
+        notify.prepare()
+        notify.notificationOccurred(.success)
+    }
+    static func tick() {
+        light.prepare()
+        light.impactOccurred(intensity: 0.7)
+    }
+}
+
 /// 小窝：宠物互动主页。视频状态机沿用 PRD 设计：
 /// idle 默认；摸它 → happy；30s 没动静 → yawn；更久 → sleep；随机 lick/stretch
 struct HomeView: View {
@@ -161,7 +181,7 @@ struct HomeView: View {
                     Button {
                         if item.target == .happy { pat() }
                         else if item.target == .eat { feed() }
-                        else { play(item.target) }
+                        else { Haptics.tick(); play(item.target) }
                     } label: {
                         HStack(spacing: 5) {
                             Text(item.emoji).font(.system(size: 15))
@@ -186,7 +206,7 @@ struct HomeView: View {
     private func pat() {
         play(.happy)
         heartBurst = true
-        UIImpactFeedbackGenerator(style: .soft).impactOccurred() // 触觉：像真的摸到了
+        Haptics.pat() // 触觉：像真的摸到了
         SharedStore.recordInteraction("pat")
         WidgetCenter.shared.reloadAllTimelines() // 组件马上"记得"这次抚摸
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { heartBurst = false }
@@ -195,7 +215,7 @@ struct HomeView: View {
     private func feed() {
         foodDrop = false
         play(.eat)
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        Haptics.success()
         SharedStore.recordInteraction("feed")
         WidgetCenter.shared.reloadAllTimelines()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { foodDrop = true }
