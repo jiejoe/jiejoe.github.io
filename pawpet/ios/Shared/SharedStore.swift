@@ -40,9 +40,9 @@ enum SharedStore {
         return now
     }
 
-    /// 全部宠物（内置 + 自定义），领养日已注入
+    /// 全部宠物：自己生成的排最前（最新的第一），内置示例靠后
     static func allPets() -> [Pet] {
-        var pets = Pet.builtIns + loadCustomPets()
+        var pets = Array(loadCustomPets().reversed()) + Pet.builtIns
         for i in pets.indices {
             pets[i].adoptionDate = adoptionDate(for: pets[i].id)
         }
