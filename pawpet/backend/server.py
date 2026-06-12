@@ -144,6 +144,10 @@ ACTION_PROMPTS = {
 }
 
 ACTIONS = list(ACTION_PROMPTS.keys())
+# 可用 env 限制生成动作（控制成本），如 PIPELINE_ACTIONS=idle,happy,eat,sleep
+_actions_env = os.getenv("PIPELINE_ACTIONS", "").strip()
+if _actions_env:
+    ACTIONS = [a.strip() for a in _actions_env.split(",") if a.strip() in ACTION_PROMPTS]
 
 
 # ===== API Helpers =====
@@ -233,6 +237,26 @@ def extract_audio(mp4_path: str, audio_path: str):
         print(f"Audio extraction failed: {result.stderr}")
 
 
+def defringe(im: Image.Image) -> Image.Image:
+    """去白色毛边：rembg matte 的半透明边缘像素残留白底颜色，
+    白底反解 fg=(obs-(1-α)·255)/α + 低 α 置零 + 边缘收缩 1px 软化"""
+    import numpy as np
+    from PIL import ImageFilter
+
+    arr = np.asarray(im.convert("RGBA")).astype(np.float32)
+    rgb, a = arr[..., :3], arr[..., 3:4] / 255.0
+    safe_a = np.clip(a, 1e-3, 1.0)
+    fg = np.clip((rgb - 255.0 * (1.0 - a)) / safe_a, 0, 255)
+    fg = np.where(a >= 0.999, rgb, fg)
+    a2 = np.where(a < 0.06, 0.0, a)
+    res = Image.fromarray(
+        np.concatenate([fg, a2 * 255.0], axis=-1).astype(np.uint8), "RGBA")
+    alpha = res.getchannel("A").filter(ImageFilter.MinFilter(3))
+    alpha = alpha.filter(ImageFilter.GaussianBlur(0.5))
+    res.putalpha(alpha)
+    return res
+
+
 def frames_to_hevc_alpha_mov(nobg_dir: str, mov_path: str):
     """抠图 PNG 序列帧 → iOS 可用的 HEVC alpha 透明 .mov（hevc_videotoolbox，验证过的参数）"""
     result = subprocess.run(
@@ -293,7 +317,7 @@ def process_action_video(mp4_path: str, webp_path: str, mov_path: str, pose_path
         rgba_frames = []
         for i, fp in enumerate(frame_paths):
             img = Image.open(fp)
-            result = rembg_remove(img)
+            result = defringe(rembg_remove(img))
             rgba_frames.append(result)
             # 抠图帧落盘，供 ffmpeg 编码 HEVC alpha mov
             result.save(os.path.join(nobg_dir, f"f_{i + 1:04d}.png"))
@@ -526,11 +550,14 @@ async def get_pet_bundle(pet_id: str):
             char_file = pet_dir / "character.jpg"
             if char_file.exists():
                 zf.write(char_file, "character.jpg")
+            # 目录结构与客户端 App Group 容器约定一致：videos/<action>.mov + frames/<action>.png
             for action in ACTIONS:
-                for fname in (f"{action}.mov", f"{action}_pose.png"):
-                    fpath = pet_dir / fname
-                    if fpath.exists():
-                        zf.write(fpath, fname)
+                mov = pet_dir / f"{action}.mov"
+                if mov.exists():
+                    zf.write(mov, f"videos/{action}.mov")
+                pose = pet_dir / f"{action}_pose.png"
+                if pose.exists():
+                    zf.write(pose, f"frames/{action}.png")
             manifest = {
                 "petId": pet_id,
                 "name": pet.get("name"),

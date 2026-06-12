@@ -1,0 +1,6 @@
+.venv/
+.env
+server.log
+data/
+generated/
+__pycache__/

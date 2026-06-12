@@ -245,10 +245,21 @@ struct CreatePetView: View {
             progressMessage = s.message ?? ""
             progressStep = s.step ?? 0
             if s.status == "ready" {
-                try? await GeneratorAPI.downloadBundle(petID: petID)
+                do {
+                    try await GeneratorAPI.downloadBundle(petID: petID)
+                } catch {
+                    phase = .failed("资产下载失败：\(error.localizedDescription)")
+                    return
+                }
+                // 按实际下载到的姿势帧登记动作（生成动作数可能少于全集）
+                let actions = PetAction.allCases.filter { a in
+                    guard let url = PetMedia.containerURL(petID: petID)?
+                        .appendingPathComponent("frames/\(a.rawValue).png") else { return false }
+                    return FileManager.default.fileExists(atPath: url.path)
+                }
                 let pet = Pet(id: petID, name: petName, species: .cat, persona: .clingy,
                               isBuiltIn: false, adoptionDate: Date(),
-                              actions: Pet.defaultActions + [.stretch])
+                              actions: actions.isEmpty ? [.idle] : actions)
                 petStore.register(custom: pet)
                 phase = .done(petID: petID)
                 return

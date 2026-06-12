@@ -1,9 +1,9 @@
 import Foundation
 import UIKit
 
-/// 生成后端客户端。开发期指向本机 FastAPI；上架前改为正式域名（HTTPS）
+/// 生成后端客户端。开发期指向 Mac 的局域网 FastAPI（手机需同一 Wi-Fi）；上架前改为正式域名（HTTPS）
 enum GeneratorAPI {
-    static var baseURL = URL(string: "http://127.0.0.1:8900")!
+    static var baseURL = URL(string: "http://192.168.1.114:8900")!
 
     static var deviceID: String {
         if let id = UserDefaults.standard.string(forKey: "pawpet.deviceID") { return id }
