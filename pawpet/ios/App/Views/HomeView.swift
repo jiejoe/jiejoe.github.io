@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import WidgetKit
 
 /// 小窝：宠物互动主页。视频状态机沿用 PRD 设计：
 /// idle 默认；摸它 → happy；30s 没动静 → yawn；更久 → sleep；随机 lick/stretch
@@ -67,9 +68,16 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
             }
             .frame(height: 78)
-            Text(CopyLibrary.companionLine(days: pet.daysTogether))
-                .font(.footnote)
-                .foregroundStyle(theme.textSecondary)
+            HStack(spacing: 8) {
+                Text(CopyLibrary.companionLine(days: pet.daysTogether))
+                if SharedStore.giftCount > 0 {
+                    Text("🧺 宝贝 ×\(SharedStore.giftCount)")
+                        .padding(.horizontal, 8).padding(.vertical, 2)
+                        .background(Capsule().fill(Color.white.opacity(0.5)))
+                }
+            }
+            .font(.footnote)
+            .foregroundStyle(theme.textSecondary)
             actionBar
         }
         .padding(.top, 20)
@@ -178,12 +186,18 @@ struct HomeView: View {
     private func pat() {
         play(.happy)
         heartBurst = true
+        UIImpactFeedbackGenerator(style: .soft).impactOccurred() // 触觉：像真的摸到了
+        SharedStore.recordInteraction("pat")
+        WidgetCenter.shared.reloadAllTimelines() // 组件马上"记得"这次抚摸
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { heartBurst = false }
     }
 
     private func feed() {
         foodDrop = false
         play(.eat)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        SharedStore.recordInteraction("feed")
+        WidgetCenter.shared.reloadAllTimelines()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { foodDrop = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { foodDrop = false }
     }

@@ -39,20 +39,43 @@ struct PetTimelineProvider: TimelineProvider {
     private func entry(for date: Date, index: Int) -> PetEntry {
         let pet = SharedStore.pet(byID: SharedStore.selectedPetID)
         let slot = TimeSlot.slot(for: date)
+        let quarterIndex = CopyLibrary.quarterSeed(date: date)
 
         // 姿势在时段动作池里轮换（按刻钟序号），偶尔回到 idle 喘口气
         var pool = slot.preferredActions.filter { pet.actions.contains($0) }
         if pool.isEmpty { pool = [.idle] }
         if !pool.contains(.idle) { pool.append(.idle) }
-        let quarterIndex = CopyLibrary.quarterSeed(date: date)
-        let action = pool[abs(quarterIndex) % pool.count]
+        var action = pool[abs(quarterIndex) % pool.count]
 
-        let line = CopyLibrary.line(persona: pet.persona, slot: slot,
-                                    petName: pet.name, seed: quarterIndex)
+        // 文案优先级：礼物归来 > 冒险中 > 互动回声 > 星期感知(偶尔) > 日常轮换
+        SharedStore.settleAdventureIfNeeded(at: date)
+        var line: String?
+        if let start = SharedStore.adventureStart {
+            if date >= start && date < start.addingTimeInterval(SharedStore.adventureDuration) {
+                line = CopyLibrary.adventureLine(phase: "out", gift: "", giftCount: 0)
+                action = pet.actions.contains(.walk) ? .walk : action
+            }
+        } else if SharedStore.lastGiftDay == SharedStore.dayKey(date),
+                  Calendar.current.component(.hour, from: date) < 22 {
+            // 今天的礼物已带回：白天持续展示战利品（22 点后让位给晚安档）
+            line = CopyLibrary.adventureLine(phase: "back",
+                                             gift: CopyLibrary.giftEmoji(for: date),
+                                             giftCount: SharedStore.giftCount)
+            action = pet.actions.contains(.happy) ? .happy : action
+        }
+        if line == nil, let inter = SharedStore.lastInteraction {
+            line = CopyLibrary.echoLine(interaction: inter, petName: pet.name, now: date)
+        }
+        if line == nil, abs(quarterIndex) % 4 == 1 {
+            line = CopyLibrary.weekdayLine(date: date)
+        }
+        let finalLine = line ?? CopyLibrary.line(persona: pet.persona, slot: slot,
+                                                 petName: pet.name, seed: quarterIndex)
+
         let companion = CopyLibrary.milestoneLine(days: pet.daysTogether)
             ?? CopyLibrary.companionLine(days: pet.daysTogether)
         return PetEntry(date: date, pet: pet, slot: slot, action: action,
-                        copyLine: line, companionLine: companion)
+                        copyLine: finalLine, companionLine: companion)
     }
 }
 

@@ -56,6 +56,52 @@ enum CopyLibrary {
             .replacingOccurrences(of: "{name}", with: petName)
     }
 
+    // MARK: 关系机制文案（互动回声 / 小冒险 / 星期感知）
+
+    static let giftEmojis = ["🍂", "🌸", "🪶", "🐚", "🍓", "⭐️", "🧶"]
+
+    static func giftEmoji(for date: Date = Date()) -> String {
+        let d = Calendar.current.dateComponents([.day, .month], from: date)
+        return giftEmojis[((d.day ?? 0) + (d.month ?? 0)) % giftEmojis.count]
+    }
+
+    /// 互动回声：刚被照顾过 → 感谢；太久没互动 → 想念（温柔，不施压）
+    static func echoLine(interaction: (type: String, date: Date), petName: String, now: Date = Date()) -> String? {
+        let elapsed = now.timeIntervalSince(interaction.date)
+        if elapsed < 90 * 60 {
+            switch interaction.type {
+            case "feed": return ["刚才的饭饭真香，谢谢你", "吃饱啦，幸福指数 +1", "嗝…下顿也要等你喂"].pick(seed: now)
+            case "pat": return ["刚才被摸的地方还暖暖的", "你的手最舒服了", "还想再被摸一下…就一下"].pick(seed: now)
+            default: return nil
+            }
+        }
+        if elapsed > 48 * 3600 {
+            return ["有点想你了，回来摸摸我嘛", "我数了数，你两天没理我啦", "趴在这里等你，不着急"].pick(seed: now)
+        }
+        return nil
+    }
+
+    /// 冒险状态文案
+    static func adventureLine(phase: String, gift: String, giftCount: Int) -> String {
+        switch phase {
+        case "out": return "出门捡宝贝去了，回来给你惊喜"
+        case "back": return "带回来一个 \(gift) 送你！这是第 \(giftCount) 件宝贝"
+        default: return ""
+        }
+    }
+
+    /// 星期感知：一周的情绪节律
+    static func weekdayLine(date: Date = Date()) -> String? {
+        let wd = Calendar.current.component(.weekday, from: date) // 1=周日
+        let lines: [Int: [String]] = [
+            2: ["周一而已，有我陪你打怪", "新的一周，先摸我一下补充能量"],
+            6: ["周五啦！尾巴提前开始摇了", "熬过今天，周末我们一起赖床"],
+            7: ["周六的太阳晒着最舒服", "今天的任务：陪我发呆"],
+            1: ["周日要把懒觉睡够哦", "明天的事明天再说，先躺平"],
+        ]
+        return lines[wd]?.pick(seed: date)
+    }
+
     /// 陪伴里程碑：特别的日子说特别的话（优先级高于普通陪伴文案）
     static func milestoneLine(days: Int) -> String? {
         switch days {
@@ -80,7 +126,7 @@ enum CopyLibrary {
         }
     }
 
-    private static let lines: [PetPersona: [TimeSlot: [String]]] = [
+    fileprivate static let lines: [PetPersona: [TimeSlot: [String]]] = [
         .aloof: [
             .earlyMorning: ["伸个懒腰…才不是特意等你起床", "勉强陪你迎接今天吧", "早。本喵已经醒了很久了"],
             .forenoon: ["巡视领地中，勿扰", "今天的阳光勉强及格", "去忙吧，我看着你"],
@@ -118,4 +164,13 @@ enum CopyLibrary {
             .lateNight: ["晚安，去梦里种彩虹", "睡吧，我会守着你的梦", "明天也会是温柔的一天"],
         ],
     ]
+}
+
+/// 按刻钟确定性取样：widget 同一刻钟内稳定，跨刻钟变化
+private extension Array where Element == String {
+    func pick(seed: Date) -> String? {
+        guard !isEmpty else { return nil }
+        let s = Int(seed.timeIntervalSince1970 / 900)
+        return self[s % count]
+    }
 }
