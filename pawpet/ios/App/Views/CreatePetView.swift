@@ -21,6 +21,7 @@ struct CreatePetView: View {
     @State private var petName = ""
     @State private var progressMessage = "排队中…"
     @State private var progressStep = 0
+    @State private var progressCharURL: URL?
     @State private var showPaywall = false
 
     var body: some View {
@@ -40,7 +41,25 @@ struct CreatePetView: View {
                 }
             }
             .navigationTitle("领养专属桌宠")
-            .task { quota = try? await GeneratorAPI.fetchQuota() }
+            .task {
+                quota = try? await GeneratorAPI.fetchQuota()
+                // 恢复被打断的生成（杀 App/重装后回来接着等）
+                if case .intro = phase,
+                   let pending = UserDefaults.standard.string(forKey: "pawpet.pendingPetID") {
+                    petName = UserDefaults.standard.string(forKey: "pawpet.pendingPetName") ?? "小可爱"
+                    phase = .generating(petID: pending)
+                    await poll(petID: pending)
+                } else if case .intro = phase {
+                    // 找回：服务端已就绪但本地没领取的宠物（如生成期间重装了 App）
+                    let localIDs = Set(petStore.pets.map(\.id))
+                    if let orphan = (try? await GeneratorAPI.listPets())?
+                        .last(where: { $0.status == "ready" && !localIDs.contains($0.petId) }) {
+                        petName = orphan.name ?? "小可爱"
+                        phase = .generating(petID: orphan.petId)
+                        await poll(petID: orphan.petId)
+                    }
+                }
+            }
             .sheet(isPresented: $showPaywall) {
                 PaywallView { startAfterPaid() }
             }
@@ -159,11 +178,25 @@ struct CreatePetView: View {
 
     private var generatingSection: some View {
         VStack(spacing: 24) {
-            PetFrameImage(petID: "uni", action: .idle)
-                .frame(width: 140, height: 140)
-                .opacity(0.9)
-            Text("你的毛孩子正在苏醒中… 🐾")
-                .font(.title3.bold())
+            // 角色设定图一出来就先睹为快——等待变成期待
+            if let url = progressCharURL {
+                AsyncImage(url: url) { img in
+                    img.resizable().scaledToFill()
+                } placeholder: {
+                    ProgressView()
+                }
+                .frame(width: 200, height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(color: .black.opacity(0.12), radius: 10, y: 5)
+                Text("\(petName) 长这样！正在学小动作…")
+                    .font(.title3.bold())
+            } else {
+                PetFrameImage(petID: "uni", action: .idle)
+                    .frame(width: 140, height: 140)
+                    .opacity(0.9)
+                Text("你的毛孩子正在苏醒中… 🐾")
+                    .font(.title3.bold())
+            }
             ProgressView(value: Double(progressStep), total: 5)
                 .padding(.horizontal, 60)
             Text(progressMessage)
@@ -223,6 +256,8 @@ struct CreatePetView: View {
                 let petID = try await GeneratorAPI.createPet(
                     photo: photo, name: petName,
                     receipt: free ? nil : "credit") // TODO: 上线换成真实收据
+                UserDefaults.standard.set(petID, forKey: "pawpet.pendingPetID")
+                UserDefaults.standard.set(petName, forKey: "pawpet.pendingPetName")
                 phase = .generating(petID: petID)
                 await poll(petID: petID)
             } catch GeneratorAPI.GenerationError.paymentRequired {
@@ -244,6 +279,9 @@ struct CreatePetView: View {
             guard let s = try? await GeneratorAPI.status(petID: petID) else { continue }
             progressMessage = s.message ?? ""
             progressStep = s.step ?? 0
+            if let path = s.characterImage, progressCharURL == nil {
+                progressCharURL = URL(string: path, relativeTo: GeneratorAPI.baseURL)
+            }
             if s.status == "ready" {
                 do {
                     try await GeneratorAPI.downloadBundle(petID: petID)
@@ -261,10 +299,14 @@ struct CreatePetView: View {
                               isBuiltIn: false, adoptionDate: Date(),
                               actions: actions.isEmpty ? [.idle] : actions)
                 petStore.register(custom: pet)
+                UserDefaults.standard.removeObject(forKey: "pawpet.pendingPetID")
+                UserDefaults.standard.removeObject(forKey: "pawpet.pendingPetName")
                 phase = .done(petID: petID)
                 return
             }
             if s.status == "failed" {
+                UserDefaults.standard.removeObject(forKey: "pawpet.pendingPetID")
+                UserDefaults.standard.removeObject(forKey: "pawpet.pendingPetName")
                 phase = .failed(s.error ?? "未知错误")
                 return
             }

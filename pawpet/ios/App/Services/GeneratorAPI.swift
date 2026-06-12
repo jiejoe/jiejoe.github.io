@@ -64,6 +64,19 @@ enum GeneratorAPI {
         return try JSONDecoder().decode(CreateResp.self, from: data).petId
     }
 
+    struct PetSummary: Codable {
+        let petId: String
+        let name: String?
+        let status: String
+    }
+
+    /// 服务端宠物列表（用于找回：生成完成但本地未领取的宠物）
+    static func listPets() async throws -> [PetSummary] {
+        let (data, _) = try await URLSession.shared.data(
+            from: baseURL.appendingPathComponent("api/pets"))
+        return try JSONDecoder().decode([PetSummary].self, from: data)
+    }
+
     static func status(petID: String) async throws -> PetStatus {
         let url = baseURL.appendingPathComponent("api/pet/\(petID)/status")
         let (data, _) = try await URLSession.shared.data(from: url)

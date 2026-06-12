@@ -151,9 +151,10 @@ struct HomeView: View {
         .animation(.spring(response: 0.4), value: heartBurst)
     }
 
-    /// 宠物没这个动作素材时回退 idle
+    /// 宠物没这个动作素材时回退：优先 idle，其次它拥有的第一个动作
     private var availableAction: PetAction {
-        pet.actions.contains(action) ? action : .idle
+        if pet.actions.contains(action) { return action }
+        return pet.actions.contains(.idle) ? .idle : (pet.actions.first ?? .idle)
     }
 
     // MARK: 台词气泡 & 动作按钮

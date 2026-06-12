@@ -551,7 +551,8 @@ async def get_pet_bundle(pet_id: str):
             if char_file.exists():
                 zf.write(char_file, "character.jpg")
             # 目录结构与客户端 App Group 容器约定一致：videos/<action>.mov + frames/<action>.png
-            for action in ACTIONS:
+            # 遍历全部动作而非当前 ACTIONS 配置：打包磁盘上实际存在的产物
+            for action in ACTION_PROMPTS:
                 mov = pet_dir / f"{action}.mov"
                 if mov.exists():
                     zf.write(mov, f"videos/{action}.mov")
