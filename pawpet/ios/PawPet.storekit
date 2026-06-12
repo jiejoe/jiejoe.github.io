@@ -1,0 +1,82 @@
+{
+  "identifier" : "F4E7B9A2",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "18.00",
+      "familyShareable" : false,
+      "internalID" : "C1A2B3C4",
+      "localizations" : [
+        {
+          "description" : "生成 1 只专属桌宠",
+          "displayName" : "单次生成",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "paw.generate.once",
+      "referenceName" : "单次生成",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "zh_CN",
+    "_storefront" : "CHN",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "9D8C7B6A",
+      "localizations" : [],
+      "name" : "PawPet Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "12.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "每月 2 次生成 + 全部组件样式",
+              "displayName" : "Pro 月度",
+              "locale" : "zh_CN"
+            }
+          ],
+          "productID" : "paw.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro 月度",
+          "subscriptionGroupID" : "9D8C7B6A",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "68.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "E5F6A7B8",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "每月 2 次生成 + 全部组件样式，更划算",
+              "displayName" : "Pro 年度",
+              "locale" : "zh_CN"
+            }
+          ],
+          "productID" : "paw.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Pro 年度",
+          "subscriptionGroupID" : "9D8C7B6A",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

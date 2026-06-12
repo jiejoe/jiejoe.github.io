@@ -1,0 +1,215 @@
+import SwiftUI
+import AVFoundation
+
+/// 小窝：宠物互动主页。视频状态机沿用 PRD 设计：
+/// idle 默认；摸它 → happy；30s 没动静 → yawn；更久 → sleep；随机 lick/stretch
+struct HomeView: View {
+    @EnvironmentObject var petStore: PetStore
+    @State private var action: PetAction = .idle
+    @State private var copyLine: String = ""
+    @State private var idleTicks = 0
+    @State private var heartBurst = false
+    @State private var soundPlayer: AVAudioPlayer?
+
+    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
+    var pet: Pet { petStore.selectedPet }
+    var theme: PetTheme { PetTheme.theme(for: pet.persona) }
+
+    var body: some View {
+        ZStack {
+            theme.gradient.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                header
+                Spacer()
+                bubble
+                    .padding(.bottom, 18)
+                petStage
+                Spacer()
+                Spacer()
+            }
+        }
+        .onAppear { refreshCopy() }
+        .onChange(of: petStore.selectedPetID) {
+            action = .idle
+            idleTicks = 0
+            refreshCopy()
+        }
+        .onReceive(timer) { _ in tick() }
+    }
+
+    // MARK: 顶部：宠物切换 + 陪伴天数
+
+    private var header: some View {
+        VStack(spacing: 10) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(petStore.pets) { p in
+                        Button { petStore.select(petID: p.id) } label: {
+                            VStack(spacing: 4) {
+                                PetFrameImage(petID: p.id, action: .idle)
+                                    .frame(width: 44, height: 44)
+                                    .padding(5)
+                                    .background(
+                                        Circle().fill(p.id == petStore.selectedPetID
+                                                      ? theme.accent.opacity(0.25)
+                                                      : Color.white.opacity(0.5))
+                                    )
+                                Text(p.name)
+                                    .font(.caption2)
+                                    .foregroundStyle(theme.textPrimary)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            .frame(height: 78)
+            Text(CopyLibrary.companionLine(days: pet.daysTogether))
+                .font(.footnote)
+                .foregroundStyle(theme.textSecondary)
+            actionBar
+        }
+        .padding(.top, 20)
+    }
+
+    // MARK: 舞台
+
+    private var petStage: some View {
+        ZStack {
+            Ellipse()
+                .fill(Color.black.opacity(0.08))
+                .frame(width: 170, height: 20)
+                .blur(radius: 10)
+                .offset(y: 118)
+
+            if action == .sleep {
+                Text("💤").font(.system(size: 30)).offset(x: 90, y: -110)
+            }
+
+            Group {
+                if let url = PetMedia.videoURL(petID: pet.id, action: availableAction) {
+                    LoopingVideoView(url: url)
+                } else {
+                    PetFrameImage(petID: pet.id, action: availableAction)
+                }
+            }
+            .frame(width: 250, height: 250)
+            .onTapGesture { pat() }
+
+            if heartBurst {
+                ForEach(0..<6, id: \.self) { i in
+                    Text(["💕", "✨", "💖", "⭐", "💫", "🩷"][i])
+                        .font(.system(size: 22))
+                        .offset(x: CGFloat.random(in: -90...90),
+                                y: CGFloat.random(in: -140 ... -60))
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+        }
+        .animation(.spring(response: 0.4), value: heartBurst)
+    }
+
+    /// 宠物没这个动作素材时回退 idle
+    private var availableAction: PetAction {
+        pet.actions.contains(action) ? action : .idle
+    }
+
+    // MARK: 台词气泡 & 动作按钮
+
+    private var bubble: some View {
+        Text(copyLine)
+            .font(.system(size: 16, weight: .medium, design: .rounded))
+            .foregroundStyle(theme.textPrimary)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(Capsule().fill(theme.bubbleBackground))
+    }
+
+    private var actionBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(pet.actions, id: \.self) { a in
+                    Button {
+                        play(a)
+                    } label: {
+                        Text(a.displayName)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule().fill(a == action ? theme.accent : Color.white.opacity(0.6))
+                            )
+                            .foregroundStyle(a == action ? Color.white : theme.textPrimary)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+    // MARK: 行为
+
+    private func pat() {
+        play(.happy)
+        heartBurst = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { heartBurst = false }
+    }
+
+    private func play(_ a: PetAction) {
+        action = a
+        idleTicks = 0
+        refreshCopy()
+        if let url = PetMedia.soundURL(petID: pet.id, action: a) {
+            soundPlayer = try? AVAudioPlayer(contentsOf: url)
+            soundPlayer?.volume = 0.5
+            soundPlayer?.play()
+        }
+    }
+
+    /// 5 秒一拍的状态机：无操作逐步 yawn → sleep，偶尔随机小动作
+    private func tick() {
+        idleTicks += 1
+        switch idleTicks {
+        case 6: action = .yawn          // 30s
+        case 8: action = .idle
+        case 12: action = .walk         // 60s 遛个弯
+        case 14: action = .idle
+        case 24: action = .sleep        // 120s 睡了
+        default:
+            if action == .idle && idleTicks % 5 == 0 && Bool.random() {
+                action = [.lick, .stretch].filter { pet.actions.contains($0) }.randomElement() ?? .idle
+            } else if [.lick, .stretch].contains(action) && idleTicks % 2 == 0 {
+                action = .idle
+            }
+        }
+        if idleTicks % 4 == 0 { refreshCopy() }
+    }
+
+    private func refreshCopy() {
+        copyLine = CopyLibrary.line(
+            persona: pet.persona,
+            slot: TimeSlot.slot(),
+            petName: pet.name,
+            seed: Int.random(in: 0..<1000)
+        )
+    }
+}
+
+/// 静态姿势帧（组件帧复用做头像/回退）
+struct PetFrameImage: View {
+    let petID: String
+    let action: PetAction
+
+    var body: some View {
+        if let url = PetMedia.frameURL(petID: petID, action: action),
+           let img = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFit()
+        } else {
+            Text("🐾").font(.system(size: 30))
+        }
+    }
+}
