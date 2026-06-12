@@ -20,6 +20,8 @@
 		5404125793A5B44B40D50EC3 /* PetMedia in Resources */ = {isa = PBXBuildFile; fileRef = 655B4762A648D5615FE6B969 /* PetMedia */; };
 		5BD3E2B2A64E233B6FC06F1C /* PetFrames in Resources */ = {isa = PBXBuildFile; fileRef = 204140B231C5CE0834DBFFF2 /* PetFrames */; };
 		65323E015BCADB8044105279 /* PetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAFC45E321DB8F7FCCE1B8C /* PetModel.swift */; };
+		6A81A4843AD956DE30958033 /* WidgetScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBB3DAADE65C10CE3318E98 /* WidgetScene.swift */; };
+		6EF5345114E1540353281FDD /* WidgetScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBB3DAADE65C10CE3318E98 /* WidgetScene.swift */; };
 		9B37170DAAE3E23742794352 /* PawPetWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CB78AE7A61D26B8653EE3246 /* PawPetWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A6B31A387E8696695E09E3F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FEC02F1B81D40F512577DC69 /* Assets.xcassets */; };
 		AAAC83B4360E0ACC55D8E040 /* PetVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2586CF30DE8E217E85E4FB /* PetVideoPlayer.swift */; };
@@ -87,6 +89,7 @@
 		B9F4403A3CB330CBB9965219 /* PetTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetTheme.swift; sourceTree = "<group>"; };
 		BD1F23C3583EBF5517D94CB8 /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
 		CB78AE7A61D26B8653EE3246 /* PawPetWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PawPetWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DBBB3DAADE65C10CE3318E98 /* WidgetScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetScene.swift; sourceTree = "<group>"; };
 		E7276DD134674326BF6AEBEA /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		FEC02F1B81D40F512577DC69 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -172,6 +175,7 @@
 				B9F4403A3CB330CBB9965219 /* PetTheme.swift */,
 				BD1F23C3583EBF5517D94CB8 /* SharedStore.swift */,
 				4AC3A66853D8633303E4B06B /* TimeSlot.swift */,
+				DBBB3DAADE65C10CE3318E98 /* WidgetScene.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -310,6 +314,7 @@
 				DC1BC72216A107E09D2E768B /* SharedStore.swift in Sources */,
 				B523788052254E5906370A54 /* TimeSlot.swift in Sources */,
 				4A044FA8DBDCB3DEA83AD3A6 /* WidgetGalleryView.swift in Sources */,
+				6A81A4843AD956DE30958033 /* WidgetScene.swift in Sources */,
 				E1795D3811BBBF143E9797FA /* ZipReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -325,6 +330,7 @@
 				461EBDE28D5E031839D276F7 /* PetTheme.swift in Sources */,
 				1F9508A77BC83D9C5B6C3D47 /* SharedStore.swift in Sources */,
 				406EC1E02BEB9B994E970870 /* TimeSlot.swift in Sources */,
+				6EF5345114E1540353281FDD /* WidgetScene.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

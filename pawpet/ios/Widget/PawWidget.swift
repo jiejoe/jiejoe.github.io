@@ -50,7 +50,14 @@ struct PawPetWidget: Widget {
         StaticConfiguration(kind: "PawPetWidget", provider: PetTimelineProvider()) { entry in
             PawWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
-                    PetTheme.theme(for: entry.pet.persona).gradient
+                    switch SharedStore.widgetStyle {
+                    case .card:
+                        PetTheme.theme(for: entry.pet.persona).gradient
+                    case .window:
+                        SkyView(slot: entry.slot)
+                    case .transparent:
+                        Color.black
+                    }
                 }
                 .widgetURL(URL(string: "pawpet://pet/\(entry.pet.id)"))
         }
@@ -66,10 +73,35 @@ struct PawWidgetEntryView: View {
     let entry: PetEntry
 
     var body: some View {
+        let style = SharedStore.widgetStyle
+        switch style {
+        case .window:
+            WindowSceneView(slot: entry.slot,
+                            petName: entry.pet.name,
+                            copyLine: entry.copyLine,
+                            showGreeting: family != .systemSmall) {
+                WidgetPetImage(petID: entry.pet.id, action: entry.action)
+            }
+        case .transparent:
+            TransparentSceneView(familyKey: familyKey,
+                                 copyLine: entry.copyLine,
+                                 petName: entry.pet.name) {
+                WidgetPetImage(petID: entry.pet.id, action: entry.action)
+            }
+        case .card:
+            switch family {
+            case .systemSmall: SmallPetView(entry: entry)
+            case .systemLarge: LargePetView(entry: entry)
+            default: MediumPetView(entry: entry)
+            }
+        }
+    }
+
+    private var familyKey: String {
         switch family {
-        case .systemSmall: SmallPetView(entry: entry)
-        case .systemLarge: LargePetView(entry: entry)
-        default: MediumPetView(entry: entry)
+        case .systemSmall: return "small"
+        case .systemLarge: return "large"
+        default: return "medium"
         }
     }
 }
