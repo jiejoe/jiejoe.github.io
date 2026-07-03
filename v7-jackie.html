@@ -247,9 +247,16 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 .xp-card {
   position: relative;
   display: grid; grid-template-columns: 34px 1fr; gap: 12px;
+  width: 100%;
   padding: 0 0 28px;
   background: transparent;
   border: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .28s var(--ease), opacity .25s var(--ease);
 }
 .xp-card::before {
   content: ""; position: absolute; left: -24px; top: 10px;
@@ -263,16 +270,36 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 .xp-logo {
   width: 34px; height: 34px; display: grid; place-items: center;
   border-radius: 10px; background: var(--bg-soft); border: 1px solid var(--line);
+  transition: transform .28s var(--ease), border-color .25s, box-shadow .25s;
 }
 .xp-logo img { width: 22px; height: 22px; border-radius: 7px; object-fit: cover; }
 .xp-time { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--green); text-transform: uppercase; }
 .xp-card h3 { margin: 4px 0 5px; font-family: var(--display); font-size: 18px; font-weight: 600; }
 .xp-card p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.72; }
-.experience-projects { display: grid; gap: 16px; }
+.xp-card:hover,
+.xp-card:focus-visible,
+.xp-card.active {
+  transform: translateX(5px);
+  opacity: 1;
+}
+.xp-card:not(.active) { opacity: .64; }
+.xp-card:hover .xp-logo,
+.xp-card:focus-visible .xp-logo,
+.xp-card.active .xp-logo {
+  border-color: rgba(201,242,79,.52);
+  box-shadow: 0 0 0 5px rgba(201,242,79,.12);
+  transform: rotate(-4deg) scale(1.04);
+}
+.experience-projects {
+  position: sticky;
+  top: 90px;
+  display: grid;
+  gap: 16px;
+}
 .xp-project {
   position: relative;
   display: grid; grid-template-columns: minmax(0, .9fr) minmax(240px, 1.1fr);
-  min-height: 250px; overflow: hidden;
+  min-height: 470px; overflow: hidden;
   border-radius: var(--radius); border: 1.5px solid var(--line);
   background: var(--card);
   color: inherit;
@@ -280,9 +307,14 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   transition: transform .35s var(--bounce), border-color .3s;
 }
 .xp-project:hover { transform: translateY(-5px); border-color: rgba(201,242,79,.45); }
+.xp-project.switching { animation: workSwap .28s var(--ease); }
+@keyframes workSwap {
+  from { opacity: .35; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .xp-project .txt { padding: clamp(22px, 3vw, 34px); display: flex; flex-direction: column; justify-content: center; }
 .xp-project .shot {
-  position: relative; min-height: 230px; overflow: hidden;
+  position: relative; min-height: 100%; overflow: hidden;
   display: grid; place-items: center;
   background: #f7f4ed;
 }
@@ -326,6 +358,8 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 @media (max-width: 920px) {
   .experience-layout { grid-template-columns: 1fr; }
   .experience-timeline { position: relative; top: auto; grid-template-columns: 1fr; }
+  .experience-projects { position: relative; top: auto; }
+  .xp-project { min-height: 0; }
 }
 @media (max-width: 680px) {
   .xp-project, .xp-project.compact { grid-template-columns: 1fr; }
@@ -1120,96 +1154,53 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 
     <div class="experience-layout">
       <aside class="experience-timeline reveal" aria-label="Experience timeline">
-        <article class="xp-card">
+        <button class="xp-card active" type="button" data-work="taobao" aria-selected="true">
           <div class="xp-logo"><img src="assets/icons/icon-taobao.png" alt="淘宝 Logo"></div>
           <div>
             <div class="xp-time">Recent · Alibaba / Taobao</div>
             <h3>淘宝</h3>
             <p>AI 消费决策 / 用户意图整理 / 核心 App 体验</p>
           </div>
-        </article>
-        <article class="xp-card">
+        </button>
+        <button class="xp-card" type="button" data-work="oneday" aria-selected="false">
           <div class="xp-logo"><img src="assets/icons/icon-oneday.png" alt="AI 创意应用生成工具 Logo"></div>
           <div>
             <div class="xp-time">AI tools · Creative generation</div>
             <h3>AI 创意应用生成工具</h3>
             <p>Prompt to creative output</p>
           </div>
-        </article>
-        <article class="xp-card">
+        </button>
+        <button class="xp-card" type="button" data-work="homestyler" aria-selected="false">
           <div class="xp-logo"><img src="assets/icons/icon-homestyler.png" alt="Homestyler Logo"></div>
           <div>
             <div class="xp-time">AI tools · Creator workflow</div>
             <h3>Homestyler</h3>
             <p>AI Designer / design workflow</p>
           </div>
-        </article>
-        <article class="xp-card">
+        </button>
+        <button class="xp-card" type="button" data-work="meijian" aria-selected="false">
           <div class="xp-logo"><img src="assets/icons/icon-meijian.png" alt="美间 Logo"></div>
           <div>
             <div class="xp-time">0→1 · Meijian</div>
             <h3>美间</h3>
             <p>设计工具 / 内容社区 / 商业化闭环</p>
           </div>
-        </article>
+        </button>
       </aside>
 
       <div class="experience-projects">
-        <a class="xp-project reveal" href="https://www.taobao.com/" target="_blank" rel="noopener">
+        <a class="xp-project reveal" id="work-preview" href="https://www.taobao.com/" target="_blank" rel="noopener">
           <div class="txt">
-            <span class="tagline-chip">Taobao × AI Native Shopping</span>
-            <h3>淘宝 AI 消费决策</h3>
-            <p>围绕收藏、足迹、内容和推荐做 AI Native 消费决策探索，把用户已有行为整理成更可理解、可继续决策的意图资产。</p>
-            <div class="metrics">
+            <span class="tagline-chip" id="work-chip">Taobao × AI Native Shopping</span>
+            <h3 id="work-title">淘宝 AI 消费决策</h3>
+            <p id="work-desc">围绕收藏、足迹、内容和推荐做 AI Native 消费决策探索，把用户已有行为整理成更可理解、可继续决策的意图资产。</p>
+            <div class="metrics" id="work-metrics">
               <div class="metric"><b>10亿级</b><span>用户产品场景</span></div>
               <div class="metric"><b>AI Native</b><span>购物体验探索</span></div>
             </div>
+            <div class="res" id="work-res">core app experience · campaign flow</div>
           </div>
-          <div class="shot"><img src="ai-shopping-1.png" alt="淘宝 AI 导购界面" loading="lazy"></div>
-          <span class="open-mark">Open ↗</span>
-        </a>
-
-        <a class="xp-project compact reveal" href="https://meoo.com/" target="_blank" rel="noopener">
-          <div class="txt">
-            <span class="tagline-chip">Prompt to Creative Output</span>
-            <h3>AI 创意应用生成工具</h3>
-            <p>面向非代码用户的一句话生成工具，把自然语言需求转成可编辑页面、活动物料和轻量工具，验证 AI Coding 如何服务创意人群。</p>
-            <div class="res">non-code creators · editable output</div>
-          </div>
-          <div class="shot"><img src="meoo-coding.png" alt="内部 AI Coding 创作平台" loading="lazy"></div>
-          <span class="open-mark">Open ↗</span>
-        </a>
-
-        <a class="xp-project compact reveal" href="https://www.taobao.com/" target="_blank" rel="noopener">
-          <div class="txt">
-            <span class="tagline-chip">Large-scale Consumer Product</span>
-            <h3>淘宝核心体验</h3>
-            <p>参与首页、消息、我的等核心页面与大促链路，在复杂业务目标中寻找清晰产品动作。</p>
-            <div class="res">core app experience · campaign flow</div>
-          </div>
-          <div class="shot"><img src="taobao-revamp.png" alt="淘宝 App 改版" loading="lazy"></div>
-          <span class="open-mark">Open ↗</span>
-        </a>
-
-        <a class="xp-project compact reveal" href="https://www.homestyler.com/" target="_blank" rel="noopener">
-          <div class="txt">
-            <span class="tagline-chip">AI for Design Workflow</span>
-            <h3>Homestyler AI Designer</h3>
-            <p>国际版室内设计工具中的 AI Designer：围绕 Prompt、参考图、风格控制和结果评估，设计从生成到编辑的完整路径。</p>
-            <div class="res">image generation · design workflow</div>
-          </div>
-          <div class="shot"><img src="homestyler.png" alt="Homestyler AI Designer" loading="lazy"></div>
-          <span class="open-mark">Open ↗</span>
-        </a>
-
-        <a class="xp-project compact reveal" href="https://www.meijian.com/" target="_blank" rel="noopener">
-          <div class="txt">
-            <span class="tagline-chip">0→1 Product System</span>
-            <h3>美间设计工具</h3>
-            <p>软装设计采购与灵感管理工具：从 Moodboard、商品库、方案制作到商业化链路，参与 0→1 产品系统搭建。</p>
-            <div class="res">tool · community · commerce</div>
-          </div>
-          <div class="shot"><img src="meijian.png" alt="美间" loading="lazy"></div>
+          <div class="shot"><img id="work-image" src="ai-shopping-1.png" alt="淘宝 AI 导购界面" loading="lazy"></div>
           <span class="open-mark">Open ↗</span>
         </a>
       </div>
@@ -1468,6 +1459,97 @@ function cycle() {
 }
 showWord(WORDS[0]);
 setTimeout(cycle, 2800);
+
+/* ---------- work section: one active project ---------- */
+const WORK_ITEMS = {
+  taobao: {
+    href: 'https://www.taobao.com/',
+    chip: 'Taobao × AI Native Shopping',
+    title: '淘宝 AI 消费决策',
+    desc: '围绕收藏、足迹、内容和推荐做 AI Native 消费决策探索，把用户已有行为整理成更可理解、可继续决策的意图资产；同时参与核心 App 体验和大促链路。',
+    image: 'ai-shopping-1.png',
+    alt: '淘宝 AI 导购界面',
+    metrics: [
+      ['10亿级', '用户产品场景'],
+      ['AI Native', '购物体验探索'],
+    ],
+    res: 'intent asset · core app experience',
+  },
+  oneday: {
+    href: 'https://meoo.com/',
+    chip: 'Prompt to Creative Output',
+    title: 'AI 创意应用生成工具',
+    desc: '面向非代码用户的一句话生成工具，把自然语言需求转成可编辑页面、活动物料和轻量工具，验证 AI Coding 如何服务创意人群。',
+    image: 'meoo-coding.png',
+    alt: '内部 AI Coding 创作平台',
+    metrics: [
+      ['non-code', 'creators'],
+      ['editable', 'output'],
+    ],
+    res: 'prompt · workflow · generation',
+  },
+  homestyler: {
+    href: 'https://www.homestyler.com/',
+    chip: 'AI for Design Workflow',
+    title: 'Homestyler AI Designer',
+    desc: '国际版室内设计工具中的 AI Designer：围绕 Prompt、参考图、风格控制和结果评估，设计从生成到编辑的完整路径。',
+    image: 'homestyler.png',
+    alt: 'Homestyler AI Designer',
+    metrics: [
+      ['AI Design', 'creative workflow'],
+      ['image', 'generation'],
+    ],
+    res: 'reference image · style control · evaluation',
+  },
+  meijian: {
+    href: 'https://www.meijian.com/',
+    chip: '0→1 Product System',
+    title: '美间设计工具',
+    desc: '软装设计采购与灵感管理工具：从 Moodboard、商品库、方案制作到商业化链路，参与 0→1 产品系统搭建。',
+    image: 'meijian.png',
+    alt: '美间',
+    metrics: [
+      ['0→1', 'product system'],
+      ['tool', 'community'],
+    ],
+    res: 'moodboard · product library · commerce',
+  },
+};
+
+const workPreview = document.getElementById('work-preview');
+const workChip = document.getElementById('work-chip');
+const workTitle = document.getElementById('work-title');
+const workDesc = document.getElementById('work-desc');
+const workMetrics = document.getElementById('work-metrics');
+const workRes = document.getElementById('work-res');
+const workImage = document.getElementById('work-image');
+
+function setActiveWork(id) {
+  const item = WORK_ITEMS[id] || WORK_ITEMS.taobao;
+  document.querySelectorAll('.xp-card').forEach(card => {
+    const active = card.dataset.work === id;
+    card.classList.toggle('active', active);
+    card.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  workPreview.classList.remove('switching');
+  void workPreview.offsetWidth;
+  workPreview.classList.add('switching');
+  workPreview.href = item.href;
+  workChip.textContent = item.chip;
+  workTitle.textContent = item.title;
+  workDesc.textContent = item.desc;
+  workImage.src = item.image;
+  workImage.alt = item.alt;
+  workMetrics.innerHTML = item.metrics.map(([value, label]) => `<div class="metric"><b>${value}</b><span>${label}</span></div>`).join('');
+  workRes.textContent = item.res;
+}
+
+document.querySelectorAll('.xp-card').forEach(card => {
+  const activate = () => setActiveWork(card.dataset.work);
+  card.addEventListener('mouseenter', activate);
+  card.addEventListener('focus', activate);
+  card.addEventListener('click', activate);
+});
 
 /* ---------- build photo wall ---------- */
 const wallGrid = document.getElementById('wall-grid');
