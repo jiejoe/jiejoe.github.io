@@ -359,6 +359,7 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 12px;
   align-items: stretch;
+  grid-auto-flow: dense;
 }
 @media (max-width: 900px) { .wall { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; } }
 @media (max-width: 560px) { .wall { grid-template-columns: 1fr; } }
@@ -435,6 +436,43 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 .wall-item.span-share { grid-column: span 4; min-height: 176px; }
 .wall-item.span-widget { grid-column: span 3; min-height: 176px; }
 .wall-item.span-mini { grid-column: span 3; min-height: 176px; }
+@media (min-width: 901px) {
+  .wall-item.project-twin {
+    grid-column: 1 / span 5;
+    grid-row: span 2;
+    min-height: 396px;
+  }
+  .wall-item.project-companion {
+    grid-column: 6 / span 4;
+    min-height: 192px;
+  }
+  .wall-item.project-community {
+    grid-column: 10 / span 3;
+    min-height: 192px;
+  }
+  .wall-item.project-ai-life {
+    grid-column: 6 / span 4;
+    min-height: 192px;
+  }
+  .wall-item.project-shipu {
+    grid-column: 10 / span 3;
+    min-height: 192px;
+  }
+  .project-twin .tile-title {
+    font-size: clamp(34px, 4.8vw, 58px);
+    max-width: 420px;
+  }
+  .project-twin .tile-copy { max-width: 360px; }
+  .project-community .tile-title,
+  .project-shipu .tile-title { font-size: clamp(21px, 2vw, 28px); }
+  .project-shipu .tile-preview.multi {
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .project-shipu .tile-preview.multi .device.phone { width: 54px; }
+  .project-shipu .tile-preview.multi .device.ipad { width: 104px; }
+  .project-shipu .tile-chips .chip:nth-child(n+3) { display: none; }
+}
 @media (max-width: 900px) {
   .wall-item.span-pad, .wall-item.span-widget, .wall-item.span-phone,
   .wall-item.span-direct, .wall-item.span-mini, .wall-item.span-lab, .wall-item.span-share {
@@ -600,6 +638,12 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   object-position: left top;
   opacity: .94;
 }
+.life-proof.is-contain img {
+  object-fit: contain;
+  object-position: center;
+  padding: 10px;
+  background: rgba(255,250,240,.8);
+}
 .life-proof span {
   position: absolute;
   left: 12px;
@@ -657,6 +701,25 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   border-radius: 18px;
   border: 1px solid rgba(255,250,240,.12);
   opacity: .88;
+}
+.twin-preview {
+  display: grid;
+  grid-template-columns: 1.05fr .85fr;
+  gap: 10px;
+  align-items: stretch;
+  height: 196px;
+  min-height: 0;
+}
+.twin-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 22px;
+  border: 1px solid rgba(255,250,240,.14);
+  opacity: .88;
+}
+.twin-preview img:first-child {
+  grid-row: span 2;
 }
 @media (max-width: 900px) {
   .tile-preview.multi { flex-wrap: wrap; justify-content: center; }
@@ -1237,15 +1300,15 @@ const PROJECTS = [
   {
     id: 'shipu',
     title: '拾谱',
-    tag: '吉他谱 App',
+    tag: '吉他谱 App · 正在上架 App Store',
     cat: 'iOS / iPad App · 吉他谱整理与练习',
     cover: 'assets/shipu-ipad-user.png',
     logo: 'assets/shipu-cover-user.png',
     size: 'span-pad',
     frame: 'ipad',
-    one: '把散落的谱子整理成自己的练习册。',
+    one: '正在上架第一个自己的 App 应用。',
     desc: '拾谱是给吉他爱好者做的谱库与练习 App。它不是简单存图，而是把收藏、整理、练习和创作组织成一条完整链路，让用户更容易回答「今天练什么」。',
-    chips: ['iOS / iPad', '练习册', '内容整理', '垂直兴趣工具'],
+    chips: ['正在上架 App Store', 'iOS / iPad', '练习册', '独立开发'],
     modalHero: false,
     points: [
       { title: 'Product function', text: '支持导入吉他谱截图，沉淀到个人谱库；按歌本、练习主题和收藏状态管理，练习时可以在手机和 iPad 上切换查看。' },
@@ -1328,39 +1391,42 @@ const PROJECTS = [
   {
     id: 'ai-life',
     title: '生活场景探索',
-    tag: '运动 / 旅行',
+    tag: '运动 / 旅行 / 桌宠',
     cat: 'Life experiments · Personal scenes',
     cover: 'assets/life/badminton-field-test.jpg',
     size: 'span-lab',
     frame: 'lab',
     one: '把生活里的小问题拆成可验证的 AI 场景。',
-    desc: '这不是一个完整作品，而是一组随手做的场景验证：运动里，我测试 AI 能不能做羽毛球鹰眼识别，辅助普通爱好者理解训练表现；旅行里，我用多人 AI 群聊组织丹麦行程，从签证材料、机票酒店到每日路线都让 Agent 参与协作。',
-    chips: ['运动训练', '多模态输入', 'AI 群聊', '生活问题产品化'],
+    desc: '这不是一个完整作品，而是一组随手做的场景验证：运动里，我测试 AI 能不能做羽毛球鹰眼识别，辅助普通爱好者理解训练表现；旅行里，我用多人 AI 群聊组织丹麦行程；桌面上，我把 AIGC 小宠物做成低打扰、高频出现的小组件入口。',
+    chips: ['运动训练', '旅行群聊', 'AIGC 桌宠', '生活问题产品化'],
     points: [
       { title: 'Sports training', text: '羽毛球鹰眼验证的是：如果 AI 要辅助运动训练，最有价值的输入往往不是个人视角，而是更接近「上帝视角」的场地数据。模型分析可以给出球路、落点、热区和动作线索，帮助用户形成训练日记。' },
       { title: 'Service opportunity', text: '未来 token 成本继续下降，用户对 AI 的付费意愿可能会出现在服务里：比如场馆提供标准化比赛数据，用户自己的 AI 可以接入，持续沉淀个人训练反馈。' },
       { title: 'Travel workflow', text: '五一去丹麦时，我创建了一个多人 AI 群聊，让 OpenClaw 协调签证、预定、机票酒店和行程单。过程中也出现过签证材料被组织错的问题，这反而让我更直观看到 Agent 协作里的上下文、校验和责任边界。' },
+      { title: 'AIGC widget pet', text: '爪爪桌宠是桌面组件形态的小宠物探索：通过 AIGC 生成宠物形象，再用 WidgetKit 变成每天都能看到的低打扰陪伴入口。它观察的是情绪价值、桌面入口和高频轻交互。' },
     ],
     gallery: [
       { src: 'assets/life/badminton-field-test.jpg', cap: '<b>现场验证</b> — 在场边临时跑模型，观察羽毛球视频识别能不能变成普通用户可理解的训练反馈', wide: true },
       { src: 'assets/life/badminton-ai-analysis.jpg', cap: '<b>模型分析</b> — 球路、落点和身体姿态被拆成可讨论的数据线索' },
       { src: 'assets/badminton/match_heatmap.png', cap: '<b>训练日记</b> — 如果场馆能提供数据，用户的 AI 可以沉淀长期运动表现' },
       { src: 'assets/life/denmark-ai-groupchat.jpg', cap: '<b>丹麦旅行</b> — 用多人 AI 群聊组织签证、预定、机票酒店、行程单和每日路线', wide: true },
+      { src: 'pawpet/assets/pets/mixian/frames/happy.png', cap: '<b>桌宠小组件</b> — 用 AIGC 生成桌面小宠物，把陪伴变成每天都能看见的轻入口', fit: 'contain' },
+      { src: 'pawpet/assets/pets/juju/frames/idle.png', cap: '<b>情绪价值</b> — 不需要重交互，安静出现本身就是一种产品形态', fit: 'contain' },
     ],
   },
   {
     id: 'community',
-    title: 'AI 交流',
-    tag: '前沿讨论 / 分享',
+    title: '积极参与内网各种黑客松',
+    tag: '黑客松 / 分享',
     cat: 'Community · 输出也是输入',
-    cover: 'assets/events/ai-meetup-95.jpg',
+    cover: 'assets/unused/showcase-interview.png',
     size: 'span-share',
-    one: '拥抱 AI，先让自己成为 AI 的原住民。',
-    desc: '通过线下交流、主题分享、黑客松和社区讨论，持续和同路人碰撞 AI 产品、Agent 协作和新交互方向。输出不是为了做 IP，而是为了找到真实用户、真实问题和真实反馈。',
-    chips: ['主题分享', 'Agent 架构调研', '线下交流', '共创项目'],
+    one: '纯爱战神，为爱痴狂。',
+    desc: '持续参加内部黑客松、主题分享、访谈和线下交流，和产品、工程、设计朋友一起拆 AI 产品：模型能力、交互范式、商业价值和失败模式。这里的「爱」指 AI。',
+    chips: ['纯爱战神', '为爱痴狂', '黑客松', '线下交流'],
     gallery: [
-      { src: 'assets/events/ai-meetup-95.jpg', cap: '<b>线下交流</b> — 和同路人讨论 AI 如何进入真实产品场景', wide: true },
-      { src: 'assets/unused/showcase-interview.png', cap: '<b>访谈现场</b> — 聊「人和 AI 怎么一起工作」' },
+      { src: 'assets/unused/showcase-interview.png', cap: '<b>访谈现场</b> — 聊「人和 AI 怎么一起工作」', wide: true },
+      { src: 'assets/events/ai-meetup-95.jpg', cap: '<b>线下交流</b> — 和同路人讨论 AI 如何进入真实产品场景' },
       { src: 'showcase-demo.png', cap: '<b>现场 Demo</b> — 在内部分享会上演示自己做的工具' },
       { src: 'meoo-community.png', cap: '<b>AI 沙龙</b> — 内部创作平台的用户社区，办了一场又一场' },
     ],
@@ -1405,7 +1471,7 @@ setTimeout(cycle, 2800);
 
 /* ---------- build photo wall ---------- */
 const wallGrid = document.getElementById('wall-grid');
-const PROJECT_ORDER = ['twin', 'companion', 'shipu', 'ai-life', 'community', 'pawpet'];
+const PROJECT_ORDER = ['twin', 'companion', 'community', 'ai-life', 'shipu'];
 const ACCENT_BY_ID = {
   twin: 'pink',
   companion: 'orange',
@@ -1420,6 +1486,13 @@ function deviceMarkup(frame, src, title, fit) {
 }
 
 function projectPreview(p) {
+  if (p.id === 'twin') {
+    return `<span class="tile-preview twin-preview">
+      <img src="assets/another-me/0213-narrow.jpg" alt="数字分身旅行内容预览" loading="lazy">
+      <img src="assets/another-me/0216-atelier.jpg" alt="数字分身旅行内容预览" loading="lazy">
+      <img src="assets/another-me/0303-diary.jpg" alt="数字分身旅行内容预览" loading="lazy">
+    </span>`;
+  }
   if (p.id === 'shipu') {
     return `<span class="tile-preview multi">
       ${deviceMarkup('phone', 'shipu-library.png', '拾谱 iPhone 谱册')}
@@ -1442,11 +1515,12 @@ function projectPreview(p) {
     return `<span class="tile-preview life-preview">
       <span class="life-proof"><img src="assets/life/badminton-field-test.jpg" alt="羽毛球训练 AI 验证现场" loading="lazy"><span>Sports</span></span>
       <span class="life-proof"><img src="assets/life/denmark-ai-groupchat.jpg" alt="丹麦旅行 AI 群聊规划" loading="lazy"><span>Travel</span></span>
+      <span class="life-proof is-contain"><img src="pawpet/assets/pets/mixian/frames/happy.png" alt="AIGC 桌面小宠物" loading="lazy"><span>Widget</span></span>
     </span>`;
   }
   if (p.id === 'community') {
     return `<span class="tile-preview community-preview">
-      <img src="assets/events/ai-meetup-95.jpg" alt="AI 线下交流" loading="lazy">
+      <img src="assets/unused/showcase-interview.png" alt="访谈现场" loading="lazy">
       <img src="showcase-demo.png" alt="现场 Demo" loading="lazy">
     </span>`;
   }
