@@ -478,17 +478,21 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   .wall-item.project-companion {
     grid-column: 7 / span 6;
     min-height: 300px;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 18px;
   }
   .wall-item.project-community {
-    grid-column: 1 / span 4;
+    grid-column: 5 / span 3;
     min-height: 210px;
   }
   .wall-item.project-ai-life {
-    grid-column: 5 / span 4;
+    grid-column: 8 / span 5;
     min-height: 210px;
   }
   .wall-item.project-shipu {
-    grid-column: 9 / span 4;
+    grid-column: 1 / span 4;
     min-height: 210px;
   }
   .project-twin .tile-title {
@@ -502,7 +506,36 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   .project-companion .tile-copy {
     max-width: 430px;
   }
+  .project-companion .tile-chips {
+    display: none;
+  }
+  .project-companion .tile-meta {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .project-companion .tile-meta span:last-child {
+    max-width: 135px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .project-companion .app-badge {
+    width: 62px;
+    height: 62px;
+    right: 24px;
+    top: 72px;
+    border-radius: 18px;
+  }
+  .project-companion .app-badge img {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
   .project-companion .overlap-preview {
+    grid-column: 2;
+    grid-row: 2 / 5;
+    align-self: end;
+    justify-self: end;
     min-height: 158px;
     margin-top: 18px;
     padding-left: 8px;
@@ -523,6 +556,34 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   .project-shipu .tile-preview.multi .device.phone { width: 54px; }
   .project-shipu .tile-preview.multi .device.ipad { width: 104px; }
   .project-shipu .tile-chips .chip:nth-child(n+3) { display: none; }
+  .project-ai-life .tile-copy {
+    max-width: 560px;
+  }
+  .project-community .tile-copy {
+    color: rgba(255,250,240,.84);
+  }
+  .project-community .community-preview.single {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    height: 100%;
+    margin: 0;
+    display: block;
+  }
+  .project-community .community-preview.single::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(12,12,14,.9) 0%, rgba(12,12,14,.58) 48%, rgba(12,12,14,.18) 100%);
+  }
+  .project-community .community-preview.single img {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    object-fit: cover;
+    opacity: .72;
+  }
 }
 @media (max-width: 900px) {
   .wall-item.span-pad, .wall-item.span-widget, .wall-item.span-phone,
@@ -536,6 +597,20 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   .wall-item.span-direct, .wall-item.span-mini, .wall-item.span-lab, .wall-item.span-share {
     grid-column: 1;
     min-height: 300px;
+  }
+  .experience-projects { display: none; }
+  .experience-layout.show-preview .experience-projects { display: grid; }
+  #look h2.sec-title {
+    max-width: 330px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-size: clamp(32px, 10vw, 46px);
+  }
+  #look .look {
+    width: min(100%, 360px);
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 .wall-item[data-accent="green"] { --accent: #d9ff43; }
@@ -783,6 +858,10 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   transform: translate(calc((var(--mx) - 50%) * .05), -10px) rotate(-1.2deg);
   filter: saturate(1.08);
 }
+.project-community:hover .community-preview.single,
+.project-community:focus-visible .community-preview.single {
+  transform: none;
+}
 .device {
   position: relative;
   overflow: hidden;
@@ -791,6 +870,11 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   box-shadow: 0 14px 34px rgba(21,21,21,.14);
 }
 .device img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.device img.contain {
+  object-fit: contain;
+  object-position: center;
+  background: #fff1df;
+}
 .device.ipad {
   width: min(27vw, 240px);
   aspect-ratio: 16 / 10;
@@ -1069,7 +1153,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 <body>
 
 <nav class="nav">
-  <a class="brand" href="#top"><span class="brand-mark">Q</span>AI&nbsp;Native</a>
+  <a class="brand" href="#top"><span class="brand-mark">Q</span>AI&nbsp;Native&nbsp;PM</a>
   <div class="nav-links">
     <a href="#agi">Thinking</a>
     <a href="#work">Worked on</a>
@@ -1314,14 +1398,14 @@ const PROJECTS = [
     logo: 'assets/shipu-cover-user.png',
     size: 'span-pad',
     frame: 'ipad',
-    one: '正在上架第一个自己的 App 应用。',
-    desc: '拾谱是给吉他爱好者做的谱库与练习 App。它不是简单存图，而是把收藏、整理、练习和创作组织成一条完整链路，让用户更容易回答「今天练什么」。',
+    one: '从自己的练琴问题长出来的独立 App。',
+    desc: '背景：吉他谱常散落在相册、聊天记录和网页里，很难持续练习。行动：设计并开发 iOS / iPad 版本，把导入、整理、歌本、练习册和封面系统串成一条链路。产出：正在上架 App Store 的第一个独立 App，用真实发布流程验证自己的产品与开发闭环。',
     chips: ['正在上架 App Store', 'iOS / iPad', '练习册', '独立开发'],
     modalHero: false,
     points: [
       { title: 'Product function', text: '支持导入吉他谱截图，沉淀到个人谱库；按歌本、练习主题和收藏状态管理，练习时可以在手机和 iPad 上切换查看。' },
       { title: 'Problem solved', text: '解决谱子散落在相册、聊天记录和网页里的问题，让「想练的歌」被持续整理，而不是每次重新翻找。' },
-      { title: 'Core highlight', text: '围绕练习动机设计：收藏、今日灵感、练习册和封面系统一起形成更有情绪感的垂直兴趣工具。' },
+      { title: 'Output', text: '正在推进 App Store 上架：从需求、交互、视觉、开发到隐私说明和商店素材，完整跑一遍独立开发者流程。' },
     ],
     gallery: [
       { src: 'shipu-library.png', cap: '<b>手机端谱库</b> — 把导入的谱子沉淀到自己的歌本和练习册里' },
@@ -1357,8 +1441,13 @@ const PROJECTS = [
     size: 'span-phone',
     frame: 'phone',
     one: '给孩子做一个 AI 小伙伴。',
-    desc: 'AI 陪伴硬件原型 + 配套 App：语音通话、互动表情、成长记录。这个实践不是 Selected Work，而是观察家庭场景里，AI 如何通过声音、表情和硬件动作形成更自然的人机交互。',
-    chips: ['Raspberry Pi', 'OpenClaw', '火山语音', 'LLM 记忆提取'],
+    desc: '背景：家庭场景里的 AI 不应该只停留在屏幕聊天，而要通过声音、表情、记忆和硬件动作进入陪伴关系。行动：设计硬件原型与 App，串联语音通话、互动表情、故事/游戏、成长记录和记忆提取。产出：完成可演示的 App 与硬件链路，用来验证家庭陪伴场景里更自然的人机交互。',
+    chips: ['Family AI', 'Hardware', 'Voice', 'HCI'],
+    points: [
+      { title: 'Background', text: '孩子和家庭陪伴场景需要更低门槛、更有情绪反馈的 AI 入口：不是一个问答框，而是一个能说话、会回应、能被持续记住的小伙伴。' },
+      { title: 'Action', text: '用 Raspberry Pi / OpenClaw / 火山语音 / LLM 记忆提取搭建原型，同时设计 App 端的角色状态、通话、故事、游戏与成长记录。' },
+      { title: 'Output', text: '形成了完整的 App + 硬件演示链路，验证语音、表情、记忆与硬件动作如何组合成家庭场景的人机交互。' },
+    ],
     gallery: [
       { src: 'companion-call.png', cap: '<b>语音通话</b> — 低延迟对话，会转头、会拍照的小伙伴' },
       { src: 'assets/unused/companion-hardware.png', cap: '<b>硬件原型</b> — 树莓派 + 舵机，Vibe Coding 焊出来的' },
@@ -1371,7 +1460,7 @@ const PROJECTS = [
     cat: 'AIGC · 平行世界的我',
     url: 'https://another-me-q.jiejoe-eth.workers.dev/',
     direct: true,
-    logo: 'assets/icons/icon-travel.png',
+    logo: '',
     size: 'span-direct',
     one: '如果平行世界的我正在环游世界？',
     desc: '用自己的面部特征生成数字分身，让「她」独立运营一个小红书账号：每天发旅行日记、Live 图、故事。横向测了 Sora / Seedance / Kling 的人物一致性和运动自然度，LLM 生成旅行故事线。发布的内容收到了真实用户的真实互动。',
@@ -1399,27 +1488,26 @@ const PROJECTS = [
   {
     id: 'ai-life',
     title: '生活场景探索',
-    tag: '运动 / 旅行 / 桌宠',
+    tag: '运动 / 旅行 / 工作流',
     cat: 'Life experiments · Personal scenes',
     cover: 'assets/life/badminton-field-test.jpg',
     size: 'span-lab',
     frame: 'lab',
-    one: '把生活里的小问题拆成可验证的 AI 场景。',
-    desc: '这不是一个完整作品，而是一组随手做的场景验证：运动里，我测试 AI 能不能做羽毛球鹰眼识别，辅助普通爱好者理解训练表现；旅行里，我用多人 AI 群聊组织丹麦行程；桌面上，我把 AIGC 小宠物做成低打扰、高频出现的小组件入口。',
-    chips: ['运动训练', '旅行群聊', 'AIGC 桌宠', '生活问题产品化'],
+    one: '用 AI 解决生活小问题，再反推产品价值。',
+    desc: '背景：工作之外，我把自己当作第一批用户，从运动、旅行和本地工作流里找真实问题。行动：用 OpenClaw、AI 群聊和轻量原型拆解任务，让 Agent 参与规划、分析、记录和协作。产出：验证生活小问题能否变成可持续使用的产品场景，并持续观察如何最大化人的生产力与效率。',
+    chips: ['运动训练', '旅行群聊', 'OpenClaw', '生产力实验'],
     points: [
-      { title: 'Sports training', text: '羽毛球鹰眼验证的是：如果 AI 要辅助运动训练，最有价值的输入往往不是个人视角，而是更接近「上帝视角」的场地数据。模型分析可以给出球路、落点、热区和动作线索，帮助用户形成训练日记。' },
-      { title: 'Service opportunity', text: '未来 token 成本继续下降，用户对 AI 的付费意愿可能会出现在服务里：比如场馆提供标准化比赛数据，用户自己的 AI 可以接入，持续沉淀个人训练反馈。' },
-      { title: 'Travel workflow', text: '五一去丹麦时，我创建了一个多人 AI 群聊，让 OpenClaw 协调签证、预定、机票酒店和行程单。过程中也出现过签证材料被组织错的问题，这反而让我更直观看到 Agent 协作里的上下文、校验和责任边界。' },
-      { title: 'AIGC widget pet', text: '爪爪桌宠是桌面组件形态的小宠物探索：通过 AIGC 生成宠物形象，再用 WidgetKit 变成每天都能看到的低打扰陪伴入口。它观察的是情绪价值、桌面入口和高频轻交互。' },
+      { title: 'Life problems', text: '从生活里的具体问题出发：运动训练看不懂数据、旅行资料散落、群聊协作容易失焦、本地文件和工具流转成本高。' },
+      { title: 'AI workflow', text: '持续使用 OpenClaw 等框架，把 AI 拉进真实流程：用群聊组织旅行签证/机票/酒店/行程，用视觉模型分析羽毛球训练，用本地工作流连接文件、记忆、模型路由和工具。' },
+      { title: 'Product value', text: '观察这些场景是否有持续使用价值：用户愿不愿意把任务交给 AI、什么信息需要人保留判断、AI 结果如何变成可复用的记录和反馈。' },
+      { title: 'HCI question', text: '通过拉群聊、多 Agent 协作和本地工作流，探索人机交互的本质：一个人如何与多个 AI 上下文协作，如何最大化人的生产力与效率。' },
+      { title: 'Life tags', text: '生活里也保持高频输入：一周至少运动三次，坚持健身；喜欢游泳、攀岩、羽毛球等活动，这些真实兴趣会自然变成我验证 AI 场景的素材。' },
     ],
     gallery: [
       { src: 'assets/life/badminton-field-test.jpg', cap: '<b>现场验证</b> — 在场边临时跑模型，观察羽毛球视频识别能不能变成普通用户可理解的训练反馈', wide: true },
       { src: 'assets/life/badminton-ai-analysis.jpg', cap: '<b>模型分析</b> — 球路、落点和身体姿态被拆成可讨论的数据线索' },
       { src: 'assets/badminton/match_heatmap.png', cap: '<b>训练日记</b> — 如果场馆能提供数据，用户的 AI 可以沉淀长期运动表现' },
       { src: 'assets/life/denmark-ai-groupchat.jpg', cap: '<b>丹麦旅行</b> — 用多人 AI 群聊组织签证、预定、机票酒店、行程单和每日路线', wide: true },
-      { src: 'pawpet/assets/pets/mixian/frames/happy.png', cap: '<b>桌宠小组件</b> — 用 AIGC 生成桌面小宠物，把陪伴变成每天都能看见的轻入口', fit: 'contain' },
-      { src: 'pawpet/assets/pets/juju/frames/idle.png', cap: '<b>情绪价值</b> — 不需要重交互，安静出现本身就是一种产品形态', fit: 'contain' },
     ],
   },
   {
@@ -1429,9 +1517,9 @@ const PROJECTS = [
     cat: 'Community · 输出也是输入',
     cover: 'assets/unused/showcase-interview.png',
     size: 'span-share',
-    one: '纯AI战神，为AI痴狂。',
-    desc: '持续参加内部黑客松、主题分享、访谈和线下交流，和产品、工程、设计朋友一起拆 AI 产品：模型能力、交互范式、商业价值和失败模式。',
-    chips: ['纯AI战神', '为AI痴狂', '黑客松', '线下交流'],
+    one: '成为 AI 原住民的一部分。',
+    desc: '参与社区活动、内部黑客松、主题分享和访谈，持续接触创业者、产品经理、工程师和真实用户。通过交流发掘产品需求，获得一手用户感知，也校准自己对 AI 产品机会的理解。',
+    chips: ['纯爱战士', '为爱痴狂', '来吃烤', '黑客松达人'],
     gallery: [
       { src: 'assets/unused/showcase-interview.png', cap: '<b>访谈现场</b> — 聊「人和 AI 怎么一起工作」', wide: true },
       { src: 'assets/events/ai-meetup-95.jpg', cap: '<b>线下交流</b> — 和同路人讨论 AI 如何进入真实产品场景' },
@@ -1540,9 +1628,11 @@ const workDesc = document.getElementById('work-desc');
 const workMetrics = document.getElementById('work-metrics');
 const workRes = document.getElementById('work-res');
 const workImage = document.getElementById('work-image');
+const experienceLayout = document.querySelector('.experience-layout');
 
 function setActiveWork(id) {
   const item = WORK_ITEMS[id] || WORK_ITEMS.taobao;
+  experienceLayout?.classList.add('show-preview');
   document.querySelectorAll('.xp-card').forEach(card => {
     const active = card.dataset.work === id;
     card.classList.toggle('active', active);
@@ -1570,7 +1660,7 @@ document.querySelectorAll('.xp-card').forEach(card => {
 
 /* ---------- build photo wall ---------- */
 const wallGrid = document.getElementById('wall-grid');
-const PROJECT_ORDER = ['twin', 'companion', 'community', 'ai-life', 'shipu'];
+const PROJECT_ORDER = ['twin', 'companion', 'shipu', 'community', 'ai-life'];
 const ACCENT_BY_ID = {
   twin: 'pink',
   companion: 'orange',
@@ -1586,11 +1676,7 @@ function deviceMarkup(frame, src, title, fit) {
 
 function projectPreview(p) {
   if (p.id === 'twin') {
-    return `<span class="tile-preview twin-preview">
-      <img src="assets/another-me/0213-narrow.jpg" alt="数字分身旅行内容预览" loading="lazy">
-      <img src="assets/another-me/0216-atelier.jpg" alt="数字分身旅行内容预览" loading="lazy">
-      <img src="assets/another-me/0303-diary.jpg" alt="数字分身旅行内容预览" loading="lazy">
-    </span>`;
+    return '';
   }
   if (p.id === 'shipu') {
     return `<span class="tile-preview multi">
@@ -1606,21 +1692,19 @@ function projectPreview(p) {
   }
   if (p.id === 'companion') {
     return `<span class="tile-preview overlap-preview">
-      ${deviceMarkup('phone', 'companion-app.png', '萌伴 App')}
-      ${deviceMarkup('phone', 'companion-call.png', 'AI 陪伴通话')}
+      ${deviceMarkup('phone', 'companion-app.png', '萌伴 App', 'contain')}
+      ${deviceMarkup('phone', 'companion-call.png', 'AI 陪伴通话', 'contain')}
     </span>`;
   }
   if (p.id === 'ai-life') {
     return `<span class="tile-preview life-preview">
       <span class="life-proof"><img src="assets/life/badminton-field-test.jpg" alt="羽毛球训练 AI 验证现场" loading="lazy"><span>Sports</span></span>
       <span class="life-proof"><img src="assets/life/denmark-ai-groupchat.jpg" alt="丹麦旅行 AI 群聊规划" loading="lazy"><span>Travel</span></span>
-      <span class="life-proof is-contain"><img src="pawpet/assets/pets/mixian/frames/happy.png" alt="AIGC 桌面小宠物" loading="lazy"><span>Widget</span></span>
     </span>`;
   }
   if (p.id === 'community') {
-    return `<span class="tile-preview community-preview">
+    return `<span class="tile-preview community-preview single">
       <img src="assets/unused/showcase-interview.png" alt="访谈现场" loading="lazy">
-      <img src="showcase-demo.png" alt="现场 Demo" loading="lazy">
     </span>`;
   }
   if (p.cover && p.frame) {
