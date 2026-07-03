@@ -472,33 +472,32 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 .wall-item.span-mini { grid-column: span 3; min-height: 176px; }
 @media (min-width: 901px) {
   .wall-item.project-twin {
-    grid-column: 1 / span 5;
-    grid-row: span 2;
-    min-height: 396px;
+    grid-column: 1 / span 6;
+    min-height: 300px;
   }
   .wall-item.project-companion {
-    grid-column: 6 / span 4;
-    min-height: 192px;
+    grid-column: 7 / span 6;
+    min-height: 300px;
   }
   .wall-item.project-community {
-    grid-column: 10 / span 3;
-    min-height: 192px;
+    grid-column: 1 / span 4;
+    min-height: 210px;
   }
   .wall-item.project-ai-life {
-    grid-column: 6 / span 4;
-    min-height: 192px;
+    grid-column: 5 / span 4;
+    min-height: 210px;
   }
   .wall-item.project-shipu {
-    grid-column: 10 / span 3;
-    min-height: 192px;
+    grid-column: 9 / span 4;
+    min-height: 210px;
   }
   .project-twin .tile-title {
-    font-size: clamp(34px, 4.8vw, 58px);
+    font-size: clamp(31px, 4vw, 48px);
     max-width: 420px;
   }
   .project-twin .tile-copy { max-width: 360px; }
   .project-community .tile-title,
-  .project-shipu .tile-title { font-size: clamp(21px, 2vw, 28px); }
+  .project-shipu .tile-title { font-size: clamp(22px, 2.15vw, 30px); }
   .project-shipu .tile-preview.multi {
     gap: 8px;
     margin-top: 12px;
@@ -1407,14 +1406,14 @@ const PROJECTS = [
   },
   {
     id: 'community',
-    title: '积极参与内网各种黑客松',
+    title: 'AI 交流',
     tag: '黑客松 / 分享',
     cat: 'Community · 输出也是输入',
     cover: 'assets/unused/showcase-interview.png',
     size: 'span-share',
-    one: '纯爱战神，为爱痴狂。',
-    desc: '持续参加内部黑客松、主题分享、访谈和线下交流，和产品、工程、设计朋友一起拆 AI 产品：模型能力、交互范式、商业价值和失败模式。这里的「爱」指 AI。',
-    chips: ['纯爱战神', '为爱痴狂', '黑客松', '线下交流'],
+    one: '纯AI战神，为AI痴狂。',
+    desc: '持续参加内部黑客松、主题分享、访谈和线下交流，和产品、工程、设计朋友一起拆 AI 产品：模型能力、交互范式、商业价值和失败模式。',
+    chips: ['纯AI战神', '为AI痴狂', '黑客松', '线下交流'],
     gallery: [
       { src: 'assets/unused/showcase-interview.png', cap: '<b>访谈现场</b> — 聊「人和 AI 怎么一起工作」', wide: true },
       { src: 'assets/events/ai-meetup-95.jpg', cap: '<b>线下交流</b> — 和同路人讨论 AI 如何进入真实产品场景' },
