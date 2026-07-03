@@ -1277,14 +1277,14 @@ const PROJECTS = [
   },
   {
     id: 'companion',
-    title: '家庭 AI 陪伴',
+    title: '萌伴',
     tag: '硬件 × 人机交互',
     cat: 'Hardware + App · Family Scenario',
     cover: 'companion-app.png',
     logo: 'assets/icons/icon-companion.png',
     size: 'span-phone',
     frame: 'phone',
-    one: '家庭场景里的 AI，应该怎样在场？',
+    one: '给孩子做一个 AI 小伙伴。',
     desc: 'AI 陪伴硬件原型 + 配套 App：语音通话、互动表情、成长记录。这个实践不是 Selected Work，而是观察家庭场景里，AI 如何通过声音、表情和硬件动作形成更自然的人机交互。',
     chips: ['Raspberry Pi', 'OpenClaw', '火山语音', 'LLM 记忆提取'],
     gallery: [
@@ -1430,7 +1430,7 @@ function projectPreview(p) {
   }
   if (p.id === 'companion') {
     return `<span class="tile-preview overlap-preview">
-      ${deviceMarkup('phone', 'companion-app.png', '家庭 AI 陪伴 App')}
+      ${deviceMarkup('phone', 'companion-app.png', '萌伴 App')}
       ${deviceMarkup('phone', 'companion-call.png', 'AI 陪伴通话')}
     </span>`;
   }
