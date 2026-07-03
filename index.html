@@ -848,225 +848,77 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 figure { margin: 0; }
 
 /* ---------- looking for ---------- */
-.look-panel {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, .72fr);
-  gap: clamp(28px, 5vw, 58px);
-  max-width: 980px;
-  margin: 42px auto 0;
-  padding: clamp(28px, 5vw, 46px);
-  border-radius: 34px;
-  background: #f4e5cf;
-  color: #ef5548;
-  border: 1.5px solid rgba(239,85,72,.28);
-  box-shadow: 0 26px 90px rgba(0,0,0,.28);
-  overflow: hidden;
+.look {
+  margin-top: 46px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
 }
-.look-panel::before,
-.look-panel::after {
-  content: "";
-  position: absolute;
-  border: 2px solid rgba(239,85,72,.78);
-  border-radius: 50%;
-  pointer-events: none;
+@media (max-width: 860px) { .look { grid-template-columns: 1fr; } }
+.look-card {
+  position: relative; cursor: pointer;
+  padding: 26px 26px 24px; border-radius: var(--radius);
+  background: var(--card); border: 1.5px solid var(--line);
+  transition: transform .35s var(--bounce), border-color .3s;
+  -webkit-tap-highlight-color: transparent;
 }
-.look-panel::before {
-  width: 128px;
-  height: 128px;
-  left: -58px;
-  bottom: -54px;
-  border-style: dashed;
+.look-card:hover { transform: translateY(-5px) rotate(-.5deg); border-color: rgba(201,242,79,.5); }
+.look-card:nth-child(even):hover { transform: translateY(-5px) rotate(.5deg); border-color: rgba(255,122,60,.5); }
+.look-card .emoji { font-size: 26px; }
+.look-card h3 { margin: 12px 0 8px; font-family: var(--display); font-weight: 600; font-size: 19px; }
+.look-card p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.85; }
+.look-card .plus {
+  position: absolute; top: 20px; right: 20px;
+  width: 34px; height: 34px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--green-soft); color: var(--green);
+  font-family: var(--hand); font-size: 22px; line-height: 1;
+  transition: transform .4s var(--bounce), background .25s, color .25s;
 }
-.look-panel::after {
-  width: 92px;
-  height: 92px;
-  right: -32px;
-  top: -36px;
-  transform: rotate(18deg);
+.look-card:hover .plus { background: var(--green); color: #17130c; }
+.look-card.open .plus { transform: rotate(0deg); background: var(--orange); color: #17130c; font-size: 0; }
+.look-card.open .plus::before { content: "✓"; font-size: 19px; font-family: var(--display); font-weight: 700; }
+.look-card .more {
+  max-height: 0; opacity: 0; overflow: hidden; margin: 0;
+  transition: max-height .55s var(--ease), opacity .4s, margin .4s;
 }
-.look-copy,
-.look-visual {
-  position: relative;
-  z-index: 1;
+.look-card.open .more { max-height: 340px; opacity: 1; margin-top: 16px; }
+.look-card .more-inner {
+  padding: 16px 18px; border-radius: 16px;
+  background: var(--green-soft); border-left: 3px solid var(--green);
+  color: var(--ink); font-size: 14px; line-height: 1.9;
 }
-.look-rule {
-  height: 2px;
-  margin-bottom: 20px;
-  background: #ef5548;
+.look-card.open .more-inner { animation: popIn .45s var(--bounce); }
+.look-card:nth-child(even) .more-inner { background: rgba(255,122,60,.13); border-left-color: var(--orange); }
+@keyframes popIn { from { transform: scale(.94); } to { transform: scale(1); } }
+.look-card .more-inner .why { font-family: var(--hand); color: var(--green); margin-right: 6px; }
+.look-card:nth-child(even) .more-inner .why { color: var(--orange); }
+.mini-chat {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 12px 0 0; min-height: 32px; padding: 0 13px;
+  border-radius: 999px; background: var(--green); color: #17130c;
+  font-family: var(--display); font-size: 13px; font-weight: 600;
+  box-shadow: 3px 3px 0 rgba(255,122,60,.55);
 }
-.look-copy h2 {
-  margin: 0 0 22px;
-  padding-bottom: 22px;
-  border-bottom: 2px solid #ef5548;
-  font-family: var(--display);
-  font-size: clamp(34px, 5vw, 52px);
-  font-weight: 600;
-  letter-spacing: 0;
+.mini-chat:hover { background: var(--orange); box-shadow: 3px 3px 0 rgba(201,242,79,.55); }
+.chat-cta {
+  margin-top: 44px; text-align: center;
 }
-.look-list {
-  list-style: none;
-  display: grid;
-  gap: 0;
-  margin: 0 0 30px;
-  padding: 0;
-}
-.look-list li {
-  display: grid;
-  grid-template-columns: 30px 1fr;
-  align-items: center;
-  min-height: 58px;
-  padding: 11px 0;
-  border-bottom: 1.5px dashed rgba(239,85,72,.5);
-  font-family: var(--hand);
-  font-size: clamp(21px, 2.4vw, 30px);
-  line-height: 1.15;
-}
-.look-list .box {
-  width: 21px;
-  height: 21px;
-  border: 3px solid #ef5548;
-  border-radius: 5px;
-  transform: rotate(-2deg);
-}
-.look-list .checked .box {
-  position: relative;
-  background: rgba(239,85,72,.12);
-}
-.look-list .checked .box::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 13px;
-  height: 8px;
-  border-left: 3px solid #ef5548;
-  border-bottom: 3px solid #ef5548;
-  transform: rotate(-45deg);
-}
-.look-list .quiet span:last-child {
-  text-decoration: line-through;
-  text-decoration-thickness: 3px;
-  text-decoration-color: rgba(239,85,72,.75);
-}
-.look-chat {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 54px;
-  padding: 0 36px;
-  border: 4px solid #ef5548;
-  color: #ef5548;
-  background: transparent;
-  font-family: var(--hand);
-  font-size: clamp(22px, 3vw, 30px);
+.chat-cta .bubble {
+  display: inline-block; position: relative;
+  font-family: var(--hand); font-size: clamp(24px, 4vw, 34px); color: #17130c;
+  background: var(--green); border-radius: 22px; padding: 18px 34px;
   transform: rotate(-1.5deg);
-  transition: transform .35s var(--bounce), background .25s, color .25s;
+  transition: transform .35s var(--bounce), background .25s;
+  box-shadow: 5px 5px 0 rgba(255,122,60,.85);
 }
-.look-chat:hover {
-  transform: rotate(1deg) scale(1.04);
-  background: #ef5548;
-  color: #f4e5cf;
+.chat-cta .bubble:hover { transform: rotate(1deg) scale(1.05); background: var(--orange); box-shadow: 5px 5px 0 rgba(201,242,79,.85); }
+.chat-cta .bubble::after {
+  content: ""; position: absolute; left: 42px; bottom: -12px;
+  border: 12px solid transparent; border-top-color: inherit;
+  border-top: 14px solid var(--green); border-bottom: 0; border-right-width: 4px;
+  transition: border-top-color .25s;
 }
-.look-visual {
-  align-self: stretch;
-  min-height: 310px;
-  border: 8px solid #ef5548;
-  border-radius: 26px;
-  background:
-    radial-gradient(circle at 28% 22%, rgba(239,85,72,.18) 0 11px, transparent 12px),
-    linear-gradient(135deg, transparent 0 58%, rgba(239,85,72,.08) 58% 100%);
-  transform: rotate(1.4deg);
-  overflow: hidden;
-}
-.look-visual::before {
-  content: "";
-  position: absolute;
-  inset: 28px 22px auto auto;
-  width: 120px;
-  height: 74px;
-  border-top: 7px solid #ef5548;
-  border-right: 7px solid #ef5548;
-  border-radius: 44% 20% 0 0;
-  transform: rotate(-7deg);
-}
-.look-visual::after {
-  content: "AI";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 142px;
-  height: 142px;
-  display: grid;
-  place-items: center;
-  border: 6px solid #ef5548;
-  border-radius: 32px;
-  font-family: var(--display);
-  font-size: 54px;
-  font-weight: 700;
-  transform: translate(-50%, -35%) rotate(-5deg);
-  box-shadow: 14px 14px 0 rgba(239,85,72,.13);
-}
-.look-lines,
-.look-spark {
-  position: absolute;
-  border-color: #ef5548;
-  pointer-events: none;
-}
-.look-lines {
-  left: 54px;
-  bottom: 54px;
-  width: 190px;
-  height: 92px;
-  border-left: 6px solid;
-  border-bottom: 6px solid;
-  border-radius: 0 0 0 28px;
-  transform: rotate(-7deg);
-}
-.look-lines::before,
-.look-lines::after {
-  content: "";
-  position: absolute;
-  left: 26px;
-  right: -24px;
-  height: 5px;
-  background: #ef5548;
-  border-radius: 999px;
-}
-.look-lines::before { top: 22px; }
-.look-lines::after { top: 52px; width: 72%; }
-.look-spark {
-  right: 46px;
-  bottom: 62px;
-  width: 58px;
-  height: 58px;
-  border: 5px solid;
-  border-radius: 50%;
-  transform: rotate(10deg);
-}
-.look-spark::before,
-.look-spark::after {
-  content: "";
-  position: absolute;
-  background: #ef5548;
-  border-radius: 999px;
-}
-.look-spark::before {
-  left: -28px;
-  top: 24px;
-  width: 22px;
-  height: 5px;
-}
-.look-spark::after {
-  right: 24px;
-  top: -30px;
-  width: 5px;
-  height: 22px;
-}
-@media (max-width: 760px) {
-  .look-panel { grid-template-columns: 1fr; }
-  .look-visual { min-height: 240px; }
-}
+.chat-cta .bubble:hover::after { border-top-color: var(--orange); }
+.chat-cta .sub { margin-top: 22px; font-size: 13.5px; color: var(--muted); }
+.chat-cta .sub a { color: var(--green); border-bottom: 1px dashed rgba(201,242,79,.5); }
 
 /* ---------- footer ---------- */
 footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--line); }
@@ -1315,22 +1167,43 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 <!-- ================= LOOKING FOR ================= -->
 <section id="look">
   <div class="wrap">
-    <div class="look-panel reveal">
-      <div class="look-copy">
-        <div class="look-rule"></div>
-        <h2>What I look for</h2>
-        <ul class="look-list">
-          <li><span class="box"></span><span>AI native products</span></li>
-          <li class="checked"><span class="box"></span><span>Ambitious early teams</span></li>
-          <li><span class="box"></span><span>Human-Agent collaboration</span></li>
-          <li class="quiet"><span class="box"></span><span>Only making another AI wrapper</span></li>
-        </ul>
-        <a class="look-chat" href="mailto:jiejoe2017@gmail.com">let's chat!</a>
-      </div>
-      <div class="look-visual" aria-hidden="true">
-        <span class="look-lines"></span>
-        <span class="look-spark"></span>
-      </div>
+    <span class="kicker reveal">What I'm looking for</span>
+    <h2 class="sec-title reveal">What am I looking for?</h2>
+
+    <div class="look">
+      <article class="look-card reveal" role="button" tabindex="0" aria-expanded="false">
+        <span class="plus">+</span>
+        <span class="emoji">✦</span>
+        <h3>AI 原生产品</h3>
+        <p>不是在旧产品上补一个 AI 功能，而是从模型能力、上下文和用户任务出发，重新设计产品形态。</p>
+        <div class="more"><div class="more-inner"><span class="why">Why me →</span>我既做过大规模用户产品，也在持续用 side project 验证 AI 原生体验。能把技术可能性翻译成用户会不会真的用。<a class="mini-chat" href="mailto:jiejoe2017@gmail.com">Let's chat</a></div></div>
+      </article>
+      <article class="look-card reveal" role="button" tabindex="0" aria-expanded="false">
+        <span class="plus">+</span>
+        <span class="emoji">✓</span>
+        <h3>有野心的早期团队</h3>
+        <p>方向还没有完全被定义，但团队对用户、技术和商业价值都有足够强的好奇心。</p>
+        <div class="more"><div class="more-inner"><span class="why">Why me →</span>我经历过 0→1，也经历过复杂系统里的规模化协作。早期需要人既能想清楚，也能自己把东西推起来。<a class="mini-chat" href="mailto:jiejoe2017@gmail.com">Let's chat</a></div></div>
+      </article>
+      <article class="look-card reveal" role="button" tabindex="0" aria-expanded="false">
+        <span class="plus">+</span>
+        <span class="emoji">↗</span>
+        <h3>创新类产品</h3>
+        <p>新的交互、新的内容生产方式、新的创作工具，或者还没有被传统产品方法完全覆盖的用户场景。</p>
+        <div class="more"><div class="more-inner"><span class="why">Why me →</span>我喜欢从真实生活问题出发做小工具，再反推场景、技术边界、用户价值和付费可能性。<a class="mini-chat" href="mailto:jiejoe2017@gmail.com">Let's chat</a></div></div>
+      </article>
+      <article class="look-card reveal" role="button" tabindex="0" aria-expanded="false">
+        <span class="plus">+</span>
+        <span class="emoji">◎</span>
+        <h3>人机交互方向</h3>
+        <p>关注 Agent、硬件、情绪陪伴和多模态输入如何组合成下一代用户体验。</p>
+        <div class="more"><div class="more-inner"><span class="why">Why me →</span>我正在用自己的生活和工作流做长期实验：Agent 协作、群聊协作、数字分身、陪伴硬件和运动分析，都会变成产品判断的材料。<a class="mini-chat" href="mailto:jiejoe2017@gmail.com">Let's chat</a></div></div>
+      </article>
+    </div>
+
+    <div class="chat-cta reveal">
+      <a class="bubble" href="mailto:jiejoe2017@gmail.com">let's chat!</a>
+      <p class="sub">邮箱 <a href="mailto:jiejoe2017@gmail.com">jiejoe2017@gmail.com</a></p>
     </div>
   </div>
 </section>
@@ -1655,6 +1528,16 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 
 /* ---------- marquee: duplicate track for seamless loop ---------- */
 document.getElementById('marquee').innerHTML += document.getElementById('marquee').innerHTML;
+
+/* ---------- looking-for cards: click to pop ---------- */
+document.querySelectorAll('.look-card').forEach(card => {
+  const toggle = () => {
+    const open = card.classList.toggle('open');
+    card.setAttribute('aria-expanded', open);
+  };
+  card.addEventListener('click', toggle);
+  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+});
 
 /* ---------- reveal on scroll ---------- */
 const io = new IntersectionObserver(entries => {
