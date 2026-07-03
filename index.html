@@ -585,7 +585,8 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 }
 .life-proof {
   position: relative;
-  width: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   height: 100%;
   overflow: hidden;
   border-radius: 18px;
@@ -1327,21 +1328,19 @@ const PROJECTS = [
   {
     id: 'ai-life',
     title: '生活场景探索',
-    tag: '运动 / 旅行 / 工作流',
-    cat: 'Personal AI Workflow · Life experiments',
-    cover: 'harness-discord.png',
+    tag: '运动 / 旅行',
+    cat: 'Life experiments · Personal scenes',
+    cover: 'assets/badminton/match_heatmap.png',
     size: 'span-lab',
     frame: 'lab',
     one: '把生活里的小问题拆成可验证的 AI 产品场景。',
-    desc: '这部分不是单个作品，而是一组持续实验：用羽毛球视频分析验证 AI 如何给普通运动爱好者可理解的反馈；用数字分身旅行观察 AIGC 叙事、人物一致性和内容互动；再把 Agent、Discord、Claude Code 和本地文件工作流放到日常里，判断哪些问题值得产品化。',
-    chips: ['运动分析', 'AIGC 旅行', 'Agent workflow', '生活问题产品化'],
+    desc: '这是一组从自己生活里长出来的小实验：运动里，我想知道 AI 分析怎样变成普通爱好者能理解的训练反馈；旅行里，我尝试把路线、预算、记录和内容组织成更轻的个人旅行工具。重点是把真实小问题拆成可验证的产品场景。',
+    chips: ['运动分析', '旅行计划', '预算记录', '生活问题产品化'],
     gallery: [
       { src: 'assets/badminton/webui0.png', cap: '<b>运动</b> — 羽毛球视频分析：标注球场、追踪球路，让普通爱好者看懂训练反馈', wide: true },
-      { src: 'travel-profile-grid.jpg', cap: '<b>旅行</b> — 数字分身内容账号：测试人物一致性、叙事和真实互动', wide: true },
       { src: 'assets/badminton/match_heatmap.png', cap: '<b>热力图</b> — 把技术分析转译成下一次训练能用的信息' },
-      { src: 'travel-map.png', cap: '<b>旅行地图</b> — 用 LLM 生成旅行故事线和地点节奏' },
-      { src: 'harness-discord.png', cap: '<b>工作流</b> — 用 Discord 频道把任务和 context 分开', wide: true },
-      { src: 'coding-contributions.png', cap: '<b>Coding</b> — 用真实生活需求驱动原型和工具实验', wide: true },
+      { src: 'assets/badminton/match_scatter.png', cap: '<b>落点散布</b> — 把一次运动记录拆成可讨论的动作线索' },
+      { src: 'travel-wallet.jpg', cap: '<b>旅行预算</b> — 把目的地、花费和行程拆成可持续记录的结构', wide: true },
     ],
   },
   {
@@ -1436,7 +1435,8 @@ function projectPreview(p) {
   }
   if (p.id === 'ai-life') {
     return `<span class="tile-preview life-preview">
-      <span class="life-proof"><img src="coding-contributions.png" alt="OneDay Studio + Workflow coding contributions" loading="lazy"><span>Coding</span></span>
+      <span class="life-proof"><img src="assets/badminton/match_heatmap.png" alt="羽毛球位置热力图" loading="lazy"><span>Sports</span></span>
+      <span class="life-proof"><img src="travel-wallet.jpg" alt="旅行预算记录" loading="lazy"><span>Travel</span></span>
     </span>`;
   }
   if (p.id === 'community') {
