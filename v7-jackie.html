@@ -7,7 +7,7 @@
 <meta name="description" content="Q，AI Native Product Manager / Builder。我关注 AI 在真实用户场景中的落地、人机交互与 Agent 协作。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Gochi+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Gochi+Hand&amp;family=ZCOOL+KuaiLe&amp;display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #101208;
@@ -21,7 +21,7 @@
   --green: #c9f24f;
   --green-soft: rgba(201,242,79,.16);
   --cream: #f4f0e2;
-  --radius: 26px;
+  --radius: 18px;
   --wrap: 1120px;
   --display: "Fredoka", "ZCOOL KuaiLe", "PingFang SC", sans-serif;
   --hand: "Gochi Hand", "ZCOOL KuaiLe", cursive;
@@ -48,7 +48,13 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img, video { display: block; max-width: 100%; }
+button { font: inherit; }
 ::selection { background: var(--green); color: #101208; }
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
 
 .wrap { width: min(var(--wrap), calc(100vw - 40px)); margin: 0 auto; }
 
@@ -62,7 +68,7 @@ img, video { display: block; max-width: 100%; }
   background: rgba(16,18,8,.78);
   border-bottom: 1px solid rgba(244,240,226,.07);
 }
-.brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; letter-spacing: 0; text-transform: uppercase; color: var(--muted); }
 .brand-mark {
   width: 36px; height: 36px; display: grid; place-items: center;
   border-radius: 12px; background: var(--orange); color: #17130c;
@@ -103,12 +109,13 @@ img, video { display: block; max-width: 100%; }
   font-weight: 600;
   font-size: clamp(44px, 9.5vw, 118px);
   line-height: 1.02;
-  letter-spacing: -.015em;
+  letter-spacing: 0;
 }
 .hero h1 .iam { color: var(--ink); display: block; }
 .rotator {
   display: block; min-height: 1.1em; color: var(--orange);
   white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .rotator .ch {
   display: inline-block;
@@ -132,7 +139,7 @@ img, video { display: block; max-width: 100%; }
 }
 .geo {
   margin-top: 26px; display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0;
   color: var(--muted); text-transform: uppercase;
 }
 .geo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 2.2s infinite; }
@@ -185,7 +192,7 @@ img, video { display: block; max-width: 100%; }
 .marquee-track { display: inline-block; animation: scrollX 30s linear infinite; }
 .marquee span {
   font-family: var(--display); font-weight: 500;
-  font-size: 15px; letter-spacing: .06em;
+  font-size: 15px; letter-spacing: 0;
   color: var(--muted); margin: 0 12px;
 }
 .marquee span b { color: var(--orange); font-weight: 600; }
@@ -196,14 +203,14 @@ img, video { display: block; max-width: 100%; }
 section { padding: clamp(70px, 11vh, 130px) 0 0; }
 .kicker {
   display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 12px; letter-spacing: .16em;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0;
   text-transform: uppercase; color: var(--orange);
 }
 .kicker::before { content: ""; width: 26px; height: 2px; background: var(--orange); border-radius: 2px; }
 h2.sec-title {
   margin: 16px 0 0;
   font-family: var(--display); font-weight: 600;
-  font-size: clamp(30px, 5.4vw, 54px); line-height: 1.12; letter-spacing: -.01em;
+  font-size: clamp(30px, 5.4vw, 54px); line-height: 1.12; letter-spacing: 0;
 }
 h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight: 400; }
 .sec-note { margin: 14px 0 0; max-width: 620px; color: var(--muted); line-height: 1.8; font-size: 15.5px; }
@@ -213,8 +220,9 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 .reveal.on { opacity: 1; transform: none; }
 
 /* ---------- beliefs ---------- */
-.beliefs { margin-top: 44px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 920px; }
-@media (max-width: 860px) { .beliefs { grid-template-columns: 1fr; } }
+.beliefs { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; max-width: 1120px; }
+@media (max-width: 980px) { .beliefs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .beliefs { grid-template-columns: 1fr; } }
 .belief {
   position: relative; padding: 28px 24px 26px;
   background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius);
@@ -222,10 +230,12 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 }
 .belief:hover { transform: translateY(-6px) rotate(-.8deg); border-color: rgba(201,242,79,.5); }
 .belief:nth-child(2):hover { transform: translateY(-6px) rotate(.8deg); border-color: rgba(255,122,60,.55); }
+.belief:nth-child(3):hover { transform: translateY(-6px) rotate(.6deg); border-color: rgba(201,242,79,.5); }
 .belief .num {
   font-family: var(--hand); font-size: 30px; color: var(--orange);
 }
 .belief:nth-child(2) .num { color: var(--green); }
+.belief:nth-child(3) .num { color: var(--orange); }
 .belief h3 { margin: 8px 0 10px; font-family: var(--display); font-weight: 600; font-size: 21px; }
 .belief p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.85; }
 .belief p b { color: var(--ink); font-weight: 600; }
@@ -273,7 +283,7 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   transition: transform .28s var(--ease), border-color .25s, box-shadow .25s;
 }
 .xp-logo img { width: 22px; height: 22px; border-radius: 7px; object-fit: cover; }
-.xp-time { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--green); text-transform: uppercase; }
+.xp-time { font-family: var(--mono); font-size: 11px; letter-spacing: 0; color: var(--green); text-transform: uppercase; }
 .xp-card h3 { margin: 4px 0 5px; font-family: var(--display); font-size: 18px; font-weight: 600; }
 .xp-card p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.72; }
 .xp-card:hover,
@@ -338,14 +348,14 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 .project-logo img { width: 30px; height: 30px; border-radius: 9px; object-fit: cover; }
 .open-mark {
   position: absolute; right: 18px; top: 18px;
-  font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0; text-transform: uppercase;
   color: rgba(244,240,226,.6);
   background: rgba(201,242,79,.1); border: 1px solid rgba(201,242,79,.28);
   border-radius: 999px; padding: 6px 10px;
 }
 .tagline-chip {
   align-self: flex-start;
-  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0; text-transform: uppercase;
   color: var(--green); background: var(--green-soft);
   border: 1px solid rgba(201,242,79,.35); border-radius: 999px; padding: 6px 12px;
 }
@@ -507,7 +517,17 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
     max-width: 430px;
   }
   .project-companion .tile-chips {
-    display: none;
+    max-width: 430px;
+    gap: 8px;
+    margin-top: 14px;
+    align-self: start;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .project-companion .chip {
+    min-height: 27px;
+    padding: 0 12px;
+    background: rgba(255,250,240,.74);
   }
   .project-companion .tile-meta {
     grid-column: 1 / -1;
@@ -596,10 +616,14 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   .wall-item.span-pad, .wall-item.span-widget, .wall-item.span-phone,
   .wall-item.span-direct, .wall-item.span-mini, .wall-item.span-lab, .wall-item.span-share {
     grid-column: 1;
-    min-height: 300px;
+    min-height: 260px;
   }
-  .experience-projects { display: none; }
-  .experience-layout.show-preview .experience-projects { display: grid; }
+  .experience-timeline { padding-left: 14px; }
+  .xp-card { padding-bottom: 20px; }
+  .xp-card:not(.active) { opacity: .78; }
+  .experience-projects { display: grid; }
+  .xp-project .txt { padding: 22px; }
+  .xp-project .shot { min-height: 170px; }
   #look h2.sec-title {
     max-width: 330px;
     margin-left: auto;
@@ -638,7 +662,7 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   color: rgba(21,21,21,.55);
   font-family: var(--mono);
   font-size: 9.5px;
-  letter-spacing: .14em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 .tile-title {
@@ -669,12 +693,14 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
   margin-top: 10px;
 }
 .chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 23px;
   padding: 0 9px;
   border: 1px solid rgba(21,21,21,.1);
@@ -683,6 +709,8 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   color: rgba(21,21,21,.62);
   font-family: var(--mono);
   font-size: 10.5px;
+  line-height: 1;
+  white-space: nowrap;
 }
 .tile-preview {
   position: relative;
@@ -777,7 +805,7 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   z-index: 1;
   font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: .12em;
+  letter-spacing: 0;
   color: #151515;
   text-transform: uppercase;
   background: rgba(255,250,240,.82);
@@ -808,7 +836,7 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   z-index: 1;
   font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: .12em;
+  letter-spacing: 0;
   color: #fffaf0;
   text-transform: uppercase;
 }
@@ -983,12 +1011,29 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   border: 1.5px solid var(--line); background: var(--card);
   box-shadow: 0 24px 60px rgba(0,0,0,.28);
 }
-.modal-cover img { width: 100%; max-height: 480px; object-fit: cover; object-position: center top; }
+.modal-cover img,
+.modal-cover video { width: 100%; max-height: 480px; object-fit: cover; object-position: center top; }
+.modal-cover video { display: block; background: #050505; }
 .modal-cover img.contain { height: 360px; object-fit: contain; padding: 28px; background: radial-gradient(circle at 50% 40%, rgba(201,242,79,.18), var(--card) 75%); }
-.modal-body .cat { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--green); }
+.modal-cover video.contain { height: 430px; object-fit: contain; padding: 18px; background: #050505; }
+.modal-body .cat { font-family: var(--mono); font-size: 12px; letter-spacing: 0; text-transform: uppercase; color: var(--green); }
 .modal-body h3 {
   margin: 12px 0 6px; font-family: var(--display); font-weight: 600;
   font-size: clamp(28px, 4.6vw, 42px); line-height: 1.1;
+}
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-title-logo {
+  width: clamp(34px, 5vw, 48px);
+  height: clamp(34px, 5vw, 48px);
+  flex: 0 0 auto;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--card);
+  box-shadow: 4px 4px 0 rgba(201,242,79,.18);
 }
 .modal-body .one { font-family: var(--hand); font-size: 19px; color: var(--orange); margin: 0 0 18px; }
 .modal-body .desc { color: var(--muted); line-height: 1.9; font-size: 15.5px; margin: 0 0 8px; }
@@ -1009,7 +1054,7 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
   margin: 0 0 8px;
   font-family: var(--mono);
   font-size: 12px;
-  letter-spacing: .12em;
+  letter-spacing: 0;
   text-transform: uppercase;
   color: var(--green);
 }
@@ -1037,7 +1082,10 @@ h2.sec-title .fun { color: var(--green); font-family: var(--cn-fun); font-weight
 @media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
 .g-item { border-radius: 18px; overflow: hidden; border: 1.5px solid var(--line); background: var(--card); }
 .g-item.wide { grid-column: 1 / -1; }
-.g-item img { width: 100%; max-height: 560px; object-fit: cover; object-position: center top; }
+.g-item img,
+.g-item video { width: 100%; max-height: 560px; object-fit: cover; object-position: center top; }
+.g-item video { display: block; background: #050505; }
+.g-item video.contain { height: 360px; object-fit: contain; padding: 18px; background: #050505; }
 .g-item figcaption {
   padding: 12px 16px; font-size: 13px; color: var(--muted); line-height: 1.7;
   border-top: 1px solid var(--line);
@@ -1136,23 +1184,34 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  html { scroll-behavior: auto; }
+  .marquee-track, .song-track { animation: none !important; }
 }
 @media (max-width: 640px) {
+  .wrap { width: min(var(--wrap), calc(100vw - 28px)); }
+  .nav {
+    height: 62px;
+    padding: 0 14px;
+  }
+  .brand { gap: 8px; font-size: 11px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 10px; font-size: 18px; }
+  .nav-links a.cta { min-height: 34px; padding: 0 12px; margin-left: 0; }
   .hero-sub, .sec-note {
-    width: calc(100vw - 82px);
-    max-width: calc(100vw - 82px);
+    width: 100%;
+    max-width: 100%;
     overflow-wrap: anywhere;
     word-break: break-word;
   }
   .hero-sub { font-size: 16px; line-height: 1.7; }
-  .hero h1 { max-width: calc(100vw - 48px); font-size: clamp(36px, 11vw, 44px); }
+  .hero h1 { max-width: 100%; font-size: clamp(36px, 11vw, 48px); }
   .rotator { white-space: normal; }
+  .scroll-hint { margin-top: 38px; }
 }
 </style>
 </head>
 <body>
 
-<nav class="nav">
+<nav class="nav" aria-label="主导航">
   <a class="brand" href="#top"><span class="brand-mark">Q</span>AI&nbsp;Native&nbsp;PM</a>
   <div class="nav-links">
     <a href="#agi">Thinking</a>
@@ -1189,12 +1248,12 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
       </svg>
     </span>
 
-    <span class="pill pill-shipu float-a"><img src="shipu-icon-v2.png" alt="">拾谱</span>
-    <span class="pill pill-taobao float-b"><img src="assets/icons/icon-taobao.png" alt="">Taobao AI</span>
-    <span class="pill pill-pawpet float-c"><img src="pawpet/assets/pets/mixian/frames/happy.png" alt="">PawPet</span>
+    <span class="pill pill-shipu float-a"><img src="shipu-icon-v2.png" alt="" width="1024" height="1024" decoding="async">拾谱</span>
+    <span class="pill pill-taobao float-b"><img src="assets/icons/icon-taobao.png" alt="" width="128" height="128" decoding="async">Taobao AI</span>
+    <span class="pill pill-pawpet float-c"><img src="pawpet/assets/pets/mixian/frames/happy.png" alt="" width="600" height="581" decoding="async">PawPet</span>
 
     <span class="hello">
-      <img class="avatar" src="assets/unused/avatar.jpg" alt="Q 的头像">
+      <img class="avatar" src="assets/unused/avatar.jpg" alt="Q 的头像" width="480" height="600" decoding="async" fetchpriority="high">
       Hey，我是 Q
     </span>
 
@@ -1229,19 +1288,24 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 <!-- ================= AI / BELIEFS ================= -->
 <section id="agi">
   <div class="wrap">
-    <span class="kicker reveal">How I work</span>
-    <h2 class="sec-title reveal">AI Native PM，<br>把 AI 能力放进<span class="fun">真实任务</span></h2>
+    <span class="kicker reveal">What I believe</span>
+    <h2 class="sec-title reveal">做 AI 产品，<br>我有三个<span class="fun">Believe</span></h2>
 
     <div class="beliefs">
       <article class="belief reveal">
         <span class="num">01</span>
-        <h3>User-focused product sensing</h3>
-        <p>看用户的真实任务、频次和动机，判断 AI 是不是有稳定使用理由，而不是只制造一次性的 wow moment。</p>
+        <h3>追求有价值的用户场景</h3>
+        <p>优先找大量用户的高频场景；如果切入不够早，就切少量用户的高频刚需；当频次低，也要有足够高的商业价值。</p>
       </article>
       <article class="belief reveal">
         <span class="num">02</span>
-        <h3>Hands-on with technology</h3>
-        <p>自己试模型、搭 Agent workflow、写原型、接工具链；用能跑起来的东西理解边界，再决定产品形态和交互。</p>
+        <h3>探索新的技术应用价值</h3>
+        <p>通用大模型会吃掉很多垂类应用，但视觉模型、世界模型和工具链仍在高速发展，也会持续打开新的产品形态。</p>
+      </article>
+      <article class="belief reveal">
+        <span class="num">03</span>
+        <h3>关注人机交互与协同</h3>
+        <p>这是需要想象力的命题：如何理解用户意图，围绕 context 让人和 Agent 协作、沟通，并把交互延伸到物理世界。</p>
       </article>
     </div>
   </div>
@@ -1255,7 +1319,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 
     <div class="experience-layout">
       <aside class="experience-timeline reveal" aria-label="Experience timeline">
-        <button class="xp-card active" type="button" data-work="taobao" aria-selected="true">
+        <button class="xp-card active" type="button" data-work="taobao" aria-pressed="true" aria-controls="work-preview">
           <div class="xp-logo"><img src="assets/icons/icon-taobao.png" alt="淘宝 Logo"></div>
           <div>
             <div class="xp-time">Recent · Alibaba / Taobao</div>
@@ -1263,7 +1327,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
             <p>AI 消费决策 / 用户意图整理 / 核心 App 体验</p>
           </div>
         </button>
-        <button class="xp-card" type="button" data-work="oneday" aria-selected="false">
+        <button class="xp-card" type="button" data-work="oneday" aria-pressed="false" aria-controls="work-preview">
           <div class="xp-logo"><img src="assets/icons/icon-oneday.png" alt="AI 创意应用生成工具 Logo"></div>
           <div>
             <div class="xp-time">AI tools · Creative generation</div>
@@ -1271,7 +1335,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
             <p>Prompt to creative output</p>
           </div>
         </button>
-        <button class="xp-card" type="button" data-work="homestyler" aria-selected="false">
+        <button class="xp-card" type="button" data-work="homestyler" aria-pressed="false" aria-controls="work-preview">
           <div class="xp-logo"><img src="assets/icons/icon-homestyler.png" alt="Homestyler Logo"></div>
           <div>
             <div class="xp-time">AI tools · Creator workflow</div>
@@ -1279,7 +1343,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
             <p>AI Designer / design workflow</p>
           </div>
         </button>
-        <button class="xp-card" type="button" data-work="meijian" aria-selected="false">
+        <button class="xp-card" type="button" data-work="meijian" aria-pressed="false" aria-controls="work-preview">
           <div class="xp-logo"><img src="assets/icons/icon-meijian.png" alt="美间 Logo"></div>
           <div>
             <div class="xp-time">0→1 · Meijian</div>
@@ -1290,7 +1354,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
       </aside>
 
       <div class="experience-projects">
-        <a class="xp-project reveal" id="work-preview" href="https://www.taobao.com/" target="_blank" rel="noopener">
+        <a class="xp-project reveal" id="work-preview" aria-live="polite" href="https://www.taobao.com/" target="_blank" rel="noopener">
           <div class="txt">
             <span class="tagline-chip" id="work-chip">Taobao × AI Native Shopping</span>
             <h3 id="work-title">淘宝 AI 消费决策</h3>
@@ -1301,7 +1365,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
             </div>
             <div class="res" id="work-res">core app experience · campaign flow</div>
           </div>
-          <div class="shot"><img id="work-image" src="ai-shopping-1.png" alt="淘宝 AI 导购界面" loading="lazy"></div>
+          <div class="shot"><img id="work-image" src="ai-shopping-1.png" alt="淘宝 AI 导购界面" width="4348" height="2218" loading="lazy" decoding="async"></div>
           <span class="open-mark">Open ↗</span>
         </a>
       </div>
@@ -1378,7 +1442,7 @@ footer { margin-top: clamp(80px, 12vh, 140px); border-top: 1.5px solid var(--lin
 </footer>
 
 <!-- ================= MODAL ================= -->
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="项目详情">
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="项目详情" aria-hidden="true">
   <div class="modal-backdrop" data-close></div>
   <div class="modal-panel">
     <button class="modal-close" data-close aria-label="关闭">✕</button>
@@ -1392,25 +1456,26 @@ const PROJECTS = [
   {
     id: 'shipu',
     title: '拾谱',
-    tag: '吉他谱 App · 正在上架 App Store',
+    tag: '吉他谱 App',
     cat: 'iOS / iPad App · 吉他谱整理与练习',
     cover: 'assets/shipu-ipad-user.png',
     logo: 'assets/shipu-cover-user.png',
     size: 'span-pad',
     frame: 'ipad',
-    one: '把零散吉他谱整理成可持续练习的个人谱库。',
-    desc: '我做拾谱的判断是：练琴工具不一定要从复杂的乐谱编辑开始，更高频的痛点是「谱子散落」。很多吉他谱来自截图、聊天记录、网页收藏和临时拍照，用户真正需要的是快速导入、按歌和练习主题整理、练琴时稳定查看，以及在 iPhone 和 iPad 间自然切换。<br><br>所以产品没有做成大而全的乐谱平台，而是围绕个人谱库搭建轻量闭环：导入截图后沉淀为谱库内容，用歌本、练习册、收藏状态和封面系统组织记忆；手机端负责随手收集和整理，iPad 横屏更适合放在谱架上练习。这个项目也完整跑了一遍从需求判断、交互设计、Swift 开发、视觉系统、隐私说明到 App Store 素材准备的独立 App 发布流程。',
+    one: 'AI 个人谱库',
+    desc: '拾谱是一款面向吉他练习者的个人谱库与练习工具。它解决的不是“找一首谱”这个单点问题，而是把散落在截图、公众号、短视频、聊天记录和网页收藏里的吉他谱，整理成一个可以长期维护、随时练习的个人谱库。<br><br>产品围绕“收集—整理—练习”搭建轻量闭环：手机端适合随手导入和管理，iPad 横屏适合放在谱架上看谱；谱册、练习册、收藏、节拍器和多种看谱模式共同服务一个目标——让每一次收谱都能沉淀成下一次练习的入口。',
     chips: ['正在上架 App Store', 'iOS / iPad', '练习册', '独立开发'],
     modalHero: false,
     points: [
-      { title: 'Product logic', text: '先解决真实练琴链路里最频繁的断点：谱子找不到、分类不清、练习时设备不顺手，而不是一开始就追求复杂编辑能力。' },
-      { title: 'Core design', text: '把导入、歌本、练习册、收藏和封面系统串成一个可持续维护的个人谱库，让每次收集都能服务下一次练习。' },
-      { title: 'Output', text: '正在推进 App Store 上架：独立完成需求定义、交互与视觉设计、Swift 开发、隐私说明和商店素材，跑通从想法到发布的完整闭环。' },
+      { title: '解决的问题', text: '吉他谱常常散落在截图、短视频、公众号和聊天记录里；真正练习时又会遇到找不到谱、分类不清、手机屏幕太小、节拍器和谱子分离的问题。' },
+      { title: '主要功能', text: '支持导入谱图、建立个人谱库、按曲谱和练习册组织内容；练习时提供单页/双页/网格/自由视图，以及节拍器、收藏和最近练习记录。' },
+      { title: '产品亮点', text: '没有做成复杂乐谱编辑器，而是抓住高频练琴链路：快速收集、清楚整理、稳定看谱、持续复练，让 iPhone 和 iPad 分别承担收集与练习场景。' },
     ],
     gallery: [
-      { src: 'shipu-library.png', cap: '<b>手机端谱库</b> — 把导入的谱子沉淀到自己的歌本和练习册里' },
-      { src: 'assets/shipu-ipad-user.png', cap: '<b>iPad 练习场景</b> — 横屏查看更适合实际练琴时使用', wide: true },
-      { src: 'assets/shipu-cover-user.png', cap: '<b>视觉系统</b> — 用谱夹和封面感建立更有记忆点的产品识别', fit: 'contain' },
+      { src: 'assets/shipu-product/library-grid.png', cap: '<b>个人谱库</b> — 把散落曲谱沉淀成可浏览、可收藏、可持续维护的谱册系统', wide: true },
+      { src: 'assets/shipu-product/practice-home.png', cap: '<b>练习入口</b> — 最近练过、练习册和今日练习被放在同一条练琴链路里', wide: true },
+      { src: 'assets/shipu-product/viewer-metronome.png', cap: '<b>看谱与节拍器</b> — iPad 双页看谱、节拍器和视图切换服务真实练习场景', wide: true },
+      { src: 'assets/shipu-cover-user.png', cap: '<b>视觉系统</b> — 用谱夹、纸张和封面感建立更有记忆点的产品识别', fit: 'contain' },
     ],
   },
   {
@@ -1434,22 +1499,22 @@ const PROJECTS = [
   {
     id: 'companion',
     title: '萌伴',
-    tag: '硬件 × 人机交互',
-    cat: 'Hardware + App · Family Scenario',
-    cover: 'companion-app.png',
-    logo: 'assets/icons/icon-companion.png',
+    tag: '儿童 AI 早教陪伴机器人',
+    cat: 'Hardware + App · Multimodal AI Companion',
+    cover: 'assets/generated/mengban-idle-poster.jpg',
+    logo: '',
     size: 'span-phone',
     frame: 'phone',
     one: '给孩子做一个 AI 小伙伴。',
-    desc: '背景：家庭场景里的 AI 不应该只停留在屏幕聊天，而要通过声音、表情、记忆和硬件动作进入陪伴关系。行动：设计硬件原型与 App，串联语音通话、互动表情、故事/游戏、成长记录和记忆提取。产出：完成可演示的 App 与硬件链路，用来验证家庭陪伴场景里更自然的人机交互。',
-    chips: ['Family AI', 'Hardware', 'Voice', 'HCI'],
-    modalHero: false,
+    desc: '萌伴是一台面向 2-6 岁儿童的桌面 AI 陪伴机器人：它不是屏幕里的问答助手，而是一个有生命感的小伙伴。产品围绕角色扮演、过家家、自主探索、日常生活练习和睡前陪伴展开，把视觉感知、儿童语音理解、触摸反馈、动作表情和长程记忆组合起来，让 AI 能参与孩子真实的游戏和成长场景。<br><br>设计上，我更关注三件事：第一，儿童安全和亲和力，形态要圆润、低压、安全、可被孩子自然靠近；第二，多模态交互，萌伴要能看见孩子拿起的玩具、听懂含糊表达、用表情和动作回应；第三，长程记忆与家长端，让它记得孩子的兴趣、学习进度和重要时刻，同时把成长记录交还给家长管理。',
+    chips: ['硬件', '陪伴', '长程记忆'],
     points: [
-      { title: 'Background', text: '孩子和家庭陪伴场景需要更低门槛、更有情绪反馈的 AI 入口：不是一个问答框，而是一个能说话、会回应、能被持续记住的小伙伴。' },
-      { title: 'Action', text: '用 Raspberry Pi / OpenClaw / 火山语音 / LLM 记忆提取搭建原型，同时设计 App 端的角色状态、通话、故事、游戏与成长记录。' },
-      { title: 'Output', text: '形成了完整的 App + 硬件演示链路，验证语音、表情、记忆与硬件动作如何组合成家庭场景的人机交互。' },
+      { title: 'Product Definition', text: '面向 2-6 岁儿童和家庭场景，定义“有生命感”的桌面 AI 伙伴：陪过家家、角色扮演、自主探索，也能做睡前故事和情绪安抚。' },
+      { title: 'Interaction System', text: '把视觉、语音、触摸、表情和动作融合起来，让孩子举起玩具、发出声音、轻拍设备时，AI 能理解意图并即兴回应。' },
+      { title: 'Memory & Parent App', text: '用长程记忆记录孩子兴趣、学习进度和成长里程碑；家长端负责查看、编辑、删除记忆，并生成成长回顾。' },
     ],
     gallery: [
+      { type: 'video', src: 'assets/generated/mengban-idle.mp4', poster: 'assets/generated/mengban-idle-poster.jpg', cap: '<b>角色头图</b> — 一个有生命感的桌面 AI 陪伴机器人形象', fit: 'contain', wide: true, hideInGallery: true },
       { src: 'companion-call.png', cap: '<b>语音通话</b> — 低延迟对话，会转头、会拍照的小伙伴' },
       { src: 'assets/unused/companion-hardware.png', cap: '<b>硬件原型</b> — 树莓派 + 舵机，Vibe Coding 焊出来的' },
     ],
@@ -1465,7 +1530,7 @@ const PROJECTS = [
     size: 'span-direct',
     one: '如果平行世界的我正在环游世界？',
     desc: '用自己的面部特征生成数字分身，让「她」独立运营一个小红书账号：每天发旅行日记、Live 图、故事。横向测了 Sora / Seedance / Kling 的人物一致性和运动自然度，LLM 生成旅行故事线。发布的内容收到了真实用户的真实互动。',
-    chips: ['Sora / Seedance / Kling', 'LLM 叙事', '小红书运营', '人物一致性评测'],
+    chips: ['Seedance', 'AIGC', '游戏化互动', '小红书运营'],
     gallery: [],
   },
   {
@@ -1488,37 +1553,33 @@ const PROJECTS = [
   },
   {
     id: 'ai-life',
-    title: '生活场景探索',
-    tag: 'Harness / 旅行 / 运动 / 陪伴',
+    title: '更多灵感...',
+    tag: 'Harness / 养虾 / 旅行 / 运动',
     cat: 'Life experiments · Personal scenes',
     cover: 'assets/life/badminton-field-test.jpg',
     size: 'span-lab',
     frame: 'lab',
-    one: '把真实生活当作个人 AI Harness 的试验场。',
-    desc: '我把工作之外的 AI 增量需求都搬进自己的个人 AI Harness：聊天、P 图、绘画、Coding、旅行规划、理财、教育和开发任务都交给 OpenClaw / Claude Code 处理，连续两个月作为主力工具使用。做法是按场景拆分入口和上下文：Discord 承载旅行、理财、教育、开发，飞书承载运营、调研和群聊协作，微信负责通知；前期使用 Claude Opus，后来尝试自建 Qwen + DeepSeek 的智能路由，最后又回到 Claude Code 作为更稳定的主工作流。这个系统单月会消耗 600—1000 万 Token，也带来很多真实的 aha moment。<br><br>这些实验让我更明确地看到：Agent 产品的难点不是模型会不会回答，而是 Harness 怎么处理上下文隔离、长期记忆、工具调用、多人协作和错误累积。运动训练里，我用视觉模型分析羽毛球视频，观察 AI 反馈如何变成普通人看得懂的训练建议；旅行里，我用多人 AI 群聊拆解签证、机票、酒店和每日路线，验证 Agent 是否真的能降低决策成本；陪伴硬件里，萌伴把 OpenClaw 接到树莓派、语音通话、互动表情和成长记录上，也暴露出儿童语音识别、低延迟硬件、声纹和本地长程记忆这些更靠近真实产品的问题。',
-    chips: ['个人 AI Harness', 'OpenClaw', '生活场景', '陪伴硬件'],
     modalHero: false,
+    one: '用 AI 解决生活中的问题。',
+    desc: '<b>养虾</b>：把 AI 当成生活里的长期顾问，用来整理养虾过程中的水质、喂食、异常状态和维护记录。它不是回答一次问题，而是把连续观察变成可追踪、可复盘的经验。<br><br><b>旅行</b>：用多人 AI 群聊拆解签证、机票、酒店、每日路线和临场决策，把复杂行程变成可以协作推进的任务流。AI 真正有价值的地方，是降低反复查资料和多人对齐的成本。<br><br><b>羽毛球</b>：拿自己的训练视频做视觉分析，观察落点、球路和身体动作如何被转成普通爱好者能理解的反馈。这里验证的是 AI 结果如何进入下一次训练，而不只是生成一张好看的图表。',
+    chips: ['个人 AI Harness', '养虾', '旅行规划', '运动分析'],
     gallery: [
-      { src: 'harness-discord.png', cap: '<b>个人 AI Harness</b> — 用 Discord / 飞书 / 微信拆分任务入口和上下文', wide: true },
-      { src: 'coding-contributions.png', cap: '<b>Coding commit</b> — 把 AI Coding 也纳入个人工作流，持续用真实提交验证生产力变化', wide: true },
-      { src: 'harness-mobile-1.png', cap: '<b>移动端工作流</b> — 把生活里的增量需求持续交给 Agent 处理' },
-      { src: 'harness-mobile-2.png', cap: '<b>频道隔离</b> — 不同生活场景对应不同上下文和工具链' },
-      { src: 'assets/life/badminton-field-test.jpg', cap: '<b>现场验证</b> — 在场边临时跑模型，观察羽毛球视频识别能不能变成普通用户可理解的训练反馈', wide: true },
+      { src: 'assets/life/denmark-chat.png', cap: '<b>丹麦旅行</b> — 用多人 AI 群聊拆解签证材料、预定、机票酒店和行程单' },
+      { src: 'assets/life/denmark-route.png', cap: '<b>行程规划</b> — 把路线、停留点和每日安排变成可以协作推进的任务流' },
+      { src: 'assets/life/badminton-field-test.jpg', cap: '<b>羽毛球现场</b> — 在场边临时跑模型，观察视频识别能不能变成训练反馈' },
       { src: 'assets/life/badminton-ai-analysis.jpg', cap: '<b>模型分析</b> — 球路、落点和身体姿态被拆成可讨论的数据线索' },
-      { src: 'assets/life/denmark-ai-groupchat.jpg', cap: '<b>丹麦旅行</b> — 用多人 AI 群聊组织签证、预定、机票酒店、行程单和每日路线', wide: true },
-      { src: 'companion-call.png', cap: '<b>陪伴硬件</b> — 把语音通话、表情反馈和成长记录接进家庭场景', fit: 'contain' },
     ],
   },
   {
     id: 'community',
-    title: 'AI 交流',
+    title: '社群交流',
     tag: '黑客松 / 分享',
     cat: 'Community · 输出也是输入',
     cover: 'assets/unused/showcase-interview.png',
     size: 'span-share',
-    one: '成为 AI 原住民的一部分。',
-    desc: '参与社区活动、内部黑客松、主题分享和访谈，持续接触创业者、产品经理、工程师和真实用户。通过交流发掘产品需求，获得一手用户感知，也校准自己对 AI 产品机会的理解。',
-    chips: ['纯AI战神', '为 AI 痴狂', '黑客松常客'],
+    one: '成为 builder 的一员。',
+    desc: '曾经被颁发为“最会用 AI 的阿里人”，内网 title：「纯AI战神」。参加并组织 builder 社区活动、内部黑客松比赛和主题交流，持续和开发者、AI 从业者、企业用户沟通。<br><br>这些输入让我获得更真实的社区认知：理解不同角色如何使用 AI、期待什么样的产品价值，也帮助我更贴近 AI 应用市场的真实需求。',
+    chips: ['「纯AI战神」', '「为 AI 痴狂」', '黑客松常客'],
     modalHero: false,
     gallery: [
       { src: 'assets/unused/showcase-interview.png', cap: '<b>访谈现场</b> — 聊「人和 AI 怎么一起工作」', wide: true },
@@ -1532,6 +1593,7 @@ const PROJECTS = [
 /* ---------- hero rotator: letter-by-letter ---------- */
 const WORDS = ['AI Native PM', 'Product Manager', 'AI Tinker', 'Builder'];
 const rotator = document.getElementById('rotator');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let wi = 0;
 
 function showWord(word) {
@@ -1563,7 +1625,7 @@ function cycle() {
   });
 }
 showWord(WORDS[0]);
-setTimeout(cycle, 2800);
+if (!reduceMotion) setTimeout(cycle, 2800);
 
 /* ---------- work section: one active project ---------- */
 const WORK_ITEMS = {
@@ -1629,14 +1691,17 @@ const workMetrics = document.getElementById('work-metrics');
 const workRes = document.getElementById('work-res');
 const workImage = document.getElementById('work-image');
 const experienceLayout = document.querySelector('.experience-layout');
+let activeWorkId = 'taobao';
 
 function setActiveWork(id) {
   const item = WORK_ITEMS[id] || WORK_ITEMS.taobao;
+  if (id === activeWorkId) return;
+  activeWorkId = id;
   experienceLayout?.classList.add('show-preview');
   document.querySelectorAll('.xp-card').forEach(card => {
     const active = card.dataset.work === id;
     card.classList.toggle('active', active);
-    card.setAttribute('aria-selected', active ? 'true' : 'false');
+    card.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
   workPreview.classList.remove('switching');
   void workPreview.offsetWidth;
@@ -1667,11 +1732,10 @@ const ACCENT_BY_ID = {
   shipu: 'yellow',
   'ai-life': 'violet',
   community: 'orange',
-  pawpet: 'green',
 };
 
 function deviceMarkup(frame, src, title, fit) {
-  return `<span class="device ${frame}"><img src="${src}" alt="${title}" loading="lazy"${fit === 'contain' ? ' class="contain"' : ''}></span>`;
+  return `<span class="device ${frame}"><img src="${src}" alt="${title}" loading="lazy" decoding="async"${fit === 'contain' ? ' class="contain"' : ''}></span>`;
 }
 
 function projectPreview(p) {
@@ -1698,13 +1762,13 @@ function projectPreview(p) {
   }
   if (p.id === 'ai-life') {
     return `<span class="tile-preview life-preview">
-      <span class="life-proof"><img src="assets/life/badminton-field-test.jpg" alt="羽毛球训练 AI 验证现场" loading="lazy"><span>Sports</span></span>
-      <span class="life-proof"><img src="assets/life/denmark-ai-groupchat.jpg" alt="丹麦旅行 AI 群聊规划" loading="lazy"><span>Travel</span></span>
+      <span class="life-proof"><img src="assets/life/badminton-field-test.jpg" alt="羽毛球训练 AI 验证现场" loading="lazy" decoding="async"><span>Sports</span></span>
+      <span class="life-proof"><img src="assets/life/denmark-ai-groupchat.jpg" alt="丹麦旅行 AI 群聊规划" loading="lazy" decoding="async"><span>Travel</span></span>
     </span>`;
   }
   if (p.id === 'community') {
     return `<span class="tile-preview community-preview single">
-      <img src="assets/unused/showcase-interview.png" alt="访谈现场" loading="lazy">
+      <img src="assets/unused/showcase-interview.png" alt="访谈现场" loading="lazy" decoding="async">
     </span>`;
   }
   if (p.cover && p.frame) {
@@ -1715,13 +1779,15 @@ function projectPreview(p) {
 
 PROJECT_ORDER.map(id => PROJECTS.find(p => p.id === id)).filter(Boolean).forEach((p, i) => {
   const btn = document.createElement('button');
+  btn.type = 'button';
   btn.className = ['wall-item', `project-${p.id}`, p.size || '', p.direct ? 'is-direct' : '', (p.id === 'twin' || p.id === 'ai-life' || p.id === 'community') ? 'dark' : ''].filter(Boolean).join(' ');
   btn.dataset.accent = ACCENT_BY_ID[p.id] || 'green';
   btn.setAttribute('aria-label', p.direct ? (p.title + ' — 打开项目页面') : (p.title + ' — 查看详情'));
+  if (!p.direct) btn.setAttribute('aria-haspopup', 'dialog');
   const preview = projectPreview(p);
   btn.innerHTML = `
     <span class="tile-meta"><span>${String(i + 1).padStart(2, '0')} / ${p.tag}</span><span>${p.cat.split('·')[0].trim()}</span></span>
-    ${p.logo ? `<span class="app-badge"><img src="${p.logo}" alt=""></span>` : ''}
+    ${p.logo ? `<span class="app-badge"><img src="${p.logo}" alt="" loading="lazy" decoding="async"></span>` : ''}
     <span class="tile-title">${p.title}</span>
     <span class="tile-copy">${p.one}</span>
     <span class="tile-chips">${p.chips.slice(0, 4).map(c => `<span class="chip">${c}</span>`).join('')}</span>
@@ -1748,14 +1814,34 @@ PROJECT_ORDER.map(id => PROJECTS.find(p => p.id === id)).filter(Boolean).forEach
 /* ---------- modal ---------- */
 const modal = document.getElementById('modal');
 const modalBody = document.getElementById('modal-body');
+const modalPanel = modal.querySelector('.modal-panel');
+const modalClose = modal.querySelector('.modal-close');
+let lastFocusedElement = null;
+
+function renderProjectMedia(item) {
+  const fitClass = item.fit === 'contain' ? ' class="contain"' : '';
+  if (item.type === 'video') {
+    const poster = item.poster ? ` poster="${item.poster}"` : '';
+    const label = item.alt || '项目视频';
+    return `<video src="${item.src}"${poster}${fitClass} autoplay muted loop playsinline preload="metadata" aria-label="${label}"></video>`;
+  }
+  return `<img src="${item.src}" alt="" loading="lazy" decoding="async"${fitClass}>`;
+}
+
+function renderProjectTitle(p) {
+  const logo = p.logo ? `<img class="modal-title-logo" src="${p.logo}" alt="" loading="lazy" decoding="async">` : '';
+  return `<h3 class="modal-title">${logo}<span>${p.title}</span></h3>`;
+}
 
 function openModal(p) {
+  lastFocusedElement = document.activeElement;
   const hero = (p.gallery || []).find(g => g.wide) || (p.gallery || [])[0];
   const points = p.points || [];
+  const galleryItems = (p.gallery || []).filter(g => !g.hideInGallery);
   modalBody.innerHTML = `
-    ${hero && p.modalHero !== false ? `<figure class="modal-cover"><img src="${hero.src}" alt="" loading="lazy"${hero.fit === 'contain' ? ' class="contain"' : ''}></figure>` : ''}
+    ${hero && p.modalHero !== false ? `<figure class="modal-cover">${renderProjectMedia(hero)}</figure>` : ''}
     <span class="cat">${p.cat}</span>
-    <h3>${p.title}</h3>
+    ${renderProjectTitle(p)}
     <p class="one">${p.one}</p>
     <p class="desc">${p.desc}</p>
     ${points.length ? `<div class="modal-points">${points.map(point => `
@@ -1766,22 +1852,42 @@ function openModal(p) {
     <div class="modal-chips">${p.chips.map(c => `<span>${c}</span>`).join('')}</div>
     ${p.url ? `<a class="project-link" href="${p.url}" target="_blank" rel="noopener">Open project</a>` : ''}
     <div class="gallery">
-      ${p.gallery.map(g => `
+      ${galleryItems.map(g => `
         <figure class="g-item${g.wide ? ' wide' : ''}">
-          <img src="${g.src}" alt="" loading="lazy"${g.fit === 'contain' ? ' class="contain"' : ''}>
+          ${renderProjectMedia(g)}
           <figcaption>${g.cap}</figcaption>
         </figure>`).join('')}
     </div>`;
   modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
-  modal.querySelector('.modal-panel').scrollTop = 0;
+  modalPanel.scrollTop = 0;
+  modalClose.focus();
 }
 function closeModal() {
   modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+  if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+    lastFocusedElement.focus();
+  }
 }
 modal.addEventListener('click', e => { if (e.target.hasAttribute('data-close')) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  if (e.key !== 'Tab' || !modal.classList.contains('open')) return;
+  const focusable = Array.from(modal.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
 
 /* ---------- marquee: duplicate track for seamless loop ---------- */
 document.getElementById('marquee').innerHTML += document.getElementById('marquee').innerHTML;
@@ -1794,6 +1900,7 @@ document.querySelectorAll('.look-card').forEach(card => {
   };
   card.addEventListener('click', toggle);
   card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  card.querySelectorAll('a').forEach(link => link.addEventListener('click', e => e.stopPropagation()));
 });
 
 /* ---------- reveal on scroll ---------- */
