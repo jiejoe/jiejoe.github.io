@@ -43,10 +43,23 @@ body{
   place-items:center;
   padding:28px;
   background:
-    radial-gradient(circle at 50% 46%, rgba(123,76,222,.2), transparent 28%),
-    radial-gradient(circle at 50% 50%, rgba(41,25,68,.56), transparent 54%),
-    #07050b;
-  transition:opacity .7s cubic-bezier(.2,.75,.2,1), visibility .7s;
+    radial-gradient(circle at 50% 44%, rgba(255,102,183,.18), transparent 24%),
+    radial-gradient(circle at 28% 24%, rgba(185,74,152,.1), transparent 22%),
+    radial-gradient(circle at 76% 72%, rgba(118,66,150,.12), transparent 26%),
+    linear-gradient(145deg,#0b050c 0%,#120812 48%,#070408 100%);
+  overflow:hidden;
+  transition:opacity .9s cubic-bezier(.2,.75,.2,1), visibility .9s;
+}
+.site-loader::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  background:
+    radial-gradient(circle at 42% 44%, rgba(255,166,216,.08), transparent 18%),
+    radial-gradient(circle at 59% 51%, rgba(255,102,182,.07), transparent 16%);
+  filter:blur(18px);
+  animation:loaderAura 5.5s ease-in-out infinite alternate;
+  pointer-events:none;
 }
 .site-loader.is-complete{
   opacity:0;
@@ -54,69 +67,141 @@ body{
   pointer-events:none;
 }
 .site-loader__inner{
-  width:min(330px,78vw);
+  position:relative;
+  width:min(360px,84vw);
   display:grid;
   justify-items:center;
-  gap:20px;
+  gap:18px;
   text-align:center;
 }
+.site-loader__glass{
+  position:relative;
+  width:236px;
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  border-radius:48% 52% 50% 50% / 52% 48% 52% 48%;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.015) 42%,rgba(255,139,203,.055)),
+    radial-gradient(circle at 37% 29%,rgba(255,232,246,.13),transparent 31%),
+    rgba(32,13,29,.3);
+  border:1px solid rgba(255,222,240,.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    inset 12px 10px 28px rgba(255,221,240,.025),
+    inset -16px -16px 34px rgba(107,38,88,.13),
+    0 34px 90px rgba(0,0,0,.36),
+    0 0 70px rgba(255,82,169,.08);
+  backdrop-filter:blur(18px) saturate(1.16);
+  animation:glassFloat 5.2s ease-in-out 2s infinite;
+}
+.site-loader__glass::before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border-radius:inherit;
+  border:1px solid rgba(255,234,246,.075);
+  box-shadow:inset 0 0 28px rgba(255,135,198,.035);
+}
+.site-loader__glass::after{
+  content:"";
+  position:absolute;
+  width:54%;
+  height:17%;
+  left:19%;
+  top:12%;
+  border-radius:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,0));
+  filter:blur(5px);
+  transform:rotate(-13deg);
+  opacity:.68;
+  pointer-events:none;
+}
+.site-loader__spark{
+  position:absolute;
+  z-index:3;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#ffd4ec;
+  box-shadow:0 0 8px #ff8bca,0 0 18px rgba(255,103,184,.7);
+  opacity:0;
+  animation:sparkWake 3.4s ease-in-out 1.7s infinite;
+}
+.site-loader__spark--one{right:30px;top:62px}
+.site-loader__spark--two{left:37px;bottom:54px;animation-delay:2.2s;transform:scale(.65)}
 .site-loader__q{
-  width:142px;
-  filter:drop-shadow(0 0 8px rgba(210,184,255,.88)) drop-shadow(0 0 28px rgba(152,99,255,.72));
-  animation:qNeonWake 2.4s steps(1,end) infinite;
+  position:relative;
+  z-index:2;
+  width:194px;
+  overflow:visible;
+  filter:drop-shadow(0 0 7px rgba(255,177,220,.58)) drop-shadow(0 0 30px rgba(255,72,166,.26));
 }
-.site-loader__q .tube-shadow{
+.site-loader__q .q-stroke{
   fill:none;
-  stroke:rgba(128,79,206,.32);
-  stroke-width:17;
   stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:1;
+  stroke-dashoffset:1;
+  animation:qWrite 1.75s cubic-bezier(.42,0,.19,1) .18s forwards;
 }
-.site-loader__q .tube{
-  fill:none;
-  stroke:#f4eaff;
-  stroke-width:8;
-  stroke-linecap:round;
-  filter:drop-shadow(0 0 5px #b985ff);
+.site-loader__q .q-tail{animation-duration:.72s;animation-delay:1.35s}
+.site-loader__q .q-halo{
+  stroke:#ff5aaf;
+  stroke-width:25;
+  opacity:.28;
+  filter:url(#q-soft-glow);
+}
+.site-loader__q .q-bloom{
+  stroke:#ff7fbd;
+  stroke-width:14;
+  opacity:.32;
+  filter:url(#q-bright-glow);
+}
+.site-loader__q .q-tube{
+  stroke:url(#q-pink-tube);
+  stroke-width:8.5;
+  filter:url(#q-crisp-glow);
+}
+.site-loader__q .q-highlight{
+  stroke:rgba(255,245,251,.88);
+  stroke-width:2.1;
+  opacity:.84;
 }
 .site-loader__copy strong,
 .site-loader__copy span{display:block}
 .site-loader__copy strong{
-  color:#fff;
-  font-size:12px;
-  font-weight:620;
-  letter-spacing:.26em;
+  color:#fff2fa;
+  font-size:11px;
+  font-weight:590;
+  letter-spacing:.32em;
   text-transform:uppercase;
+  text-shadow:0 0 16px rgba(255,144,205,.36);
 }
 .site-loader__copy span{
-  margin-top:8px;
-  color:rgba(239,229,255,.5);
-  font-size:11px;
-  letter-spacing:.12em;
+  margin-top:9px;
+  color:rgba(255,219,239,.48);
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:12px;
+  font-style:italic;
+  letter-spacing:.04em;
+  transition:opacity .3s ease;
 }
-.site-loader__track{
-  width:100%;
-  height:2px;
-  overflow:hidden;
-  border-radius:999px;
-  background:rgba(233,219,255,.1);
-  box-shadow:0 0 0 1px rgba(255,255,255,.025);
+@keyframes qWrite{
+  to{stroke-dashoffset:0}
 }
-.site-loader__track span{
-  display:block;
-  width:8%;
-  height:100%;
-  border-radius:inherit;
-  background:linear-gradient(90deg,#9a63f1,#f3e7ff);
-  box-shadow:0 0 12px rgba(185,133,255,.9);
-  transition:width .35s ease;
+@keyframes loaderAura{
+  0%{transform:translate3d(-1.5%,1%,0) scale(.96);opacity:.68}
+  100%{transform:translate3d(1.5%,-1%,0) scale(1.05);opacity:1}
 }
-@keyframes qNeonWake{
-  0%,4%{opacity:.28}
-  5%,9%{opacity:.92}
-  10%,13%{opacity:.42}
-  14%,42%{opacity:1}
-  43%,45%{opacity:.72}
-  46%,100%{opacity:1}
+@keyframes glassFloat{
+  0%,100%{transform:translateY(0) rotate(-.35deg)}
+  50%{transform:translateY(-5px) rotate(.35deg)}
+}
+@keyframes sparkWake{
+  0%,24%,100%{opacity:0;transform:scale(.4)}
+  35%{opacity:.92;transform:scale(1)}
+  56%{opacity:.26;transform:scale(.68)}
 }
 .scene{
   position:absolute;
@@ -3109,6 +3194,8 @@ a.ring{display:block;text-decoration:none}
 }
 
 @media (max-width: 680px){
+  .site-loader__glass{width:214px}
+  .site-loader__q{width:178px}
   .topbar{top:14px;left:14px;right:14px}
   .brand{font-size:11px;letter-spacing:.16em}
   .progress{font-size:9px;gap:8px;letter-spacing:.08em}
@@ -3239,10 +3326,14 @@ a.ring{display:block;text-decoration:none}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .site-loader__q,
+  .site-loader::before,
+  .site-loader__glass,
+  .site-loader__spark,
+  .site-loader__q .q-stroke,
   body.mood-disco .scene.active::before,
   body.mood-disco .scene.active > img,
   body.mood-disco .scene.active > video{animation:none}
+  .site-loader__q .q-stroke{stroke-dashoffset:0}
 }
 </style>
 </head>
@@ -3250,17 +3341,45 @@ a.ring{display:block;text-decoration:none}
 <div class="app">
   <div class="site-loader" id="site-loader" role="status" aria-live="polite" aria-label="Loading Q Studio">
     <div class="site-loader__inner">
-      <svg class="site-loader__q" viewBox="0 0 160 160" aria-hidden="true">
-        <circle class="tube-shadow" cx="74" cy="72" r="45"></circle>
-        <path class="tube-shadow" d="M104 104 L134 136"></path>
-        <circle class="tube" cx="74" cy="72" r="45"></circle>
-        <path class="tube" d="M104 104 L134 136"></path>
-      </svg>
+      <div class="site-loader__glass" aria-hidden="true">
+        <span class="site-loader__spark site-loader__spark--one"></span>
+        <span class="site-loader__spark site-loader__spark--two"></span>
+        <svg class="site-loader__q" viewBox="0 0 220 220">
+          <defs>
+            <linearGradient id="q-pink-tube" x1="35" y1="28" x2="188" y2="194" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ffe2f2"></stop>
+              <stop offset=".28" stop-color="#ff9bd0"></stop>
+              <stop offset=".68" stop-color="#ff6fb8"></stop>
+              <stop offset="1" stop-color="#ffc4e4"></stop>
+            </linearGradient>
+            <filter id="q-soft-glow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="8"></feGaussianBlur>
+            </filter>
+            <filter id="q-bright-glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="4.2"></feGaussianBlur>
+            </filter>
+            <filter id="q-crisp-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.1" result="tubeBlur"></feGaussianBlur>
+              <feMerge>
+                <feMergeNode in="tubeBlur"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+              </feMerge>
+            </filter>
+          </defs>
+          <path class="q-stroke q-halo" pathLength="1" d="M158 47C132 22 86 22 55 48C22 76 21 128 48 163C73 195 125 199 157 170C185 145 190 101 169 69C153 45 122 35 95 42C68 49 50 72 48 99C45 126 61 151 86 160C112 170 142 158 154 135"></path>
+          <path class="q-stroke q-bloom" pathLength="1" d="M158 47C132 22 86 22 55 48C22 76 21 128 48 163C73 195 125 199 157 170C185 145 190 101 169 69C153 45 122 35 95 42C68 49 50 72 48 99C45 126 61 151 86 160C112 170 142 158 154 135"></path>
+          <path class="q-stroke q-tube" pathLength="1" d="M158 47C132 22 86 22 55 48C22 76 21 128 48 163C73 195 125 199 157 170C185 145 190 101 169 69C153 45 122 35 95 42C68 49 50 72 48 99C45 126 61 151 86 160C112 170 142 158 154 135"></path>
+          <path class="q-stroke q-highlight" pathLength="1" d="M158 47C132 22 86 22 55 48C22 76 21 128 48 163C73 195 125 199 157 170C185 145 190 101 169 69C153 45 122 35 95 42C68 49 50 72 48 99C45 126 61 151 86 160C112 170 142 158 154 135"></path>
+          <path class="q-stroke q-tail q-halo" pathLength="1" d="M124 130C143 145 161 166 188 193"></path>
+          <path class="q-stroke q-tail q-bloom" pathLength="1" d="M124 130C143 145 161 166 188 193"></path>
+          <path class="q-stroke q-tail q-tube" pathLength="1" d="M124 130C143 145 161 166 188 193"></path>
+          <path class="q-stroke q-tail q-highlight" pathLength="1" d="M124 130C143 145 161 166 188 193"></path>
+        </svg>
+      </div>
       <div class="site-loader__copy">
         <strong>Q Studio</strong>
-        <span id="loader-status">Warming up the neon…</span>
+        <span id="loader-status">A little light is waking up…</span>
       </div>
-      <div class="site-loader__track" aria-hidden="true"><span id="loader-progress"></span></div>
     </div>
   </div>
   <div class="topbar">
@@ -3423,6 +3542,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<script src="./app.js?v=20260711-room-polish-5"></script>
+<script src="./app.js?v=20260711-romantic-loader"></script>
 </body>
 </html>

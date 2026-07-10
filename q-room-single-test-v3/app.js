@@ -42,7 +42,6 @@ const messageWebsite = document.getElementById("message-website");
 const messageStatus = document.getElementById("message-status");
 const siteLoader = document.getElementById("site-loader");
 const loaderStatus = document.getElementById("loader-status");
-const loaderProgress = document.getElementById("loader-progress");
 const moodTrigger = document.getElementById("mood-trigger");
 const moodMenu = document.getElementById("mood-menu");
 const moodButtons = Array.from(document.querySelectorAll("[data-mood]"));
@@ -78,9 +77,13 @@ function startSiteLoader() {
   let settled = 0;
   const total = Math.max(1, criticalMedia.length);
   const update = () => {
-    const progress = Math.min(92, 10 + Math.round((settled / total) * 82));
-    if (loaderProgress) loaderProgress.style.width = `${progress}%`;
-    if (loaderStatus) loaderStatus.textContent = settled < total ? "Warming up the room…" : "Neon is on.";
+    if (!loaderStatus) return;
+    const progress = settled / total;
+    loaderStatus.textContent = settled >= total
+      ? "The room is glowing."
+      : progress < .5
+        ? "Tracing a little light…"
+        : "Letting the glass catch the glow…";
   };
   const waitForMedia = element => new Promise(resolve => {
     const isImage = element instanceof HTMLImageElement;
@@ -104,10 +107,9 @@ function startSiteLoader() {
   update();
   const mediaReady = Promise.all(criticalMedia.map(waitForMedia));
   const safetyReady = new Promise(resolve => window.setTimeout(resolve, 8000));
-  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 900));
+  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 2300));
   Promise.all([Promise.race([mediaReady, safetyReady]), minimumGlow]).then(() => {
-    if (loaderProgress) loaderProgress.style.width = "100%";
-    if (loaderStatus) loaderStatus.textContent = "Room ready.";
+    if (loaderStatus) loaderStatus.textContent = "The room is glowing.";
     window.setTimeout(() => {
       siteLoader.classList.add("is-complete");
       document.body.classList.remove("site-loading");
