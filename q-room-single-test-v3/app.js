@@ -38,6 +38,7 @@ const messageCanvas = document.getElementById("message-canvas");
 const messageText = document.getElementById("message-text");
 const messageStatus = document.getElementById("message-status");
 const messageSaved = document.getElementById("message-saved");
+const ambientMusic = document.getElementById("ambient-music");
 const doorIdleVideo = document.getElementById("door-idle-video");
 const doorOpenVideo = document.getElementById("door-open-video");
 const roomLoopVideo = document.getElementById("room-loop-video");
@@ -749,9 +750,11 @@ function startChatIdle(preferredState = "idle") {
 function setChatSpeaking(nextSpeaking) {
   chatSpeaking = Boolean(nextSpeaking);
   if (chatSpeaking) {
+    AudioSys.duckMusic(0.008, 1400);
     setChatVisualState("talk", { reset: true });
     return;
   }
+  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 900);
   if (chatBusy) {
     setChatVisualState("waiting", { reset: true });
     return;
@@ -858,39 +861,26 @@ const AudioSys = {
   ctx: null,
   muted: true,
   master: null,
-  padGain: null,
   keyboardTimer: null,
   roomTimer: null,
   lastClickAt: 0,
+  musicFadeFrame: 0,
+  musicDuckTimer: 0,
   async ensureStarted() {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.0001;
       this.master.connect(this.ctx.destination);
-      this.padGain = this.ctx.createGain();
-      this.padGain.gain.value = 0.0001;
-      this.padGain.connect(this.master);
-      [174.61, 246.94, 329.63].forEach((freq, index) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = index === 0 ? "triangle" : "sine";
-        osc.frequency.value = freq;
-        gain.gain.value = index === 0 ? 0.24 : 0.11;
-        osc.connect(gain);
-        gain.connect(this.padGain);
-        osc.start();
-      });
-      const lfo = this.ctx.createOscillator();
-      const lfoGain = this.ctx.createGain();
-      lfo.type = "sine";
-      lfo.frequency.value = 0.08;
-      lfoGain.gain.value = 0.026;
-      lfo.connect(lfoGain);
-      lfoGain.connect(this.padGain.gain);
-      lfo.start();
+      if (ambientMusic) {
+        ambientMusic.volume = 0;
+        ambientMusic.playbackRate = 0.97;
+      }
     }
-    if (this.ctx.state === "suspended") await this.ctx.resume();
+    if (this.ctx.state === "suspended") {
+      // Some browsers keep resume() pending; never let it block the UI gesture.
+      this.ctx.resume().catch(() => {});
+    }
     if (this.muted) this.setMuted(false);
   },
   setMuted(nextMuted) {
@@ -903,18 +893,55 @@ const AudioSys = {
     const now = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(now);
     this.master.gain.setValueAtTime(this.master.gain.value, now);
-    this.master.gain.linearRampToValueAtTime(this.muted ? 0.0001 : 0.24, now + 0.25);
-    this.padGain.gain.cancelScheduledValues(now);
-    this.padGain.gain.setValueAtTime(this.padGain.gain.value, now);
-    this.padGain.gain.linearRampToValueAtTime(this.muted ? 0.0001 : 0.11, now + 0.8);
+    this.master.gain.linearRampToValueAtTime(this.muted ? 0.0001 : 0.68, now + 0.18);
     if (this.muted) {
       this.stopKeyboard();
       this.stopRoomDetails();
+      this.fadeMusicTo(0, 220, true);
     } else {
-      this.shimmer(720, 0.028);
+      this.startMusic();
+      this.shimmer(720, 0.036);
       this.syncSceneAudio();
     }
     syncDeskVideoAudio();
+  },
+  startMusic() {
+    if (!ambientMusic || this.muted) return;
+    ambientMusic.play().catch(() => {});
+    this.fadeMusicTo(this.sceneMusicLevel(), 1100);
+  },
+  sceneMusicLevel() {
+    if (messageModal?.classList.contains("open")) return 0.025;
+    if (workPanel?.classList.contains("open")) return 0.035;
+    if (scenes.door.classList.contains("active")) return 0.032;
+    if (scenes.desk.classList.contains("active")) return 0.038;
+    if (scenes.chat.classList.contains("active")) return 0.03;
+    if (scenes.contact.classList.contains("active")) return 0.045;
+    return 0.062;
+  },
+  fadeMusicTo(target, duration = 500, allowMuted = false) {
+    if (!ambientMusic || (this.muted && !allowMuted)) return;
+    cancelAnimationFrame(this.musicFadeFrame);
+    const from = ambientMusic.volume;
+    const safeTarget = Math.max(0, Math.min(0.12, target));
+    const startedAt = performance.now();
+    const tick = now => {
+      const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
+      const eased = 1 - Math.pow(1 - progress, 3);
+      ambientMusic.volume = from + (safeTarget - from) * eased;
+      if (progress < 1) {
+        this.musicFadeFrame = requestAnimationFrame(tick);
+      }
+    };
+    this.musicFadeFrame = requestAnimationFrame(tick);
+  },
+  duckMusic(level = 0.018, hold = 420) {
+    if (!ambientMusic || this.muted) return;
+    clearTimeout(this.musicDuckTimer);
+    this.fadeMusicTo(Math.min(level, ambientMusic.volume), 90);
+    this.musicDuckTimer = window.setTimeout(() => {
+      this.fadeMusicTo(this.sceneMusicLevel(), 650);
+    }, hold);
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -956,22 +983,24 @@ const AudioSys = {
   },
   click(scale = 1) {
     const now = Date.now();
-    if (now - this.lastClickAt < 64) return;
+    // Pointer and click handlers can both fire for one control; keep one clean sound.
+    if (now - this.lastClickAt < 180) return;
     this.lastClickAt = now;
-    const first = 0.07 * scale;
-    const second = 0.038 * scale;
-    this.noise(0.038, 0.034 * scale, 4200, 1280);
-    this.tone(760, 0.055, first, "triangle");
-    setTimeout(() => this.tone(1160, 0.048, second, "sine"), 30);
+    this.duckMusic(0.018, 300);
+    this.noise(0.045, 0.072 * scale, 4600, 1500);
+    this.tone(620, 0.06, 0.078 * scale, "triangle");
+    setTimeout(() => this.tone(1080, 0.07, 0.042 * scale, "sine"), 28);
   },
   door() {
-    this.noise(0.18, 0.022, 420, 90);
-    setTimeout(() => this.tone(118, 0.22, 0.05, "triangle"), 36);
+    this.duckMusic(0.01, 2500);
+    this.noise(0.18, 0.028, 420, 90);
+    setTimeout(() => this.tone(118, 0.22, 0.052, "triangle"), 36);
   },
   transition(delay = 76) {
+    this.duckMusic(0.016, 620);
     window.setTimeout(() => {
-      this.noise(0.12, 0.02, 1500, 280);
-      setTimeout(() => this.tone(260, 0.11, 0.022, "triangle"), 42);
+      this.noise(0.12, 0.032, 1500, 280);
+      setTimeout(() => this.tone(260, 0.11, 0.034, "triangle"), 42);
     }, delay);
   },
   shimmer(base, vol) {
@@ -1026,9 +1055,12 @@ const AudioSys = {
     this.stopRoomDetails();
     syncDeskVideoAudio();
     if (this.muted) return;
+    this.startMusic();
+    this.fadeMusicTo(this.sceneMusicLevel(), 750);
     if (scenes.room.classList.contains("active")) this.startRoomDetails();
+    if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
-      this.shimmer(620, 0.02);
+      this.shimmer(620, 0.025);
     }
   }
 };
@@ -1262,6 +1294,7 @@ async function openMessageBoard() {
   if (messageStatus) messageStatus.textContent = "Draw or write something. It will stay here in this browser.";
   AudioSys.click();
   AudioSys.shimmer(700, 0.018);
+  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function closeMessageBoard() {
@@ -1269,6 +1302,7 @@ async function closeMessageBoard() {
   messageModal?.classList.remove("open");
   messageModal?.setAttribute("aria-hidden", "true");
   AudioSys.click();
+  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function openPanel() {
@@ -1281,6 +1315,7 @@ async function openPanel() {
   AudioSys.stopKeyboard();
   syncDeskVideoAudio();
   AudioSys.click();
+  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function closePanel() {
@@ -1290,6 +1325,7 @@ async function closePanel() {
   deskBackCue.classList.add("visible");
   AudioSys.click();
   syncDeskVideoAudio();
+  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function primeAudio() {
@@ -1386,6 +1422,7 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
   doorOpenVideo.muted = AudioSys.muted;
+  doorOpenVideo.volume = 0.86;
   try {
     doorOpenVideo.currentTime = 0;
   } catch (error) {
