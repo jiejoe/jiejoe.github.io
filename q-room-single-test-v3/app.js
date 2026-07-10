@@ -1492,11 +1492,11 @@ chatInput.addEventListener("keydown", async event => {
 
 soundToggle.addEventListener("click", async () => {
   if (!AudioSys.ctx) {
-    await primeAudio();
-    if (AudioSys.muted) AudioSys.setMuted(false);
-    return;
+    AudioSys.muted = true;
+    await AudioSys.ensureStarted().catch(() => {});
+  } else {
+    AudioSys.setMuted(!AudioSys.muted);
   }
-  AudioSys.setMuted(!AudioSys.muted);
   if (doorOpenVideo) {
     doorOpenVideo.muted = AudioSys.muted;
   }
