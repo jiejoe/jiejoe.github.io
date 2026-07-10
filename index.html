@@ -25,16 +25,6 @@
       display: block;
       background: #09070d;
     }
-    .fallback {
-      position: fixed;
-      inset: auto 20px 20px auto;
-      z-index: 2;
-      color: rgba(247,242,255,.72);
-      font: 13px/1.4 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
-      text-decoration: none;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
   </style>
 </head>
 <body>
@@ -43,6 +33,8 @@
     title="Q Studio interactive room"
     allow="autoplay; fullscreen"
   ></iframe>
-  <a class="fallback" href="/q-room-single-test-v3/">Open Room</a>
+  <noscript>
+    <a href="/q-room-single-test-v3/">Open Q Studio</a>
+  </noscript>
 </body>
 </html>

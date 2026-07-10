@@ -40,8 +40,12 @@ const messageName = document.getElementById("message-name");
 const messageText = document.getElementById("message-text");
 const messageWebsite = document.getElementById("message-website");
 const messageStatus = document.getElementById("message-status");
-const chatVoiceToggle = document.getElementById("chat-voice-toggle");
-const ambientMusic = document.getElementById("ambient-music");
+const siteLoader = document.getElementById("site-loader");
+const loaderStatus = document.getElementById("loader-status");
+const loaderProgress = document.getElementById("loader-progress");
+const moodTrigger = document.getElementById("mood-trigger");
+const moodMenu = document.getElementById("mood-menu");
+const moodButtons = Array.from(document.querySelectorAll("[data-mood]"));
 const doorIdleVideo = document.getElementById("door-idle-video");
 const doorOpenVideo = document.getElementById("door-open-video");
 const roomLoopVideo = document.getElementById("room-loop-video");
@@ -61,6 +65,66 @@ const chatStateVideos = {
   waiting: chatWaitingVideo,
   talk: chatTalkVideo
 };
+
+function startSiteLoader() {
+  if (!siteLoader) return;
+  const criticalMedia = [
+    ...document.querySelectorAll(".scene > img"),
+    doorIdleVideo,
+    roomLoopVideo,
+    deskLoopVideo,
+    chatIdleVideo
+  ].filter(Boolean);
+  let settled = 0;
+  const total = Math.max(1, criticalMedia.length);
+  const update = () => {
+    const progress = Math.min(92, 10 + Math.round((settled / total) * 82));
+    if (loaderProgress) loaderProgress.style.width = `${progress}%`;
+    if (loaderStatus) loaderStatus.textContent = settled < total ? "Warming up the room…" : "Neon is on.";
+  };
+  const waitForMedia = element => new Promise(resolve => {
+    const isImage = element instanceof HTMLImageElement;
+    const ready = isImage ? element.complete && element.naturalWidth > 0 : element.readyState >= 2;
+    let finished = false;
+    const done = () => {
+      if (finished) return;
+      finished = true;
+      settled += 1;
+      update();
+      resolve();
+    };
+    if (ready) {
+      done();
+      return;
+    }
+    const eventName = isImage ? "load" : "loadeddata";
+    element.addEventListener(eventName, done, { once: true });
+    element.addEventListener("error", done, { once: true });
+  });
+  update();
+  const mediaReady = Promise.all(criticalMedia.map(waitForMedia));
+  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 8000));
+  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 900));
+  Promise.all([Promise.race([mediaReady, safetyReady]), minimumGlow]).then(() => {
+    if (loaderProgress) loaderProgress.style.width = "100%";
+    if (loaderStatus) loaderStatus.textContent = "Room ready.";
+    window.setTimeout(() => {
+      siteLoader.classList.add("is-complete");
+      document.body.classList.remove("site-loading");
+    }, 320);
+  });
+}
+
+function setRoomMood(nextMood) {
+  const mood = ["glow", "lights-out", "disco"].includes(nextMood) ? nextMood : "glow";
+  document.body.classList.remove("mood-lights-out", "mood-disco");
+  if (mood === "lights-out") document.body.classList.add("mood-lights-out");
+  if (mood === "disco") document.body.classList.add("mood-disco");
+  moodButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mood === mood)));
+}
+
+startSiteLoader();
+setRoomMood("glow");
 
 const order = ["door", "room", "desk", "chat", "contact"];
 const workedOnItems = [
@@ -351,16 +415,9 @@ let activeWorkTab = "worked";
 const WORKER = "https://another-me-q.jiejoe-eth.workers.dev";
 const MESSAGE_ENDPOINT = WORKER + "/qroom-messages";
 let chatBusy = false;
-let chatSpeaking = false;
+let chatAnswering = false;
 let chatVisualState = "idle";
 let chatVisited = false;
-let activeChatUtterance = null;
-let chatVoiceEnabled = true;
-try {
-  chatVoiceEnabled = localStorage.getItem("qroom-chat-voice") !== "off";
-} catch (error) {
-  void error;
-}
 const chatIntro =
   "Hi，我是 Q，一个 AI Native 的 Product Builder。我每天会做很多小项目，也一直在研究人和 Agent 怎样更自然地协作。你可以先让我介绍自己，或者问我最近在做什么。";
 let convo = [
@@ -737,115 +794,30 @@ function startChatIdle(preferredState = "idle") {
   setChatVisualState(state, { reset: true });
 }
 
-function setChatSpeaking(nextSpeaking, restState = "relaxed") {
-  chatSpeaking = Boolean(nextSpeaking);
-  if (chatSpeaking) {
-    AudioSys.duckMusic(0.008, 1400);
+function setChatAnswering(nextAnswering) {
+  chatAnswering = Boolean(nextAnswering);
+  if (chatAnswering) {
     setChatVisualState("talk", { reset: true });
     return;
   }
-  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 900);
   if (chatBusy) {
     setChatVisualState("waiting", { reset: true });
     return;
   }
-  startChatIdle(restState);
-}
-
-function getPreferredChatVoice() {
-  if (!("speechSynthesis" in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
-  const preferredNames = [
-    /ting[- ]?ting/i,
-    /xiaoxiao/i,
-    /meijia/i,
-    /婷婷|晓晓|美佳/,
-    /google.*普通话/i,
-  ];
-  for (const pattern of preferredNames) {
-    const voice = voices.find(item => pattern.test(item.name));
-    if (voice) return voice;
-  }
-  return voices.find(voice => /^zh[-_](CN|Hans)/i.test(voice.lang))
-    || voices.find(voice => /^zh/i.test(voice.lang))
-    || voices.find(voice => /^en/i.test(voice.lang))
-    || voices[0]
-    || null;
-}
-
-function updateVoiceToggle() {
-  if (!chatVoiceToggle) return;
-  chatVoiceToggle.textContent = chatVoiceEnabled ? "Voice On" : "Voice Off";
-  chatVoiceToggle.setAttribute("aria-pressed", String(chatVoiceEnabled));
-}
-
-function cancelChatSpeech(restState = "relaxed") {
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-  activeChatUtterance = null;
-  if (chatSpeaking) setChatSpeaking(false, restState);
-}
-
-function speakChatText(text) {
-  const cleanText = String(text || "").replace(/[*#_`>-]/g, " ").replace(/\s+/g, " ").trim();
-  if (!cleanText || !chatVoiceEnabled || AudioSys.muted || !("speechSynthesis" in window)) {
-    if (!chatBusy) startChatIdle("relaxed");
-    return false;
-  }
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  const voice = getPreferredChatVoice();
-  if (voice) utterance.voice = voice;
-  utterance.lang = voice?.lang || "zh-CN";
-  utterance.rate = 0.96;
-  utterance.pitch = 1.03;
-  utterance.volume = 0.92;
-  activeChatUtterance = utterance;
-  setChatSpeaking(true);
-
-  const finish = () => {
-    if (activeChatUtterance !== utterance) return;
-    activeChatUtterance = null;
-    setChatSpeaking(false, "relaxed");
-  };
-  utterance.onend = finish;
-  utterance.onerror = finish;
-  window.speechSynthesis.speak(utterance);
-  return true;
-}
-
-function bindTtsAudio(audio) {
-  if (!audio || !audio.addEventListener) {
-    throw new TypeError("bindTtsAudio expects an audio element");
-  }
-  const start = () => setChatSpeaking(true);
-  const stop = () => setChatSpeaking(false, "relaxed");
-  audio.addEventListener("playing", start);
-  ["ended", "pause", "error", "abort", "emptied"].forEach(type => audio.addEventListener(type, stop));
-  return () => {
-    audio.removeEventListener("playing", start);
-    ["ended", "pause", "error", "abort", "emptied"].forEach(type => audio.removeEventListener(type, stop));
-    stop();
-  };
+  startChatIdle("relaxed");
 }
 
 function handleChatIdleEnded(state) {
-  if (!scenes.chat.classList.contains("active") || chatBusy || chatSpeaking || chatVisualState !== state) return;
-  startChatIdle(state === "idle" ? "relaxed" : "idle");
+  if (!scenes.chat.classList.contains("active") || chatBusy || chatAnswering || chatVisualState !== state) return;
+  startChatIdle("idle");
 }
 
-chatIdleVideo?.addEventListener("ended", () => handleChatIdleEnded("idle"));
 chatRelaxedVideo?.addEventListener("ended", () => handleChatIdleEnded("relaxed"));
-window.QRoomPlayback = Object.assign(window.QRoomPlayback || {}, {
-  setSpeaking: setChatSpeaking,
-  bindTtsAudio
-});
-window.addEventListener("qroom:speaking-start", () => setChatSpeaking(true));
-window.addEventListener("qroom:speaking-end", () => setChatSpeaking(false, "relaxed"));
 
 async function sendChatMessage(prefill) {
   const text = (prefill || chatInput.value).trim();
   if (!text || chatBusy) return;
-  cancelChatSpeech("waiting");
+  setChatAnswering(false);
   chatBusy = true;
   chatInput.value = "";
   meEcho.hidden = false;
@@ -856,6 +828,7 @@ async function sendChatMessage(prefill) {
   AudioSys.click();
   AudioSys.shimmer(820, 0.018);
   document.getElementById("send-btn").disabled = true;
+  let answerStartedAt = 0;
 
   try {
     const resp = await fetch(WORKER + "/qroom-chat", {
@@ -868,6 +841,7 @@ async function sendChatMessage(prefill) {
     const decoder = new TextDecoder();
     let buf = "";
     let acc = "";
+    let receivedAnswer = false;
 
     while (true) {
       const part = await reader.read();
@@ -885,6 +859,11 @@ async function sendChatMessage(prefill) {
           const choice = json && json.choices && json.choices[0];
           const delta = choice && choice.delta && choice.delta.content;
           if (!delta) continue;
+          if (!receivedAnswer) {
+            receivedAnswer = true;
+            answerStartedAt = Date.now();
+            setChatAnswering(true);
+          }
           acc += delta;
           setQSpeech(acc, true);
         } catch (error) {
@@ -898,14 +877,17 @@ async function sendChatMessage(prefill) {
     }
     setQSpeech(acc, false);
     convo.push({ role: "assistant", content: acc });
-    speakChatText(acc);
   } catch (error) {
     setQSpeech("刚才连接走神了一下，可以再问我一次。", false);
-    startChatIdle("relaxed");
   } finally {
+    if (answerStartedAt) {
+      const remainingTalkTime = Math.max(0, 1400 - (Date.now() - answerStartedAt));
+      if (remainingTalkTime) await new Promise(resolve => window.setTimeout(resolve, remainingTalkTime));
+    }
     chatBusy = false;
+    chatAnswering = false;
     document.getElementById("send-btn").disabled = false;
-    if (!chatSpeaking) startChatIdle("relaxed");
+    if (scenes.chat.classList.contains("active")) startChatIdle("relaxed");
   }
 }
 
@@ -918,18 +900,12 @@ const AudioSys = {
   keyboardTimer: null,
   roomTimer: null,
   lastClickAt: 0,
-  musicFadeFrame: 0,
-  musicDuckTimer: 0,
   async ensureStarted() {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.0001;
       this.master.connect(this.ctx.destination);
-      if (ambientMusic) {
-        ambientMusic.volume = 0;
-        ambientMusic.playbackRate = 0.97;
-      }
     }
     if (this.ctx.state === "suspended") {
       // Some browsers keep resume() pending; never let it block the UI gesture.
@@ -939,7 +915,7 @@ const AudioSys = {
   },
   setMuted(nextMuted) {
     this.muted = nextMuted;
-    soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
+    soundToggle.innerHTML = `<strong>${this.muted ? "FX Off" : "FX On"}</strong>`;
     if (!this.ctx) {
       syncRoomVideoAudio();
       syncDeskVideoAudio();
@@ -950,55 +926,14 @@ const AudioSys = {
     this.master.gain.setValueAtTime(this.master.gain.value, now);
     this.master.gain.linearRampToValueAtTime(this.muted ? 0.0001 : 0.68, now + 0.18);
     if (this.muted) {
-      cancelChatSpeech("relaxed");
       this.stopKeyboard();
       this.stopRoomDetails();
-      this.fadeMusicTo(0, 220, true);
     } else {
-      this.startMusic();
       this.shimmer(720, 0.036);
       this.syncSceneAudio();
     }
     syncRoomVideoAudio();
     syncDeskVideoAudio();
-  },
-  startMusic() {
-    if (!ambientMusic || this.muted) return;
-    ambientMusic.play().catch(() => {});
-    this.fadeMusicTo(this.sceneMusicLevel(), 1100);
-  },
-  sceneMusicLevel() {
-    if (messageModal?.classList.contains("open")) return 0.025;
-    if (workPanel?.classList.contains("open")) return 0.035;
-    if (scenes.door.classList.contains("active")) return 0.032;
-    if (scenes.desk.classList.contains("active")) return 0.038;
-    if (scenes.chat.classList.contains("active")) return 0.03;
-    if (scenes.contact.classList.contains("active")) return 0.045;
-    return 0.062;
-  },
-  fadeMusicTo(target, duration = 500, allowMuted = false) {
-    if (!ambientMusic || (this.muted && !allowMuted)) return;
-    cancelAnimationFrame(this.musicFadeFrame);
-    const from = ambientMusic.volume;
-    const safeTarget = Math.max(0, Math.min(0.12, target));
-    const startedAt = performance.now();
-    const tick = now => {
-      const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
-      const eased = 1 - Math.pow(1 - progress, 3);
-      ambientMusic.volume = from + (safeTarget - from) * eased;
-      if (progress < 1) {
-        this.musicFadeFrame = requestAnimationFrame(tick);
-      }
-    };
-    this.musicFadeFrame = requestAnimationFrame(tick);
-  },
-  duckMusic(level = 0.018, hold = 420) {
-    if (!ambientMusic || this.muted) return;
-    clearTimeout(this.musicDuckTimer);
-    this.fadeMusicTo(Math.min(level, ambientMusic.volume), 90);
-    this.musicDuckTimer = window.setTimeout(() => {
-      this.fadeMusicTo(this.sceneMusicLevel(), 650);
-    }, hold);
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -1043,18 +978,15 @@ const AudioSys = {
     // Pointer and click handlers can both fire for one control; keep one clean sound.
     if (now - this.lastClickAt < 180) return;
     this.lastClickAt = now;
-    this.duckMusic(0.018, 300);
     this.noise(0.045, 0.072 * scale, 4600, 1500);
     this.tone(620, 0.06, 0.078 * scale, "triangle");
     setTimeout(() => this.tone(1080, 0.07, 0.042 * scale, "sine"), 28);
   },
   door() {
-    this.duckMusic(0.01, 2500);
     this.noise(0.18, 0.028, 420, 90);
     setTimeout(() => this.tone(118, 0.22, 0.052, "triangle"), 36);
   },
   transition(delay = 76) {
-    this.duckMusic(0.016, 620);
     window.setTimeout(() => {
       this.noise(0.12, 0.032, 1500, 280);
       setTimeout(() => this.tone(260, 0.11, 0.034, "triangle"), 42);
@@ -1113,8 +1045,6 @@ const AudioSys = {
     syncRoomVideoAudio();
     syncDeskVideoAudio();
     if (this.muted) return;
-    this.startMusic();
-    this.fadeMusicTo(this.sceneMusicLevel(), 750);
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
@@ -1128,7 +1058,6 @@ function setProgress(stepIndex) {
 }
 
 function activate(name) {
-  if (name !== "chat") cancelChatSpeech("idle");
   Object.entries(scenes).forEach(([key, scene]) => {
     scene.classList.toggle("active", key === name);
   });
@@ -1171,7 +1100,7 @@ function syncChatSceneMedia(activeScene) {
     Object.values(chatStateVideos).forEach(resetSceneVideo);
     return;
   }
-  if (chatSpeaking) {
+  if (chatAnswering) {
     setChatVisualState("talk", { reset: true });
     return;
   }
@@ -1220,6 +1149,11 @@ function syncDeskVideoAudio() {
 let contactReturnScene = "desk";
 let messageLoadId = 0;
 
+function syncLayerChrome() {
+  const layerOpen = Boolean(workPanel?.classList.contains("open") || messageModal?.classList.contains("open"));
+  document.body.classList.toggle("ui-layer-open", layerOpen);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -1257,6 +1191,18 @@ function messageTilt(id) {
   return ((value % 7) - 3) * 0.18;
 }
 
+function messageDoodle(id) {
+  const value = Array.from(String(id || "q")).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const doodles = [
+    `<svg viewBox="0 0 40 40"><path d="M20 5l3.8 10.5L35 16l-8.8 6.8L29 34l-9-6.2-9 6.2 2.8-11.2L5 16l11.2-.5L20 5z"/></svg>`,
+    `<svg viewBox="0 0 40 40"><path d="M7 24c5-13 10 12 15-1s9 8 12-3"/><path d="M8 31c7 2 17 1 25-3"/></svg>`,
+    `<svg viewBox="0 0 40 40"><path d="M20 33S7 25 7 15c0-7 9-9 13-2 4-7 13-5 13 2 0 10-13 18-13 18z"/></svg>`,
+    `<svg viewBox="0 0 40 40"><path d="M20 4v8M20 28v8M4 20h8M28 20h8M9 9l6 6M25 25l6 6M31 9l-6 6M15 25l-6 6"/><circle cx="20" cy="20" r="4"/></svg>`
+  ];
+  const tilt = ((value % 9) - 4) * 3;
+  return `<span class="message-doodle" style="--doodle-tilt:${tilt}deg" aria-hidden="true">${doodles[value % doodles.length]}</span>`;
+}
+
 function renderMessageWall(messages) {
   if (!messageWall) return;
   if (!messages.length) {
@@ -1265,6 +1211,7 @@ function renderMessageWall(messages) {
   }
   messageWall.innerHTML = messages.map(message => `
     <article class="message-note" style="--note-tilt:${messageTilt(message.id)}deg">
+      ${messageDoodle(message.id)}
       <p>${escapeHtml(message.body)}</p>
       <div class="message-note-footer">
         <span>${escapeHtml(message.name)} · ${escapeHtml(formatMessageDate(message.createdAt))}</span>
@@ -1368,6 +1315,7 @@ async function openMessageBoard() {
   await primeAudio();
   messageModal?.classList.add("open");
   messageModal?.setAttribute("aria-hidden", "false");
+  syncLayerChrome();
   if (messageName && !messageName.value) {
     try { messageName.value = localStorage.getItem("qroom-message-name") || ""; } catch (error) { void error; }
   }
@@ -1375,20 +1323,20 @@ async function openMessageBoard() {
   void loadMessageWall();
   AudioSys.click();
   AudioSys.shimmer(700, 0.018);
-  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function closeMessageBoard() {
   await primeAudio();
   messageModal?.classList.remove("open");
   messageModal?.setAttribute("aria-hidden", "true");
+  syncLayerChrome();
   AudioSys.click();
-  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function openPanel() {
   await primeAudio();
   workPanel.classList.add("open");
+  syncLayerChrome();
   workPanel.scrollTop = 0;
   activeWorkDetailId = null;
   deskBackCue.classList.remove("visible");
@@ -1396,17 +1344,16 @@ async function openPanel() {
   AudioSys.stopKeyboard();
   syncDeskVideoAudio();
   AudioSys.click();
-  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function closePanel() {
   await primeAudio();
   workPanel.classList.remove("open");
+  syncLayerChrome();
   activeWorkDetailId = null;
   deskBackCue.classList.add("visible");
   AudioSys.click();
   syncDeskVideoAudio();
-  AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
 }
 
 async function primeAudio() {
@@ -1422,6 +1369,7 @@ async function openDeskScene(openWorkPanel) {
     await openPanel();
   } else {
     workPanel.classList.remove("open");
+    syncLayerChrome();
     deskBackCue.classList.add("visible");
     syncDeskVideoAudio();
   }
@@ -1439,11 +1387,12 @@ async function openChatScene() {
   AudioSys.click();
   AudioSys.transition();
   if (shouldIntroduce) {
+    setChatVisualState("talk", { reset: true });
     window.setTimeout(() => {
-      if (scenes.chat.classList.contains("active") && !chatBusy) speakChatText(chatIntro);
-    }, 320);
+      if (scenes.chat.classList.contains("active") && !chatBusy) startChatIdle("relaxed");
+    }, 1800);
   } else {
-    startChatIdle("relaxed");
+    startChatIdle("idle");
   }
 }
 
@@ -1501,11 +1450,12 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   await primeAudio();
   AudioSys.click(0.42);
   AudioSys.door();
+  const doorScene = scenes.door;
+  doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
     activate("room");
     return;
   }
-  const doorScene = scenes.door;
   doorScene.classList.add("opening");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
@@ -1539,9 +1489,11 @@ document.getElementById("room-message-trigger")?.addEventListener("click", async
 
 document.getElementById("room-exit-trigger").addEventListener("click", async () => {
   await primeAudio();
+  scenes.door.classList.add("farewell");
   activate("door");
   AudioSys.click(0.6);
   AudioSys.door();
+  AudioSys.shimmer(560, 0.018);
 });
 
 document.getElementById("desk-trigger").addEventListener("click", async () => openPanel());
@@ -1563,7 +1515,6 @@ deskBackCue.addEventListener("click", async () => {
 
 chatBackCue.addEventListener("click", async () => {
   await primeAudio();
-  cancelChatSpeech("idle");
   activate("room");
   AudioSys.click();
   AudioSys.transition();
@@ -1573,6 +1524,7 @@ document.getElementById("back-room-trigger").addEventListener("click", async () 
   await primeAudio();
   activate(contactReturnScene === "desk" ? "desk" : "room");
   workPanel.classList.remove("open");
+  syncLayerChrome();
   deskBackCue.classList.toggle("visible", contactReturnScene === "desk");
   AudioSys.click();
   AudioSys.transition();
@@ -1594,23 +1546,6 @@ chatInput.addEventListener("keydown", async event => {
   sendChatMessage();
 });
 
-chatVoiceToggle?.addEventListener("click", async () => {
-  await primeAudio();
-  chatVoiceEnabled = !chatVoiceEnabled;
-  try {
-    localStorage.setItem("qroom-chat-voice", chatVoiceEnabled ? "on" : "off");
-  } catch (error) {
-    void error;
-  }
-  updateVoiceToggle();
-  if (chatVoiceEnabled) {
-    speakChatText(qStageText.textContent || chatIntro);
-  } else {
-    cancelChatSpeech("relaxed");
-  }
-  AudioSys.click();
-});
-
 soundToggle.addEventListener("click", async () => {
   if (!AudioSys.ctx) {
     AudioSys.muted = true;
@@ -1623,11 +1558,22 @@ soundToggle.addEventListener("click", async () => {
   }
 });
 
-updateVoiceToggle();
-if ("speechSynthesis" in window) {
-  window.speechSynthesis.getVoices();
-  window.speechSynthesis.addEventListener?.("voiceschanged", getPreferredChatVoice, { once: true });
-}
+moodTrigger?.addEventListener("click", async () => {
+  const isOpen = moodMenu?.classList.toggle("open") || false;
+  moodTrigger.setAttribute("aria-expanded", String(isOpen));
+  await primeAudio();
+  AudioSys.shimmer(700, 0.018);
+});
+
+moodButtons.forEach(button => {
+  button.addEventListener("click", async () => {
+    setRoomMood(button.dataset.mood || "glow");
+    moodMenu?.classList.remove("open");
+    moodTrigger?.setAttribute("aria-expanded", "false");
+    await primeAudio();
+    AudioSys.shimmer(button.dataset.mood === "disco" ? 880 : 620, 0.024);
+  });
+});
 
 document.addEventListener("click", async event => {
   const target = event.target;
@@ -1682,6 +1628,7 @@ function applyDebugRoute() {
     if (exists) {
       activate("desk");
       workPanel.classList.add("open");
+      syncLayerChrome();
       syncDeskVideoAudio();
       deskBackCue.classList.remove("visible");
       activeWorkDetailId = debugWork;
@@ -1692,6 +1639,7 @@ function applyDebugRoute() {
     activate("room");
     messageModal?.classList.add("open");
     messageModal?.setAttribute("aria-hidden", "false");
+    syncLayerChrome();
     if (messageStatus) messageStatus.textContent = "你只能删除这台设备上由自己留下的留言。";
     void loadMessageWall();
   }

@@ -17,7 +17,15 @@
   --font-ui:"SF Pro Display","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);font-family:var(--font-ui);color:var(--text);overflow:hidden}
+html,body{
+  height:100%;
+  margin:0;
+  background:var(--bg);
+  font-family:var(--font-ui);
+  color:var(--text);
+  overflow:hidden;
+  overscroll-behavior:none;
+}
 button,input{font:inherit}
 body{
   background:
@@ -27,6 +35,89 @@ body{
 }
 
 .app{position:relative;width:100%;height:100%}
+.site-loader{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:28px;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(123,76,222,.2), transparent 28%),
+    radial-gradient(circle at 50% 50%, rgba(41,25,68,.56), transparent 54%),
+    #07050b;
+  transition:opacity .7s cubic-bezier(.2,.75,.2,1), visibility .7s;
+}
+.site-loader.is-complete{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.site-loader__inner{
+  width:min(330px,78vw);
+  display:grid;
+  justify-items:center;
+  gap:20px;
+  text-align:center;
+}
+.site-loader__q{
+  width:142px;
+  filter:drop-shadow(0 0 8px rgba(210,184,255,.88)) drop-shadow(0 0 28px rgba(152,99,255,.72));
+  animation:qNeonWake 2.4s steps(1,end) infinite;
+}
+.site-loader__q .tube-shadow{
+  fill:none;
+  stroke:rgba(128,79,206,.32);
+  stroke-width:17;
+  stroke-linecap:round;
+}
+.site-loader__q .tube{
+  fill:none;
+  stroke:#f4eaff;
+  stroke-width:8;
+  stroke-linecap:round;
+  filter:drop-shadow(0 0 5px #b985ff);
+}
+.site-loader__copy strong,
+.site-loader__copy span{display:block}
+.site-loader__copy strong{
+  color:#fff;
+  font-size:12px;
+  font-weight:620;
+  letter-spacing:.26em;
+  text-transform:uppercase;
+}
+.site-loader__copy span{
+  margin-top:8px;
+  color:rgba(239,229,255,.5);
+  font-size:11px;
+  letter-spacing:.12em;
+}
+.site-loader__track{
+  width:100%;
+  height:2px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(233,219,255,.1);
+  box-shadow:0 0 0 1px rgba(255,255,255,.025);
+}
+.site-loader__track span{
+  display:block;
+  width:8%;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#9a63f1,#f3e7ff);
+  box-shadow:0 0 12px rgba(185,133,255,.9);
+  transition:width .35s ease;
+}
+@keyframes qNeonWake{
+  0%,4%{opacity:.28}
+  5%,9%{opacity:.92}
+  10%,13%{opacity:.42}
+  14%,42%{opacity:1}
+  43%,45%{opacity:.72}
+  46%,100%{opacity:1}
+}
 .scene{
   position:absolute;
   inset:0;
@@ -89,6 +180,13 @@ body{
 #scene-door.opening > img,
 #scene-door.opening > video.door-idle{
   opacity:0;
+}
+#scene-door.opening .copy,
+#scene-door.opening .door-farewell,
+#scene-door.opening .tag,
+#scene-door.opening .ring{
+  opacity:0;
+  pointer-events:none;
 }
 #scene-room > img,
 #scene-room > video{object-position:42% 50%}
@@ -170,6 +268,186 @@ body{
   cursor:pointer;
 }
 .sound-toggle strong{font-size:11px;text-transform:uppercase;font-weight:560}
+.sound-toggle,
+.mood-dock{transition:opacity .2s ease, transform .2s ease}
+body.ui-layer-open .sound-toggle,
+body.ui-layer-open .mood-dock{
+  opacity:0;
+  transform:translateY(8px);
+  pointer-events:none;
+}
+
+.mood-dock{
+  position:absolute;
+  right:clamp(16px,2vw,28px);
+  bottom:clamp(64px,6vw,76px);
+  z-index:34;
+  display:flex;
+  flex-direction:row-reverse;
+  align-items:center;
+  gap:8px;
+}
+.mood-trigger,
+.mood-menu button{
+  border:none;
+  border-radius:999px;
+  background:rgba(12,8,18,.72);
+  color:rgba(247,242,255,.84);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.09),0 14px 30px rgba(0,0,0,.22);
+  backdrop-filter:blur(14px);
+  cursor:pointer;
+}
+.mood-trigger{
+  height:36px;
+  padding:0 13px;
+  font-size:10px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.mood-menu{
+  display:flex;
+  gap:6px;
+  opacity:0;
+  transform:translateX(10px) scale(.96);
+  transform-origin:right center;
+  pointer-events:none;
+  transition:opacity .2s ease, transform .24s ease;
+}
+.mood-menu.open{
+  opacity:1;
+  transform:translateX(0) scale(1);
+  pointer-events:auto;
+}
+.mood-menu button{
+  height:32px;
+  padding:0 11px;
+  font-size:10px;
+  letter-spacing:.08em;
+}
+.mood-menu button[aria-pressed="true"]{
+  color:#fff;
+  background:rgba(139,93,227,.56);
+  box-shadow:inset 0 0 0 1px rgba(241,230,255,.22),0 0 18px rgba(161,111,255,.28);
+}
+body.mood-lights-out .scene.active > img,
+body.mood-lights-out .scene.active > video{
+  filter:saturate(.78) contrast(1.08) brightness(.46);
+}
+body.mood-lights-out .scene.active::before,
+body.mood-disco .scene.active::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+}
+body.mood-lights-out .scene.active::before{
+  background:radial-gradient(circle at 50% 45%, rgba(165,111,255,.12), rgba(4,3,8,.46) 72%);
+}
+body.mood-disco .scene.active::before{
+  background:
+    radial-gradient(circle at 18% 28%, rgba(255,70,202,.26), transparent 28%),
+    radial-gradient(circle at 78% 24%, rgba(85,212,255,.25), transparent 30%),
+    radial-gradient(circle at 55% 82%, rgba(183,109,255,.22), transparent 34%);
+  mix-blend-mode:screen;
+  animation:discoWash 6s ease-in-out infinite alternate;
+}
+body.mood-disco .scene.active > img,
+body.mood-disco .scene.active > video{
+  animation:discoGrade 8s linear infinite;
+}
+
+.door-farewell{
+  position:absolute;
+  left:clamp(18px,4vw,44px);
+  bottom:clamp(22px,5vw,40px);
+  z-index:25;
+  width:min(390px,48vw);
+  min-height:112px;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  padding:18px 20px;
+  border-radius:22px;
+  color:#f8edff;
+  background:
+    linear-gradient(145deg, rgba(94,49,126,.58), rgba(22,12,33,.9)),
+    rgba(18,10,27,.9);
+  border:1px solid rgba(226,190,255,.66);
+  box-shadow:
+    inset 0 0 0 3px rgba(184,112,241,.12),
+    inset 0 0 26px rgba(195,115,255,.16),
+    0 0 18px rgba(197,120,255,.38),
+    0 20px 44px rgba(0,0,0,.34);
+  backdrop-filter:blur(14px);
+  opacity:0;
+  transform:translateY(14px) scale(.97);
+  pointer-events:none;
+  transition:opacity .45s ease, transform .55s cubic-bezier(.2,.78,.2,1);
+}
+.door-farewell::before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border-radius:15px;
+  border:1px solid rgba(234,203,255,.24);
+  pointer-events:none;
+}
+#scene-door.farewell .door-farewell{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+#scene-door .copy{
+  transition:opacity .32s ease, transform .4s ease;
+}
+#scene-door.farewell .copy{
+  opacity:0;
+  transform:translateY(10px);
+  pointer-events:none;
+}
+.door-farewell__q{
+  position:relative;
+  z-index:1;
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  color:#fff;
+  border:2px solid rgba(239,214,255,.86);
+  box-shadow:inset 0 0 14px rgba(202,132,255,.28),0 0 15px rgba(203,132,255,.58);
+  font-size:21px;
+  font-weight:680;
+}
+.door-farewell__copy{
+  position:relative;
+  z-index:1;
+}
+.door-farewell__copy strong,
+.door-farewell__copy span{display:block}
+.door-farewell__copy strong{
+  font-size:clamp(17px,1.7vw,22px);
+  line-height:1.18;
+  font-weight:640;
+  text-shadow:0 0 12px rgba(226,186,255,.5);
+}
+.door-farewell__copy span{
+  margin-top:7px;
+  color:rgba(241,226,255,.58);
+  font-size:10px;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+@keyframes discoWash{
+  0%{opacity:.42;filter:hue-rotate(0deg)}
+  100%{opacity:.84;filter:hue-rotate(160deg)}
+}
+@keyframes discoGrade{
+  0%{filter:saturate(1.08) contrast(1.03) hue-rotate(0deg)}
+  50%{filter:saturate(1.18) contrast(1.05) hue-rotate(28deg)}
+  100%{filter:saturate(1.08) contrast(1.03) hue-rotate(0deg)}
+}
 
 .ring{
   position:absolute;
@@ -384,7 +662,11 @@ a.ring{display:block;text-decoration:none}
   border:1px solid rgba(255,255,255,.1);
   box-shadow:var(--shadow);
   backdrop-filter:blur(18px);
-  overflow:auto;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
   opacity:0;
   pointer-events:none;
   transition:opacity .3s ease, transform .3s ease;
@@ -598,7 +880,7 @@ a.ring{display:block;text-decoration:none}
   border-radius:0;
   background:none;
   box-shadow:none;
-  overflow:auto;
+  overflow:visible;
 }
 .detail-top{
   display:flex;
@@ -2202,6 +2484,7 @@ a.ring{display:block;text-decoration:none}
   border:1px solid rgba(234,223,255,.16);
   box-shadow:0 30px 90px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.04);
   overflow:hidden;
+  overscroll-behavior:contain;
 }
 .message-head{
   grid-column:1 / -1;
@@ -2238,6 +2521,9 @@ a.ring{display:block;text-decoration:none}
   min-height:360px;
   max-height:min(610px,68vh);
   overflow:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   align-content:start;
@@ -2287,11 +2573,36 @@ a.ring{display:block;text-decoration:none}
 }
 .message-note p{
   margin:0 0 18px;
+  padding-right:32px;
   color:#fbf7ff;
   font-size:14px;
   line-height:1.65;
   white-space:pre-wrap;
   overflow-wrap:anywhere;
+}
+.message-doodle{
+  position:absolute;
+  right:13px;
+  top:14px;
+  width:34px;
+  height:34px;
+  color:rgba(235,207,255,.7);
+  transform:rotate(var(--doodle-tilt,0deg));
+  filter:drop-shadow(0 0 8px rgba(185,133,255,.22));
+}
+.message-doodle svg{
+  width:100%;
+  height:100%;
+  display:block;
+  overflow:visible;
+}
+.message-doodle path,
+.message-doodle circle{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 .message-note-footer{
   display:flex;
@@ -2592,17 +2903,18 @@ a.ring{display:block;text-decoration:none}
 
 .q-stage-bubble{
   position:absolute;
-  left:clamp(18px,5vw,72px);
+  left:50%;
   top:auto;
-  bottom:clamp(218px,26vh,292px);
+  bottom:clamp(230px,25vh,300px);
   z-index:25;
-  width:min(470px,40vw);
+  width:min(680px,68vw);
   padding:18px 20px;
   border-radius:24px 24px 24px 8px;
   background:rgba(14,10,22,.76);
   border:1px solid rgba(255,255,255,.1);
   box-shadow:0 18px 40px rgba(0,0,0,.26), 0 0 26px rgba(189,150,255,.12);
   backdrop-filter:blur(18px);
+  transform:translateX(-50%);
 }
 #scene-chat .cue{
   right:26px;
@@ -2615,11 +2927,12 @@ a.ring{display:block;text-decoration:none}
 .q-stage-bubble::after{
   content:"";
   position:absolute;
-  left:26px;
+  left:50%;
   bottom:-12px;
   border:12px solid transparent;
   border-top-color:rgba(14,10,22,.76);
   border-left-color:rgba(14,10,22,.76);
+  transform:translateX(-50%);
 }
 .q-stage-label{
   display:block;
@@ -2693,20 +3006,6 @@ a.ring{display:block;text-decoration:none}
   gap:12px;
   min-width:0;
 }
-.chat-voice-toggle{
-  flex:0 0 auto;
-  border:none;
-  min-height:32px;
-  padding:0 11px;
-  border-radius:999px;
-  background:rgba(189,150,255,.12);
-  color:rgba(247,242,255,.82);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
-  cursor:pointer;
-  font-size:10px;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-}
 .chat-meta strong{
   font-size:13px;
   letter-spacing:.18em;
@@ -2777,7 +3076,7 @@ a.ring{display:block;text-decoration:none}
   .hero-screen{left:7%;top:17%;width:min(52vw,420px)}
   .work-list{grid-template-columns:1fr}
   .work-preview{grid-template-columns:1fr}
-  .q-stage-bubble{left:18px;top:auto;bottom:280px;width:min(54vw,420px)}
+  .q-stage-bubble{left:50%;top:auto;bottom:280px;width:min(72vw,560px);transform:translateX(-50%)}
   .cue{right:18px;bottom:118px}
   .cue .line{width:90px}
   .chat-shell{width:min(88vw,620px)}
@@ -2814,6 +3113,8 @@ a.ring{display:block;text-decoration:none}
   .brand{font-size:11px;letter-spacing:.16em}
   .progress{font-size:9px;gap:8px;letter-spacing:.08em}
   .sound-toggle{right:12px;bottom:12px;min-width:94px;height:38px}
+  .mood-dock{right:12px;bottom:58px}
+  .mood-menu{position:absolute;right:0;bottom:44px;flex-direction:column;align-items:flex-end}
   .copy{max-width:min(84vw,360px)}
   .copy h1{font-size:34px}
   .tag{font-size:10px;letter-spacing:.12em}
@@ -2836,7 +3137,27 @@ a.ring{display:block;text-decoration:none}
     padding:0 12px;
     font-size:10px;
   }
-  .panel{width:min(92vw,520px);padding:16px 16px 18px;border-radius:22px}
+  .door-farewell{
+    left:14px;
+    right:14px;
+    bottom:110px;
+    width:auto;
+    min-height:104px;
+    grid-template-columns:42px minmax(0,1fr);
+    padding:16px;
+    border-radius:20px;
+  }
+  .door-farewell__q{width:40px;height:40px;font-size:19px}
+  .door-farewell__copy strong{font-size:18px}
+  .panel{
+    inset:64px 12px calc(62px + env(safe-area-inset-bottom)) 12px;
+    width:auto;
+    max-height:none;
+    padding:16px 16px calc(22px + env(safe-area-inset-bottom));
+    border-radius:22px;
+    transform:none;
+  }
+  .panel.open{transform:none}
   .panel-head{padding-right:126px}
   .panel-close-side{height:38px;padding:0 12px 0 14px;font-size:10px}
   .browser-shell{gap:14px}
@@ -2871,7 +3192,15 @@ a.ring{display:block;text-decoration:none}
   .selected-card.span-6{grid-column:span 1}
   .selected-card-title{max-width:none}
   .contact-dock{width:min(78vw,360px)}
-  .message-card{padding:14px;border-radius:22px}
+  .message-card{
+    max-height:calc(100dvh - 24px);
+    padding:14px calc(14px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+    border-radius:22px;
+    overflow-x:hidden;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+  }
   .message-head h2{font-size:24px}
   .message-wall{grid-template-columns:1fr;min-height:230px}
   .message-note{min-height:126px}
@@ -2892,6 +3221,7 @@ a.ring{display:block;text-decoration:none}
     max-height:150px;
     overflow:auto;
     padding:14px 16px;
+    transform:none;
   }
   #scene-chat > img,
   #scene-chat > video{object-position:55% 50%}
@@ -2907,10 +3237,32 @@ a.ring{display:block;text-decoration:none}
   .chat-suggestions{gap:6px}
   .chat-chip{font-size:12px}
 }
+
+@media (prefers-reduced-motion:reduce){
+  .site-loader__q,
+  body.mood-disco .scene.active::before,
+  body.mood-disco .scene.active > img,
+  body.mood-disco .scene.active > video{animation:none}
+}
 </style>
 </head>
-<body>
+<body class="site-loading">
 <div class="app">
+  <div class="site-loader" id="site-loader" role="status" aria-live="polite" aria-label="Loading Q Studio">
+    <div class="site-loader__inner">
+      <svg class="site-loader__q" viewBox="0 0 160 160" aria-hidden="true">
+        <circle class="tube-shadow" cx="74" cy="72" r="45"></circle>
+        <path class="tube-shadow" d="M104 104 L134 136"></path>
+        <circle class="tube" cx="74" cy="72" r="45"></circle>
+        <path class="tube" d="M104 104 L134 136"></path>
+      </svg>
+      <div class="site-loader__copy">
+        <strong>Q Studio</strong>
+        <span id="loader-status">Warming up the neon…</span>
+      </div>
+      <div class="site-loader__track" aria-hidden="true"><span id="loader-progress"></span></div>
+    </div>
+  </div>
   <div class="topbar">
     <div class="brand">Q Studio</div>
     <div class="progress">
@@ -2921,9 +3273,15 @@ a.ring{display:block;text-decoration:none}
       <span id="p5">Contact</span>
     </div>
   </div>
-  <button class="sound-toggle" id="sound-toggle" aria-label="Toggle sound"><strong>Sound Off</strong></button>
-  <!-- "Good Night" by FASSounds, used under the Pixabay Content License. -->
-  <audio id="ambient-music" src="./assets/ambient-good-night.mp3" loop preload="auto" aria-hidden="true"></audio>
+  <button class="sound-toggle" id="sound-toggle" aria-label="Toggle interface sounds"><strong>FX Off</strong></button>
+  <div class="mood-dock">
+    <button class="mood-trigger" id="mood-trigger" type="button" aria-expanded="false" aria-controls="mood-menu">Q Mode</button>
+    <div class="mood-menu" id="mood-menu" aria-label="Room light modes">
+      <button type="button" data-mood="glow" aria-pressed="true">Glow</button>
+      <button type="button" data-mood="lights-out" aria-pressed="false">Lights Out</button>
+      <button type="button" data-mood="disco" aria-pressed="false">Disco</button>
+    </div>
+  </div>
 
   <section class="scene active" id="scene-door">
     <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/door-video-poster.jpg" muted playsinline loop preload="auto"></video>
@@ -2932,6 +3290,13 @@ a.ring{display:block;text-decoration:none}
     <div class="copy">
       <p>Q Studio is awake</p>
       <h1>Knock. Enter The AI Room.</h1>
+    </div>
+    <div class="door-farewell" id="door-farewell" aria-live="polite">
+      <span class="door-farewell__q" aria-hidden="true">Q</span>
+      <span class="door-farewell__copy">
+        <strong>Thank you for stopping by!</strong>
+        <span>Come back anytime · Q Studio © 2026</span>
+      </span>
     </div>
     <button class="ring" id="door-trigger" style="left:17%;top:35%;" aria-label="Open door"></button>
     <div class="tag" style="left:17%;top:29%;">Knock Knock</div>
@@ -2952,7 +3317,7 @@ a.ring{display:block;text-decoration:none}
       <p>AI room map · choose an action</p>
       <h1>What Do You Want To Do?</h1>
     </div>
-    <button class="room-exit-btn" id="room-exit-trigger" aria-label="Exit to door">Exit</button>
+    <button class="room-exit-btn" id="room-exit-trigger" aria-label="Exit Q Studio">Exit Studio</button>
   </section>
 
   <section class="scene" id="scene-desk">
@@ -2985,7 +3350,7 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene scene-chat" id="scene-chat">
     <img src="./assets/chat-new.png" alt="Q coffee chat scene">
-    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat_idle.mp4" muted playsinline preload="auto" poster="./assets/chat-new.png"></video>
+    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat_idle.mp4" muted playsinline loop preload="auto" poster="./assets/chat-new.png"></video>
     <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat_relaxed.mp4" muted playsinline preload="auto"></video>
     <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat_waiting.mp4" muted playsinline loop preload="auto"></video>
     <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" muted playsinline loop preload="auto"></video>
@@ -2999,7 +3364,6 @@ a.ring{display:block;text-decoration:none}
           <strong>Coffee Chat</strong>
           <span>想从哪里认识我？选一个问题，或者直接聊聊你正在做的事。</span>
         </div>
-        <button class="chat-voice-toggle" id="chat-voice-toggle" type="button" aria-label="Toggle Q voice">Voice On</button>
       </div>
       <div class="me-echo" id="me-echo" hidden></div>
       <div class="chat-suggestions">
@@ -3059,6 +3423,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<script src="./app.js?v=20260710-chat-wall-tts"></script>
+<script src="./app.js?v=20260711-room-polish-5"></script>
 </body>
 </html>
