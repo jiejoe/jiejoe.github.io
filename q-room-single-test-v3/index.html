@@ -748,6 +748,8 @@ a.ring{display:block;text-decoration:none}
   grid-template-columns:1fr;
 }
 .detail-media-card{
+  margin:0;
+  min-width:0;
   overflow:hidden;
   border-radius:18px;
   background:rgba(255,255,255,.05);
@@ -1396,6 +1398,17 @@ a.ring{display:block;text-decoration:none}
   color:#1b112a;
   box-shadow:4px 4px 0 rgba(168,122,255,.34);
 }
+.project-status-button{
+  border:0;
+  cursor:not-allowed;
+  opacity:.72;
+}
+.project-status-button:hover,
+.project-status-button:disabled{
+  background:rgba(168,122,255,.94);
+  color:#fff;
+  box-shadow:4px 4px 0 rgba(255,198,165,.34);
+}
 .published-detail--shipu{
   background:
     radial-gradient(circle at top right, rgba(164,130,255,.14), transparent 32%),
@@ -1858,7 +1871,9 @@ a.ring{display:block;text-decoration:none}
 .project-shipu .tile-title{
   font-size:clamp(20px,2vw,27px);
 }
-.project-shipu .tile-preview.multi .device.phone{width:54px}
+.project-shipu .tile-preview.multi .device.phone{width:54px;border-radius:13px}
+.project-shipu .tile-preview.multi .device.phone img,
+.project-shipu .tile-preview.multi .device.phone video{border-radius:10px}
 .project-shipu .tile-preview.multi .device.ipad{width:104px}
 .project-shipu .tile-chips .chip:nth-child(n+3){display:none}
 .project-ai-life .tile-copy{
@@ -2176,16 +2191,17 @@ a.ring{display:block;text-decoration:none}
 .message-card{
   position:relative;
   z-index:1;
-  width:min(760px,92vw);
-  max-height:min(760px,88vh);
+  width:min(980px,94vw);
+  max-height:min(780px,90vh);
   display:grid;
-  grid-template-columns:minmax(0,1.08fr) minmax(220px,.72fr);
+  grid-template-columns:minmax(0,1.45fr) minmax(260px,.72fr);
   gap:16px;
   padding:18px;
   border-radius:26px;
   background:linear-gradient(180deg, rgba(26,18,38,.92), rgba(13,10,20,.94));
   border:1px solid rgba(234,223,255,.16);
   box-shadow:0 30px 90px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.04);
+  overflow:hidden;
 }
 .message-head{
   grid-column:1 / -1;
@@ -2218,9 +2234,15 @@ a.ring{display:block;text-decoration:none}
   cursor:pointer;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
 }
-.message-canvas-wrap{
-  min-height:320px;
-  overflow:hidden;
+.message-wall{
+  min-height:360px;
+  max-height:min(610px,68vh);
+  overflow:auto;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  gap:12px;
+  padding:14px;
   border-radius:20px;
   background:
     linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
@@ -2229,29 +2251,81 @@ a.ring{display:block;text-decoration:none}
   background-size:24px 24px;
   border:1px solid rgba(234,223,255,.12);
 }
-#message-canvas{
-  display:block;
-  width:100%;
-  height:100%;
-  min-height:320px;
-  touch-action:none;
-  cursor:crosshair;
+.message-wall-state{
+  grid-column:1 / -1;
+  min-height:220px;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  color:rgba(239,231,255,.58);
+  text-align:center;
+  line-height:1.7;
 }
-.message-side{
+.message-note{
+  position:relative;
+  min-height:148px;
+  padding:18px 16px 14px;
+  border-radius:18px 18px 22px 16px;
+  background:
+    linear-gradient(145deg, rgba(244,233,255,.17), rgba(143,102,210,.11)),
+    rgba(255,255,255,.045);
+  border:1px solid rgba(234,223,255,.13);
+  box-shadow:0 16px 30px rgba(0,0,0,.16);
+  transform:rotate(var(--note-tilt,0deg));
+}
+.message-note::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-5px;
+  width:34px;
+  height:10px;
+  transform:translateX(-50%) rotate(-2deg);
+  border-radius:3px;
+  background:rgba(237,207,255,.32);
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+.message-note p{
+  margin:0 0 18px;
+  color:#fbf7ff;
+  font-size:14px;
+  line-height:1.65;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.message-note-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  color:rgba(239,231,255,.5);
+  font-size:10px;
+  letter-spacing:.06em;
+}
+.message-note-delete{
+  border:none;
+  padding:5px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+  color:rgba(255,235,245,.76);
+  cursor:pointer;
+  font-size:10px;
+}
+.message-compose{
   display:grid;
   gap:10px;
   align-content:start;
+  padding:4px 2px 2px;
 }
-.message-side label{
+.message-compose label{
   color:rgba(239,231,255,.68);
   font-size:12px;
   letter-spacing:.08em;
   text-transform:uppercase;
 }
-.message-side textarea{
+.message-compose input,
+.message-compose textarea{
   width:100%;
-  min-height:156px;
-  resize:none;
   border:none;
   border-radius:18px;
   padding:13px 14px;
@@ -2261,39 +2335,9 @@ a.ring{display:block;text-decoration:none}
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
   line-height:1.55;
 }
-.message-saved{
-  display:grid;
-  gap:8px;
-  padding:11px;
-  border-radius:16px;
-  background:rgba(255,255,255,.045);
-  border:1px solid rgba(234,223,255,.1);
-  color:rgba(239,231,255,.72);
-}
-.message-saved[hidden]{
-  display:none;
-}
-.message-saved strong{
-  color:rgba(255,211,179,.9);
-  font-size:11px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
-.message-saved p{
-  margin:0;
-  color:rgba(247,242,255,.8);
-  font-size:13px;
-  line-height:1.55;
-  white-space:pre-wrap;
-}
-.message-saved img{
-  width:100%;
-  max-height:120px;
-  object-fit:contain;
-  border-radius:12px;
-  background:rgba(250,246,255,.08);
-  border:1px solid rgba(234,223,255,.08);
-}
+.message-compose input{min-height:46px}
+.message-compose textarea{min-height:190px;resize:vertical}
+.message-honeypot{position:absolute !important;left:-9999px !important;width:1px !important;height:1px !important;opacity:0 !important}
 .message-actions{
   display:flex;
   flex-wrap:wrap;
@@ -2548,10 +2592,11 @@ a.ring{display:block;text-decoration:none}
 
 .q-stage-bubble{
   position:absolute;
-  left:55%;
-  top:35%;
+  left:clamp(18px,5vw,72px);
+  top:auto;
+  bottom:clamp(218px,26vh,292px);
   z-index:25;
-  width:min(430px,34vw);
+  width:min(470px,40vw);
   padding:18px 20px;
   border-radius:24px 24px 24px 8px;
   background:rgba(14,10,22,.76);
@@ -2642,6 +2687,26 @@ a.ring{display:block;text-decoration:none}
   justify-content:space-between;
   gap:12px;
 }
+.chat-meta-copy{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.chat-voice-toggle{
+  flex:0 0 auto;
+  border:none;
+  min-height:32px;
+  padding:0 11px;
+  border-radius:999px;
+  background:rgba(189,150,255,.12);
+  color:rgba(247,242,255,.82);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+  cursor:pointer;
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
 .chat-meta strong{
   font-size:13px;
   letter-spacing:.18em;
@@ -2712,12 +2777,13 @@ a.ring{display:block;text-decoration:none}
   .hero-screen{left:7%;top:17%;width:min(52vw,420px)}
   .work-list{grid-template-columns:1fr}
   .work-preview{grid-template-columns:1fr}
-  .q-stage-bubble{left:16%;top:18%;width:min(72vw,420px)}
+  .q-stage-bubble{left:18px;top:auto;bottom:280px;width:min(54vw,420px)}
   .cue{right:18px;bottom:118px}
   .cue .line{width:90px}
   .chat-shell{width:min(88vw,620px)}
   .contact-dock{width:min(78vw,420px)}
   .message-card{grid-template-columns:1fr}
+  .message-wall{max-height:36vh}
   .detail-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
   .wall{grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
   .wall-item.span-half,
@@ -2807,8 +2873,9 @@ a.ring{display:block;text-decoration:none}
   .contact-dock{width:min(78vw,360px)}
   .message-card{padding:14px;border-radius:22px}
   .message-head h2{font-size:24px}
-  .message-canvas-wrap,
-  #message-canvas{min-height:240px}
+  .message-wall{grid-template-columns:1fr;min-height:230px}
+  .message-note{min-height:126px}
+  .message-compose textarea{min-height:130px}
   .panel h2{font-size:24px}
   .panel h3{font-size:24px}
   .work-card{min-height:auto}
@@ -2817,11 +2884,17 @@ a.ring{display:block;text-decoration:none}
   .cue{right:14px;bottom:112px;flex-direction:column;align-items:flex-end}
   .cue .line{width:68px}
   .q-stage-bubble{
-    left:6%;
-    top:13%;
-    width:min(78vw,320px);
+    left:14px;
+    right:14px;
+    top:auto;
+    bottom:300px;
+    width:auto;
+    max-height:150px;
+    overflow:auto;
     padding:14px 16px;
   }
+  #scene-chat > img,
+  #scene-chat > video{object-position:55% 50%}
   .q-stage-text{font-size:14px;line-height:1.6}
   #scene-chat .cue{
     right:14px;
@@ -2829,7 +2902,8 @@ a.ring{display:block;text-decoration:none}
     bottom:auto;
   }
   .chat-shell{left:14px;right:14px;width:auto;transform:none}
-  .chat-meta{flex-direction:column;align-items:flex-start}
+  .chat-meta{align-items:flex-start}
+  .chat-meta-copy{flex-direction:column;align-items:flex-start;gap:4px}
   .chat-suggestions{gap:6px}
   .chat-chip{font-size:12px}
 }
@@ -2852,9 +2926,9 @@ a.ring{display:block;text-decoration:none}
   <audio id="ambient-music" src="./assets/ambient-good-night.mp3" loop preload="auto" aria-hidden="true"></audio>
 
   <section class="scene active" id="scene-door">
-    <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" muted playsinline loop preload="auto"></video>
-    <video id="door-open-video" class="door-open" src="./assets/door_open.mp4" playsinline preload="auto"></video>
-    <img src="./assets/door.png" alt="Q studio door entrance">
+    <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/door-video-poster.jpg" muted playsinline loop preload="auto"></video>
+    <video id="door-open-video" class="door-open" src="./assets/door_open.mp4" poster="./assets/door-video-poster.jpg" playsinline preload="auto"></video>
+    <img src="./assets/door-video-poster.jpg" alt="Q studio door entrance">
     <div class="copy">
       <p>Q Studio is awake</p>
       <h1>Knock. Enter The AI Room.</h1>
@@ -2865,7 +2939,7 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene" id="scene-room">
     <img src="./assets/room-new-immersive-v2.png" alt="Q studio room overview">
-    <video id="room-loop-video" src="./assets/room.mp4" muted playsinline loop preload="auto" poster="./assets/room-new-immersive-v2.png"></video>
+    <video id="room-loop-video" src="./assets/room.mp4?v=coffee-pour-only-loop-v2" muted playsinline loop preload="auto" poster="./assets/room-new-immersive-v2.png"></video>
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <div class="tag depth-near" style="left:26.6%;top:54.8%;">See My Work</div>
@@ -2886,13 +2960,13 @@ a.ring{display:block;text-decoration:none}
     <video id="desk-loop-video" src="./assets/desk_typing.mp4" muted playsinline loop preload="auto" poster="./assets/desk-new.png"></video>
     <button class="ring" id="desk-trigger" style="left:42.2%;top:53%;" aria-label="Open work showcase"></button>
     <div class="tag" style="left:42.2%;top:46.5%;">See My Work</div>
-    <button class="ring depth-far" id="desk-contact-trigger" style="left:22.2%;top:38.2%;" aria-label="Come say hi to Q"></button>
-    <div class="tag depth-far" style="left:22.2%;top:33.8%;">Come Say Hi</div>
+    <button class="ring depth-far" id="desk-contact-trigger" style="left:12.8%;top:42%;" aria-label="Check Q's email"></button>
+    <div class="tag depth-far" style="left:12.8%;top:37.5%;">Check My Email</div>
 
     <div class="panel" id="work-panel">
       <div class="panel-head">
         <div>
-          <h2>Selected Work</h2>
+          <h2>Things I’ve Been Building</h2>
         </div>
         <button class="panel-close-side" id="panel-close-side" aria-label="Close layer">Close <span>✕</span></button>
       </div>
@@ -2917,19 +2991,21 @@ a.ring{display:block;text-decoration:none}
     <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" muted playsinline loop preload="auto"></video>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <span class="q-stage-label">Q / Coffee Chat</span>
-      <div class="q-stage-text" id="q-stage-text">Hi, I'm Q, an AI-native product builder. Ask me what I'm building, what I'm exploring with AI, or what small project I'm obsessed with lately.</div>
+      <div class="q-stage-text" id="q-stage-text">Hi，我是 Q，一个 AI Native 的 Product Builder。我每天会做很多小项目，也一直在研究人和 Agent 怎样更自然地协作。你可以先让我介绍自己，或者问我最近在做什么。</div>
     </div>
     <div class="chat-shell">
       <div class="chat-meta">
-        <strong>Coffee Chat</strong>
-        <span>聊聊我最近在做的项目、AI 产品思考，或者你最近也在折腾什么。</span>
+        <div class="chat-meta-copy">
+          <strong>Coffee Chat</strong>
+          <span>想从哪里认识我？选一个问题，或者直接聊聊你正在做的事。</span>
+        </div>
+        <button class="chat-voice-toggle" id="chat-voice-toggle" type="button" aria-label="Toggle Q voice">Voice On</button>
       </div>
       <div class="me-echo" id="me-echo" hidden></div>
       <div class="chat-suggestions">
-        <button class="chat-chip" data-prompt="你最近在关注什么方向？">最近关注什么？</button>
-        <button class="chat-chip" data-prompt="你最近在做什么小项目？">最近在做什么小项目？</button>
-        <button class="chat-chip" data-prompt="你最近有做什么 APP 吗？">最近有做什么 APP？</button>
-        <button class="chat-chip" data-prompt="你最近有参加黑客松或者线下交流吗？">最近玩黑客松吗？</button>
+        <button class="chat-chip" data-prompt="先简单介绍一下你自己吧，也说说你现在最想做好的事情。">介绍你自己</button>
+        <button class="chat-chip" data-prompt="你最近在做什么小项目？为什么会想做它？">最近做什么小项目？</button>
+        <button class="chat-chip" data-prompt="你最近在关注什么方向？尤其是人和 Agent 协作与学习这部分。">最近关注什么？</button>
       </div>
       <div class="composer">
         <input type="text" id="chat-input" placeholder="想先从哪里聊起？">
@@ -2946,50 +3022,43 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene" id="scene-contact">
     <img src="./assets/contact-new.png" alt="Q studio contact scene">
-    <a class="ring" href="mailto:jiejoe2017@gmail.com" style="left:31.3%;top:68.8%;" aria-label="Send email to Q"></a>
-    <div class="tag" style="left:31.3%;top:62.3%;">Email</div>
-    <button class="ring" id="contact-message-trigger" style="left:84.2%;top:41.6%;" aria-label="Leave a message"></button>
-    <div class="tag" style="left:84.2%;top:35.1%;">Leave Message</div>
-    <button class="ring" id="back-room-trigger" style="left:22.5%;top:67%;" aria-label="Back to desk"></button>
-    <div class="tag" id="contact-back-tag" style="left:22.5%;top:60.5%;">Back To Desk</div>
-    <div class="contact-dock">
-      <div class="eyebrow">Come Say Hi</div>
-      <div class="contact-links">
-        <a class="contact-link primary" href="mailto:jiejoe2017@gmail.com">Write To Me</a>
-        <button class="contact-link" id="contact-message-btn" type="button">Leave Message</button>
-        <button class="contact-link" id="copy-email-btn" type="button">Copy Email</button>
-      </div>
-      <div class="contact-meta">jiejoe2017@gmail.com · 杭州 / 上海</div>
-    </div>
+    <a class="ring" href="mailto:jiejoe2017@gmail.com" style="left:29.2%;top:68.4%;" aria-label="Check Q's email"></a>
+    <div class="tag" style="left:29.2%;top:61.9%;">Check My Email</div>
+    <button class="ring" id="contact-message-trigger" style="left:47%;top:34%;" aria-label="Leave a message"></button>
+    <div class="tag" style="left:47%;top:27.5%;">Leave Message</div>
+    <button class="ring" id="back-room-trigger" style="left:86%;top:70%;" aria-label="Back to desk"></button>
+    <div class="tag" id="contact-back-tag" style="left:86%;top:63.5%;">Back To Desk</div>
   </section>
 
   <div class="message-modal" id="message-modal" aria-hidden="true">
     <button class="message-backdrop" id="message-backdrop" aria-label="Close message board"></button>
-    <section class="message-card" role="dialog" aria-modal="true" aria-label="Leave a message">
+    <section class="message-card" role="dialog" aria-modal="true" aria-label="Q Studio message wall">
       <div class="message-head">
         <div>
-          <p>Studio Terminal</p>
-          <h2>Leave A Message</h2>
+          <p>Notes from visitors</p>
+          <h2>Q Studio Message Wall</h2>
         </div>
         <button class="message-close" id="message-close" type="button" aria-label="Close">×</button>
       </div>
-      <div class="message-canvas-wrap">
-        <canvas id="message-canvas" width="720" height="480" aria-label="Draw a small message"></canvas>
+      <div class="message-wall" id="message-wall" aria-live="polite">
+        <div class="message-wall-state">Loading messages…</div>
       </div>
-      <div class="message-side">
-        <label for="message-text">A tiny note</label>
-        <textarea id="message-text" placeholder="写一句话，或者在左边留一个小标记。"></textarea>
-        <div class="message-saved" id="message-saved" hidden></div>
+      <form class="message-compose" id="message-form">
+        <label for="message-name">Your name</label>
+        <input id="message-name" type="text" maxlength="28" autocomplete="name" placeholder="怎么称呼你？">
+        <label for="message-text">Leave a note</label>
+        <textarea id="message-text" maxlength="360" placeholder="写点什么吧。你留下的留言会出现在这面墙上。"></textarea>
+        <input class="message-honeypot" id="message-website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="message-actions">
-          <button type="button" id="message-clear">Clear</button>
-          <button type="button" class="primary" id="message-save">Leave It Here</button>
+          <button type="button" id="message-clear">Reset</button>
+          <button type="submit" class="primary" id="message-save">Pin To The Wall</button>
         </div>
         <p class="message-status" id="message-status"></p>
-      </div>
+      </form>
     </section>
   </div>
 </div>
 
-<script src="./app.js?v=20260710-immersive-audio"></script>
+<script src="./app.js?v=20260710-chat-wall-tts"></script>
 </body>
 </html>

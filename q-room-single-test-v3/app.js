@@ -34,10 +34,13 @@ const chatInput = document.getElementById("chat-input");
 const chatChips = Array.from(document.querySelectorAll(".chat-chip"));
 const soundToggle = document.getElementById("sound-toggle");
 const messageModal = document.getElementById("message-modal");
-const messageCanvas = document.getElementById("message-canvas");
+const messageWall = document.getElementById("message-wall");
+const messageForm = document.getElementById("message-form");
+const messageName = document.getElementById("message-name");
 const messageText = document.getElementById("message-text");
+const messageWebsite = document.getElementById("message-website");
 const messageStatus = document.getElementById("message-status");
-const messageSaved = document.getElementById("message-saved");
+const chatVoiceToggle = document.getElementById("chat-voice-toggle");
 const ambientMusic = document.getElementById("ambient-music");
 const doorIdleVideo = document.getElementById("door-idle-video");
 const doorOpenVideo = document.getElementById("door-open-video");
@@ -72,38 +75,12 @@ const workedOnItems = [
     chip: "Public Marketplace × AI Shopping",
     title: "AI 导购",
     desc: "通过 AI 的能力为消费者构建购物工具，帮助用户管理收藏的商品、从浏览商品的足迹中发现兴趣，并把站外种草内容整理成可购物的商品清单，让分散的消费线索更容易转化成下一步行动。",
-    media: [
-      { src: "./assets/ai-shopping-1.png", alt: "淘宝 AI 导购界面", caption: "AI 导购合辑与推荐界面", wide: true, fit: "contain" },
-      { src: "./assets/ai-shopping-2.png", alt: "淘宝导购补充界面", caption: "补充导购流程与结果页", tall: true, fit: "contain" },
-      { src: "./assets/taobao.png", alt: "手机淘宝端改版", caption: "同阶段的手淘端产品演进", fit: "contain" }
-    ],
+    media: [],
     metrics: [
       ["10亿级", "用户产品场景"],
       ["AI Native", "购物体验探索"]
     ],
     res: "GSB 评测体系 · bad case 26%→8% · 分类准确性 56%→98%"
-  },
-  {
-    id: "oneday",
-    icon: "./assets/icon-oneday.png",
-    meta: "AI tools · Creative generation",
-    stamp: "2005",
-    name: "AI 创意应用生成工具",
-    blurb: "Prompt to creative output",
-    href: "https://meoo.com/",
-    chip: "Prompt to Creative Output",
-    title: "AI 创意应用生成工具",
-    desc: "一款面向非代码用户的 AI 创意应用生成工具，可以把自然语言需求直接生成可编辑页面、活动物料和轻量工具，帮助创作者和产品团队更快从灵感进入 demo、预览和分享。",
-    media: [
-      { src: "./assets/meoo-coding.png", alt: "AI 创意应用生成工具界面", caption: "一句话生成真实可改的应用", wide: true },
-      { src: "./assets/coding-contributions.png", alt: "AI Coding 运营与贡献", caption: "运营、教程和贡献记录" },
-      { src: "./assets/showcase-demo.png", alt: "AI 工具现场 demo", caption: "现场展示与传播物料" }
-    ],
-    metrics: [
-      ["DAU 2万+", "内部创作工具"],
-      ["日创作 6千+", "真实生成场景"]
-    ],
-    res: "全栈 / AI 应用生成 · creative workflow"
   },
   {
     id: "homestyler",
@@ -162,7 +139,7 @@ const selectedWorkItems = [
     modalHero: false,
     one: "用自己的面部特征生成 AI 数字人，让另一个我在世界各地旅行。",
     desc: "<b>初衷</b>：AI 做梦——如果有平行世界的另一个我在环游世界，会是怎样一种人生。<br><br><b>概念</b>：用自己的面部特征生成一个 AI 数字人，让她代替我在世界各地旅行。每天定时收到她寄来的旅行日记、Live 视频或照片；她拥有自己的小红书主页，经营世界旅行和情感故事内容。<br><br><b>图片 / 视频生成</b>：实测了 Sora、Seedance、可灵等主流模型，覆盖 Live 图、Vlog、换场景脚本等形式。<br><br><b>内容创作</b>：用 LLM 生成旅行故事剧情和生活化文案，发布后获得了真人的互动回复。",
-    chips: ["Seedance", "AIGC", "游戏化互动", "小红书运营"],
+    chips: ["Experiment", "AIGC", "游戏化互动", "小红书运营"],
     points: [
       ["Concept", "让 AI 生成的另一个自己持续生活，形成连续更新的人物体验。"],
       ["Content", "LLM 剧情 + 视频模型素材，形成连续旅行叙事。"],
@@ -189,6 +166,7 @@ const selectedWorkItems = [
     art: "./assets/companion-app.png",
     meta: "个人探索 · 陪伴 · 硬件",
     one: "给孩子做一个 AI 小伙伴。",
+    statusLabel: "Still Working On",
     desc: "萌伴是一台面向 2-6 岁儿童的桌面 AI 陪伴机器人：它不是屏幕里的问答助手，而是一个有生命感的小伙伴。产品围绕角色扮演、过家家、自主探索、日常生活练习和睡前陪伴展开，把视觉感知、儿童语音理解、触摸反馈、动作表情和长程记忆组合起来，让 AI 能参与孩子真实的游戏和成长场景。<br><br>设计上，我更关注三件事：第一，儿童安全和亲和力，形态要圆润、低压、安全、可被孩子自然靠近；第二，多模态交互，萌伴要能看见孩子拿起的玩具、听懂含糊表达、用表情和动作回应；第三，长程记忆与家长端，让它记得孩子的兴趣、学习进度和重要时刻，同时把成长记录交还给家长管理。",
     chips: ["硬件", "陪伴", "长程记忆"],
     points: [
@@ -206,21 +184,22 @@ const selectedWorkItems = [
     id: "shipu",
     order: "03 / 吉他谱 App",
     title: "拾谱",
-    tag: "iOS / iPad App",
-    cat: "iOS / iPad App · 吉他谱整理与练习",
+    tag: "吉他谱 App",
+    cat: "吉他谱整理与练习",
     subtitle: "AI 个人谱库。",
     theme: "light",
     span: "span-4",
     art: "./assets/shipu-library.png",
     meta: "独立开发 · 收集 — 整理 — 练习",
     one: "AI 个人谱库。",
-    desc: "拾谱是一款面向吉他练习者的个人谱库与练习工具。它解决的不是“找一首谱”这个单点问题，而是把散落在截图、公众号、短视频、聊天记录和网页收藏里的吉他谱，整理成一个可以长期维护、随时练习的个人谱库。<br><br>产品围绕“收集—整理—练习”搭建轻量闭环：手机端适合随手导入和管理，iPad 横屏适合放在谱架上看谱；谱册、练习册、收藏、节拍器和多种看谱模式共同服务一个目标——让每一次收谱都能沉淀成下一次练习的入口。",
-    chips: ["正在上架 App Store", "iOS / iPad", "练习册", "独立开发"],
+    statusLabel: "coming on App Store",
+    desc: "最近我在做拾谱，一款面向吉他练习者的个人谱库与练习工具。它把散落在公众号、短视频、聊天页面截图和相册里的吉他谱，整理成一个可以长期维护、随时拿出来练习的个人谱库。<br><br>它有点像垂直音乐学习场景下的个人知识库和 AI 助手：个人知识库负责持续沉淀用户收藏的谱子，AI 则帮助用户识别内容、完成整理，并从已有曲谱中提供下一次练习的灵感，让业余练习者更容易找到谱、看懂谱，也知道今天可以练什么。<br><br>目前产品先从 AI 识别、自动整理、灵感提供和看谱交互这些基础能力开始；后续计划加入练习记录、个性化练习建议、难点辅助，以及更长期的音乐学习支持。这既是我对垂类 AI 产品和 Agent 个人场景的一次探索，也是我作为独立开发者准备尝试上架的第一个 App。",
+    chips: ["正在上架 App Store", "练习册", "独立开发"],
     modalHero: false,
     points: [
-      ["解决的问题", "吉他谱常常散落在截图、短视频、公众号和聊天记录里；真正练习时又会遇到找不到谱、分类不清、手机屏幕太小、节拍器和谱子分离的问题。"],
-      ["主要功能", "支持导入谱图、建立个人谱库、按曲谱和练习册组织内容；练习时提供单页/双页/网格/自由视图，以及节拍器、收藏和最近练习记录。"],
-      ["产品亮点", "没有做成复杂乐谱编辑器，而是抓住高频练琴链路：快速收集、清楚整理、稳定看谱、持续复练，让 iPhone 和 iPad 分别承担收集与练习场景。"]
+      ["解决的问题", "把保存在相册里的零散吉他谱重新变成可查找、可分类、可持续使用的练习资料，减少找谱、选谱和翻谱时的反复操作。"],
+      ["主要功能", "AI 自动识别谱子内容和歌曲名称；练习时支持多页查看、自由缩放、轻点翻页，以及适合不同设备的多种看谱模式。"],
+      ["产品亮点", "根据弹奏方式、歌曲语言、常听歌手和个人偏好自动生成灵感册，把用户已经收藏的内容重新组织起来，帮助解决“今天练什么”。"]
     ],
     gallery: [
       { src: "./assets/practice-home.png", alt: "拾谱练习入口", caption: "<b>练习入口</b> — 最近练过、练习册和今日练习被放在同一条练琴链路里。", wide: true, fit: "contain" },
@@ -288,8 +267,8 @@ const qStudioItem = {
   url: "https://jiejoe.github.io/",
   subtitle: "我在这现在搭建的这个个人网站",
   one: "一个带游戏感的个人工作室，也是我最近持续打磨的互动网站实验。",
-  desc: "目前最近正在尝试搭建这个网站，尝试了多种办法用 Three.js 的方式，实践各种画风（如皮克斯风、粘土风、超现实高清主义风）以及技术栈部分。这是基于 Three.js 的前端互动游戏，长期探索搭建这种可互动、带游戏风格的个人工作室，并实践影视生成、游戏生成方面的工作流、功能场景和 Agent 应用。过程非常有趣，也对目前 Agent 工作流的各种工具和模型能力有了更多的理解。",
-  chips: ["AIGC", "影视游戏", "Three.js", "Agent Workflow"],
+  desc: "目前最近正在尝试搭建这个网站，尝试了多种办法用 Three.js 的方式，实践各种画风（如皮克斯风、粘土风、超现实高清主义风）以及技术栈部分。长期探索搭建这种可互动、带游戏风格的个人工作室，并实践影视生成、游戏生成方面的工作流、功能场景和 Agent 应用。过程非常有趣，也对目前 Agent 工作流的各种工具和模型能力有了更多的理解。第一次意识到，AI 抽卡与否考验的是文学功底。",
+  chips: ["AIGC", "影视游戏", "Agent Workflow"],
   gallery: [
     { src: "./assets/qstudio-homepage.png", alt: "Q Studio 个人网站场景页", caption: "当前网站的长页视觉和作品入口", wide: true },
     { src: "./assets/qstudio-storyboard.png", alt: "Q Studio 互动短片故事版", caption: "房间、镜头和交互路径的故事版", wide: true }
@@ -308,7 +287,7 @@ const workWallItems = [
     subtitle: "如果平行世界的我正在环游世界？",
     accent: "pink",
     size: "span-half",
-    chips: ["Seedance", "AIGC", "游戏化互动"],
+    chips: ["Experiment", "AIGC", "游戏化互动"],
     previewMode: "mark"
   },
   {
@@ -330,11 +309,11 @@ const workWallItems = [
     order: "03 / 吉他谱 App",
     title: "拾谱",
     tag: "吉他谱 App",
-    cat: "iOS / iPad App · 吉他谱整理与练习",
+    cat: "吉他谱整理与练习",
     subtitle: "AI 个人谱库。",
     accent: "yellow",
     size: "span-third",
-    chips: ["正在上架 App Store", "iOS / iPad", "练习册"],
+    chips: ["正在上架 App Store", "练习册"],
     previewMode: "shipu"
   },
   {
@@ -362,7 +341,7 @@ const workWallItems = [
     size: "span-third",
     chips: ["AI Shopping", "AI Tools", "0→1"],
     previewMode: "plain",
-    cover: "./assets/ai-shopping-1.png"
+    cover: "./assets/work-project-reference.png"
   }
 ];
 let activeWorkDetailId = null;
@@ -370,18 +349,27 @@ let activeWorkedId = "taobao";
 let activeSelectedId = "shipu";
 let activeWorkTab = "worked";
 const WORKER = "https://another-me-q.jiejoe-eth.workers.dev";
+const MESSAGE_ENDPOINT = WORKER + "/qroom-messages";
 let chatBusy = false;
 let chatSpeaking = false;
 let chatVisualState = "idle";
+let chatVisited = false;
+let activeChatUtterance = null;
+let chatVoiceEnabled = true;
+try {
+  chatVoiceEnabled = localStorage.getItem("qroom-chat-voice") !== "off";
+} catch (error) {
+  void error;
+}
 const chatIntro =
-  "Hi, I'm Q, an AI-native product builder. Ask me what I'm building, what I'm exploring with AI, or what small project I'm obsessed with lately.";
+  "Hi，我是 Q，一个 AI Native 的 Product Builder。我每天会做很多小项目，也一直在研究人和 Agent 怎样更自然地协作。你可以先让我介绍自己，或者问我最近在做什么。";
 let convo = [
   {
     role: "system",
     content:
-      "You are Q, an AI-native product builder speaking in a warm, thoughtful, first-person voice. Keep answers grounded, conversational, and specific. Avoid empty slogans, avoid saying things like 'real worker', and avoid vague philosophical filler. If this is an opening turn, briefly introduce yourself and invite the other person to ask about what you are building or what they are building. Your current knowledge base: 1) You care a lot about human-AI interaction, especially how people collaborate with one AI agent or with multiple agents in ways that genuinely improve productivity. 2) If asked what small projects you are doing recently, say you are researching real-time voice plus hardware, and exploring a companion for children that can talk and chat naturally. 3) If asked whether you recently shipped an app or how you think about using AI in apps, say you are building a recipe app. Explain that many problems are generative, but some products deserve to become apps because they preserve information, support display, and create collection value over time. Add that the recipe app solves your own daily-life problem and has very high single-user frequency. 4) These projects live in your knowledge base and should stay consistent across answers. 5) If the conversation is just starting, you can also ask: 'What have you been building recently?' 6) You enjoy hackathons and offline meetups. 7) Your interests include sports, remote travel planning, and inviting people to join workout sessions such as gym, yoga, or climbing. Keep answers concise by default, but rich when the user asks for more."
+      "You are Q, an AI Native product manager and builder. Speak warmly, naturally, and specifically in first person. Keep each answer to two or three TTS-friendly sentences, without Markdown lists. You have eight or nine years of product experience across Taobao AI shopping, Meijian, and Homestyler. Recently you are building 拾谱, an iOS and iPad personal guitar score library, while researching Music Agent and how agents can help people learn. You care about the personalized pain points in learning: different blockers, pacing, prior knowledge, and feedback styles. You also study how people collaborate with one or multiple agents in ways that genuinely improve productivity. If asked to introduce yourself, connect your product background, current small projects, and this direction. Stay grounded and do not mention hackathons unless the visitor brings them up."
   },
-  { role: "assistant", content: "Hi, I'm Q, an AI-native product builder. I work on a lot of small products and experiments. Lately I've been thinking a lot about how people and AI agents can really collaborate. What have you been building recently?" }
+  { role: "assistant", content: chatIntro }
 ];
 
 function renderWorkBrowser() {
@@ -546,8 +534,9 @@ function renderWorkProjectDetail() {
         <button class="work-back-btn" type="button" id="work-back-btn"><span>←</span>Back To Wall</button>
       </div>
       <section class="worked-project-detail">
+        <button class="published-detail-link project-status-button" type="button" disabled>未完待补</button>
         <div class="worked-project-cover">
-          <img src="./assets/ai-shopping-1.png" alt="工作项目封面" loading="lazy" decoding="async">
+          <img src="./assets/work-project-reference.png" alt="工作项目封面" loading="lazy" decoding="async">
           <div>
             <div class="published-detail-meta">Work project</div>
             <h3>工作中的一些项目</h3>
@@ -624,6 +613,7 @@ function renderPublishedSelectedDetail(item) {
       </div>
       <section class="published-detail published-detail--${item.id}">
         ${item.url ? `<a class="published-detail-link" href="${item.url}" target="_blank" rel="noopener">Open Project</a>` : ""}
+        ${item.statusLabel ? `<button class="published-detail-link project-status-button" type="button" disabled>${item.statusLabel}</button>` : ""}
         ${hero ? `<figure class="published-detail-hero${hero.fit === "contain" ? " contain" : ""}">${renderMediaTag(hero, false)}</figure>` : ""}
         <div class="published-detail-meta">${item.cat || item.order}</div>
         <h3 class="published-detail-title">${item.title}</h3>
@@ -747,7 +737,7 @@ function startChatIdle(preferredState = "idle") {
   setChatVisualState(state, { reset: true });
 }
 
-function setChatSpeaking(nextSpeaking) {
+function setChatSpeaking(nextSpeaking, restState = "relaxed") {
   chatSpeaking = Boolean(nextSpeaking);
   if (chatSpeaking) {
     AudioSys.duckMusic(0.008, 1400);
@@ -759,7 +749,68 @@ function setChatSpeaking(nextSpeaking) {
     setChatVisualState("waiting", { reset: true });
     return;
   }
-  startChatIdle("idle");
+  startChatIdle(restState);
+}
+
+function getPreferredChatVoice() {
+  if (!("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const preferredNames = [
+    /ting[- ]?ting/i,
+    /xiaoxiao/i,
+    /meijia/i,
+    /婷婷|晓晓|美佳/,
+    /google.*普通话/i,
+  ];
+  for (const pattern of preferredNames) {
+    const voice = voices.find(item => pattern.test(item.name));
+    if (voice) return voice;
+  }
+  return voices.find(voice => /^zh[-_](CN|Hans)/i.test(voice.lang))
+    || voices.find(voice => /^zh/i.test(voice.lang))
+    || voices.find(voice => /^en/i.test(voice.lang))
+    || voices[0]
+    || null;
+}
+
+function updateVoiceToggle() {
+  if (!chatVoiceToggle) return;
+  chatVoiceToggle.textContent = chatVoiceEnabled ? "Voice On" : "Voice Off";
+  chatVoiceToggle.setAttribute("aria-pressed", String(chatVoiceEnabled));
+}
+
+function cancelChatSpeech(restState = "relaxed") {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  activeChatUtterance = null;
+  if (chatSpeaking) setChatSpeaking(false, restState);
+}
+
+function speakChatText(text) {
+  const cleanText = String(text || "").replace(/[*#_`>-]/g, " ").replace(/\s+/g, " ").trim();
+  if (!cleanText || !chatVoiceEnabled || AudioSys.muted || !("speechSynthesis" in window)) {
+    if (!chatBusy) startChatIdle("relaxed");
+    return false;
+  }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  const voice = getPreferredChatVoice();
+  if (voice) utterance.voice = voice;
+  utterance.lang = voice?.lang || "zh-CN";
+  utterance.rate = 0.96;
+  utterance.pitch = 1.03;
+  utterance.volume = 0.92;
+  activeChatUtterance = utterance;
+  setChatSpeaking(true);
+
+  const finish = () => {
+    if (activeChatUtterance !== utterance) return;
+    activeChatUtterance = null;
+    setChatSpeaking(false, "relaxed");
+  };
+  utterance.onend = finish;
+  utterance.onerror = finish;
+  window.speechSynthesis.speak(utterance);
+  return true;
 }
 
 function bindTtsAudio(audio) {
@@ -767,7 +818,7 @@ function bindTtsAudio(audio) {
     throw new TypeError("bindTtsAudio expects an audio element");
   }
   const start = () => setChatSpeaking(true);
-  const stop = () => setChatSpeaking(false);
+  const stop = () => setChatSpeaking(false, "relaxed");
   audio.addEventListener("playing", start);
   ["ended", "pause", "error", "abort", "emptied"].forEach(type => audio.addEventListener(type, stop));
   return () => {
@@ -789,17 +840,18 @@ window.QRoomPlayback = Object.assign(window.QRoomPlayback || {}, {
   bindTtsAudio
 });
 window.addEventListener("qroom:speaking-start", () => setChatSpeaking(true));
-window.addEventListener("qroom:speaking-end", () => setChatSpeaking(false));
+window.addEventListener("qroom:speaking-end", () => setChatSpeaking(false, "relaxed"));
 
 async function sendChatMessage(prefill) {
   const text = (prefill || chatInput.value).trim();
   if (!text || chatBusy) return;
+  cancelChatSpeech("waiting");
   chatBusy = true;
   chatInput.value = "";
   meEcho.hidden = false;
   meEcho.textContent = text;
-  setQSpeech("Let me think about that for a second…", true);
-  setChatVisualState(chatSpeaking ? "talk" : "waiting", { reset: true });
+  setQSpeech("让我想一下…", true);
+  setChatVisualState("waiting", { reset: true });
   convo.push({ role: "user", content: text });
   AudioSys.click();
   AudioSys.shimmer(820, 0.018);
@@ -846,12 +898,14 @@ async function sendChatMessage(prefill) {
     }
     setQSpeech(acc, false);
     convo.push({ role: "assistant", content: acc });
+    speakChatText(acc);
   } catch (error) {
-    setQSpeech("Something glitched for a moment. Try me again?", false);
+    setQSpeech("刚才连接走神了一下，可以再问我一次。", false);
+    startChatIdle("relaxed");
   } finally {
     chatBusy = false;
     document.getElementById("send-btn").disabled = false;
-    if (!chatSpeaking) startChatIdle("idle");
+    if (!chatSpeaking) startChatIdle("relaxed");
   }
 }
 
@@ -887,6 +941,7 @@ const AudioSys = {
     this.muted = nextMuted;
     soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
     if (!this.ctx) {
+      syncRoomVideoAudio();
       syncDeskVideoAudio();
       return;
     }
@@ -895,6 +950,7 @@ const AudioSys = {
     this.master.gain.setValueAtTime(this.master.gain.value, now);
     this.master.gain.linearRampToValueAtTime(this.muted ? 0.0001 : 0.68, now + 0.18);
     if (this.muted) {
+      cancelChatSpeech("relaxed");
       this.stopKeyboard();
       this.stopRoomDetails();
       this.fadeMusicTo(0, 220, true);
@@ -903,6 +959,7 @@ const AudioSys = {
       this.shimmer(720, 0.036);
       this.syncSceneAudio();
     }
+    syncRoomVideoAudio();
     syncDeskVideoAudio();
   },
   startMusic() {
@@ -1053,11 +1110,11 @@ const AudioSys = {
   syncSceneAudio() {
     this.stopKeyboard();
     this.stopRoomDetails();
+    syncRoomVideoAudio();
     syncDeskVideoAudio();
     if (this.muted) return;
     this.startMusic();
     this.fadeMusicTo(this.sceneMusicLevel(), 750);
-    if (scenes.room.classList.contains("active")) this.startRoomDetails();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
@@ -1071,6 +1128,7 @@ function setProgress(stepIndex) {
 }
 
 function activate(name) {
+  if (name !== "chat") cancelChatSpeech("idle");
   Object.entries(scenes).forEach(([key, scene]) => {
     scene.classList.toggle("active", key === name);
   });
@@ -1124,6 +1182,21 @@ function syncChatSceneMedia(activeScene) {
   startChatIdle(chatVisualState === "relaxed" ? "relaxed" : "idle");
 }
 
+function syncRoomVideoAudio() {
+  if (!roomLoopVideo) return;
+  const sceneActive = scenes.room.classList.contains("active");
+  roomLoopVideo.volume = 0.52;
+  roomLoopVideo.muted = !sceneActive || AudioSys.muted;
+  if (!sceneActive) return;
+  const started = roomLoopVideo.play();
+  if (started) {
+    started.catch(() => {
+      roomLoopVideo.muted = true;
+      roomLoopVideo.play().catch(() => {});
+    });
+  }
+}
+
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
@@ -1144,40 +1217,8 @@ function syncDeskVideoAudio() {
   }
 }
 
-let messageDrawing = false;
-let messageCanvasReady = false;
 let contactReturnScene = "desk";
-let resetMessageCanvas = () => {};
-
-function getSavedMessage() {
-  try {
-    const raw = localStorage.getItem("q-room-message");
-    return raw ? JSON.parse(raw) : null;
-  } catch (error) {
-    void error;
-    return null;
-  }
-}
-
-function renderSavedMessage() {
-  if (!messageSaved) return;
-  const saved = getSavedMessage();
-  if (!saved || (!saved.text && !saved.sketch)) {
-    messageSaved.hidden = true;
-    messageSaved.innerHTML = "";
-    return;
-  }
-  const date = saved.updatedAt ? new Date(saved.updatedAt) : null;
-  const dateLabel = date && !Number.isNaN(date.getTime())
-    ? date.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
-    : "Saved";
-  messageSaved.hidden = false;
-  messageSaved.innerHTML = `
-    <strong>Last message · ${dateLabel}</strong>
-    ${saved.text ? `<p>${escapeHtml(saved.text)}</p>` : ""}
-    ${saved.sketch ? `<img src="${saved.sketch}" alt="Saved sketch">` : ""}
-  `;
-}
+let messageLoadId = 0;
 
 function escapeHtml(value) {
   return String(value)
@@ -1187,111 +1228,151 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
-function setupMessageCanvas() {
-  if (!messageCanvas || messageCanvasReady) return;
-  messageCanvasReady = true;
-  const ctx = messageCanvas.getContext("2d");
-  if (!ctx) return;
+function getMessageOwnerToken() {
+  try {
+    const stored = localStorage.getItem("qroom-message-owner");
+    if (stored) return stored;
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const token = btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/g, "");
+    localStorage.setItem("qroom-message-owner", token);
+    return token;
+  } catch (error) {
+    void error;
+    return "";
+  }
+}
 
-  resetMessageCanvas = () => {
-    ctx.clearRect(0, 0, messageCanvas.width, messageCanvas.height);
-    ctx.fillStyle = "rgba(250, 246, 255, 0.055)";
-    ctx.fillRect(0, 0, messageCanvas.width, messageCanvas.height);
-    ctx.strokeStyle = "rgba(229, 216, 255, 0.12)";
-    ctx.lineWidth = 1;
-    for (let x = 0; x < messageCanvas.width; x += 36) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, messageCanvas.height);
-      ctx.stroke();
-    }
-    for (let y = 0; y < messageCanvas.height; y += 36) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(messageCanvas.width, y);
-      ctx.stroke();
-    }
-  };
+function formatMessageDate(value) {
+  const date = new Date(Number(value));
+  if (Number.isNaN(date.getTime())) return "Just now";
+  return date.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
 
-  const pointFromEvent = event => {
-    const rect = messageCanvas.getBoundingClientRect();
-    return {
-      x: ((event.clientX - rect.left) / rect.width) * messageCanvas.width,
-      y: ((event.clientY - rect.top) / rect.height) * messageCanvas.height
-    };
-  };
+function messageTilt(id) {
+  const value = Array.from(String(id || "")).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return ((value % 7) - 3) * 0.18;
+}
 
-  const begin = event => {
-    messageDrawing = true;
-    const point = pointFromEvent(event);
-    ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    ctx.strokeStyle = "rgba(214, 190, 255, 0.92)";
-    ctx.lineWidth = 5;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    messageCanvas.setPointerCapture?.(event.pointerId);
-  };
+function renderMessageWall(messages) {
+  if (!messageWall) return;
+  if (!messages.length) {
+    messageWall.innerHTML = `<div class="message-wall-state">还没有留言。你可以成为第一个把便签留在这里的人。</div>`;
+    return;
+  }
+  messageWall.innerHTML = messages.map(message => `
+    <article class="message-note" style="--note-tilt:${messageTilt(message.id)}deg">
+      <p>${escapeHtml(message.body)}</p>
+      <div class="message-note-footer">
+        <span>${escapeHtml(message.name)} · ${escapeHtml(formatMessageDate(message.createdAt))}</span>
+        ${message.owned ? `<button class="message-note-delete" type="button" data-message-delete="${escapeHtml(message.id)}">Delete mine</button>` : ""}
+      </div>
+    </article>
+  `).join("");
 
-  const move = event => {
-    if (!messageDrawing) return;
-    const point = pointFromEvent(event);
-    ctx.lineTo(point.x, point.y);
-    ctx.stroke();
-  };
+  messageWall.querySelectorAll("[data-message-delete]").forEach(button => {
+    button.addEventListener("click", () => deleteMessage(button.dataset.messageDelete, button));
+  });
+}
 
-  const end = event => {
-    messageDrawing = false;
-    messageCanvas.releasePointerCapture?.(event.pointerId);
-  };
-
-  messageCanvas.addEventListener("pointerdown", begin);
-  messageCanvas.addEventListener("pointermove", move);
-  messageCanvas.addEventListener("pointerup", end);
-  messageCanvas.addEventListener("pointercancel", end);
-
-  resetMessageCanvas();
-  renderSavedMessage();
+async function loadMessageWall() {
+  if (!messageWall) return;
+  const loadId = ++messageLoadId;
+  messageWall.innerHTML = `<div class="message-wall-state">Loading messages…</div>`;
+  try {
+    const response = await fetch(MESSAGE_ENDPOINT, {
+      headers: { "X-QRoom-Owner": getMessageOwnerToken() }
+    });
+    if (!response.ok) throw new Error("message wall unavailable");
+    const data = await response.json();
+    if (loadId !== messageLoadId) return;
+    renderMessageWall(Array.isArray(data.messages) ? data.messages : []);
+  } catch (error) {
+    void error;
+    if (loadId !== messageLoadId) return;
+    messageWall.innerHTML = `<div class="message-wall-state">留言墙暂时没有连上。稍后再打开试试看。</div>`;
+  }
 }
 
 async function clearMessageBoard() {
-  setupMessageCanvas();
-  resetMessageCanvas();
+  if (messageName) messageName.value = "";
   if (messageText) messageText.value = "";
-  try {
-    localStorage.removeItem("q-room-message");
-  } catch (error) {
-    void error;
-  }
-  renderSavedMessage();
-  if (messageStatus) messageStatus.textContent = "Board cleared.";
+  if (messageWebsite) messageWebsite.value = "";
+  if (messageStatus) messageStatus.textContent = "";
   primeAudio().then(() => AudioSys.click()).catch(() => {});
 }
 
-async function saveMessageBoard() {
-  setupMessageCanvas();
-  try {
-    localStorage.setItem("q-room-message", JSON.stringify({
-      text: messageText?.value || "",
-      sketch: messageCanvas?.toDataURL("image/png") || "",
-      updatedAt: new Date().toISOString()
-    }));
-    renderSavedMessage();
-    if (messageStatus) messageStatus.textContent = "Message saved in this room.";
-  } catch (error) {
-    void error;
-    if (messageStatus) messageStatus.textContent = "Could not save here, but the mark stays on screen.";
+async function saveMessageBoard(event) {
+  event?.preventDefault();
+  const name = messageName?.value.trim() || "";
+  const message = messageText?.value.trim() || "";
+  if (message.length < 2) {
+    if (messageStatus) messageStatus.textContent = "写两句话再留到墙上吧。";
+    return;
   }
-  primeAudio().then(() => AudioSys.click()).catch(() => {});
+  const submitButton = document.getElementById("message-save");
+  if (submitButton) submitButton.disabled = true;
+  if (messageStatus) messageStatus.textContent = "Pinning your note…";
+  try {
+    const response = await fetch(MESSAGE_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-QRoom-Owner": getMessageOwnerToken()
+      },
+      body: JSON.stringify({ name, message, website: messageWebsite?.value || "" })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not leave message");
+    if (messageText) messageText.value = "";
+    if (name) {
+      try { localStorage.setItem("qroom-message-name", name); } catch (error) { void error; }
+    }
+    if (messageStatus) messageStatus.textContent = "你的留言已经留在墙上了。";
+    await loadMessageWall();
+    messageWall?.scrollTo?.({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    if (messageStatus) messageStatus.textContent = error instanceof Error ? error.message : "Could not leave message.";
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+  await primeAudio();
+  AudioSys.click();
+}
+
+async function deleteMessage(id, button) {
+  if (!id || !(button instanceof HTMLButtonElement)) return;
+  button.disabled = true;
+  if (messageStatus) messageStatus.textContent = "Removing your note…";
+  try {
+    const response = await fetch(`${MESSAGE_ENDPOINT}/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { "X-QRoom-Owner": getMessageOwnerToken() }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not delete message");
+    if (messageStatus) messageStatus.textContent = "你的留言已经删除。";
+    await loadMessageWall();
+  } catch (error) {
+    button.disabled = false;
+    if (messageStatus) messageStatus.textContent = error instanceof Error ? error.message : "Could not delete message.";
+  }
+  await primeAudio();
+  AudioSys.click();
 }
 
 async function openMessageBoard() {
   await primeAudio();
-  setupMessageCanvas();
   messageModal?.classList.add("open");
   messageModal?.setAttribute("aria-hidden", "false");
-  renderSavedMessage();
-  if (messageStatus) messageStatus.textContent = "Draw or write something. It will stay here in this browser.";
+  if (messageName && !messageName.value) {
+    try { messageName.value = localStorage.getItem("qroom-message-name") || ""; } catch (error) { void error; }
+  }
+  if (messageStatus) messageStatus.textContent = "你只能删除这台设备上由自己留下的留言。";
+  void loadMessageWall();
   AudioSys.click();
   AudioSys.shimmer(700, 0.018);
   AudioSys.fadeMusicTo(AudioSys.sceneMusicLevel(), 650);
@@ -1349,14 +1430,21 @@ async function openDeskScene(openWorkPanel) {
 async function openChatScene() {
   await primeAudio();
   activate("chat");
+  const shouldIntroduce = !chatVisited;
+  chatVisited = true;
   const lastAssistantEntry = [...convo].reverse().find(item => item.role === "assistant");
   const lastAssistant = lastAssistantEntry ? lastAssistantEntry.content : "";
-  setQSpeech(
-    lastAssistant || chatIntro,
-    false
-  );
+  const visibleText = lastAssistant || chatIntro;
+  setQSpeech(visibleText, false);
   AudioSys.click();
   AudioSys.transition();
+  if (shouldIntroduce) {
+    window.setTimeout(() => {
+      if (scenes.chat.classList.contains("active") && !chatBusy) speakChatText(chatIntro);
+    }, 320);
+  } else {
+    startChatIdle("relaxed");
+  }
 }
 
 async function openContactScene(returnScene) {
@@ -1463,9 +1551,8 @@ document.getElementById("panel-close-side").addEventListener("click", async () =
 document.getElementById("message-close")?.addEventListener("click", async () => closeMessageBoard());
 document.getElementById("message-backdrop")?.addEventListener("click", async () => closeMessageBoard());
 document.getElementById("message-clear")?.addEventListener("click", async () => clearMessageBoard());
-document.getElementById("message-save")?.addEventListener("click", async () => saveMessageBoard());
+messageForm?.addEventListener("submit", saveMessageBoard);
 document.getElementById("contact-message-trigger")?.addEventListener("click", async () => openMessageBoard());
-document.getElementById("contact-message-btn")?.addEventListener("click", async () => openMessageBoard());
 
 deskBackCue.addEventListener("click", async () => {
   await primeAudio();
@@ -1476,6 +1563,7 @@ deskBackCue.addEventListener("click", async () => {
 
 chatBackCue.addEventListener("click", async () => {
   await primeAudio();
+  cancelChatSpeech("idle");
   activate("room");
   AudioSys.click();
   AudioSys.transition();
@@ -1493,27 +1581,6 @@ document.getElementById("back-room-trigger").addEventListener("click", async () 
   }
 });
 
-document.getElementById("copy-email-btn").addEventListener("click", async event => {
-  await primeAudio();
-  AudioSys.click();
-  const button = event.currentTarget;
-  if (!(button instanceof HTMLButtonElement)) return;
-  try {
-    await navigator.clipboard.writeText("jiejoe2017@gmail.com");
-    const original = button.textContent;
-    button.textContent = "Copied";
-    window.setTimeout(() => {
-      button.textContent = original || "Copy Email";
-    }, 1400);
-  } catch (error) {
-    void error;
-    button.textContent = "Copy failed";
-    window.setTimeout(() => {
-      button.textContent = "Copy Email";
-    }, 1400);
-  }
-});
-
 document.getElementById("send-btn").addEventListener("click", async () => {
   await primeAudio();
   AudioSys.click();
@@ -1527,6 +1594,23 @@ chatInput.addEventListener("keydown", async event => {
   sendChatMessage();
 });
 
+chatVoiceToggle?.addEventListener("click", async () => {
+  await primeAudio();
+  chatVoiceEnabled = !chatVoiceEnabled;
+  try {
+    localStorage.setItem("qroom-chat-voice", chatVoiceEnabled ? "on" : "off");
+  } catch (error) {
+    void error;
+  }
+  updateVoiceToggle();
+  if (chatVoiceEnabled) {
+    speakChatText(qStageText.textContent || chatIntro);
+  } else {
+    cancelChatSpeech("relaxed");
+  }
+  AudioSys.click();
+});
+
 soundToggle.addEventListener("click", async () => {
   if (!AudioSys.ctx) {
     AudioSys.muted = true;
@@ -1538,6 +1622,12 @@ soundToggle.addEventListener("click", async () => {
     doorOpenVideo.muted = AudioSys.muted;
   }
 });
+
+updateVoiceToggle();
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.addEventListener?.("voiceschanged", getPreferredChatVoice, { once: true });
+}
 
 document.addEventListener("click", async event => {
   const target = event.target;
@@ -1600,10 +1690,10 @@ function applyDebugRoute() {
   }
   if (params.get("debugMessage") === "1") {
     activate("room");
-    setupMessageCanvas();
     messageModal?.classList.add("open");
     messageModal?.setAttribute("aria-hidden", "false");
-    if (messageStatus) messageStatus.textContent = "Draw or write something. It will stay here in this browser.";
+    if (messageStatus) messageStatus.textContent = "你只能删除这台设备上由自己留下的留言。";
+    void loadMessageWall();
   }
 }
 
