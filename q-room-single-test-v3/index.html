@@ -96,6 +96,14 @@ body{
 #scene-desk > video{object-position:50% 50%}
 #scene-chat > img,
 #scene-chat > video{object-position:38% 50%}
+#scene-chat > img{z-index:0}
+#scene-chat > video.chat-state-video{
+  z-index:1;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+#scene-chat > video.chat-state-video.is-active{opacity:1}
 #scene-contact > img{object-position:50% 50%}
 .scene-chat::after{
   background:
@@ -1693,6 +1701,27 @@ a.ring{display:block;text-decoration:none}
   display:block;
   transform:none;
 }
+.qstudio-preview{
+  justify-content:flex-start;
+  align-items:flex-end;
+}
+.qstudio-preview img{
+  width:min(100%,330px);
+  aspect-ratio:16/10;
+  object-fit:cover;
+  object-position:center top;
+  border-radius:18px;
+  border:1px solid rgba(234,223,255,.16);
+  box-shadow:0 16px 38px rgba(10,6,20,.28);
+}
+.project-qstudio::before{
+  opacity:.62;
+}
+.project-work-project .plain-preview img{
+  object-fit:cover;
+  object-position:center;
+  aspect-ratio:16/8.5;
+}
 .device{
   position:relative;
   overflow:hidden;
@@ -1846,6 +1875,249 @@ a.ring{display:block;text-decoration:none}
   line-height:1;
   color:rgba(245,238,255,.9);
 }
+.qstudio-detail,
+.worked-project-detail{
+  position:relative;
+  display:grid;
+  gap:22px;
+  padding:clamp(18px,2.2vw,28px);
+  border-radius:30px;
+  border:1px solid rgba(226,211,255,.15);
+  background:
+    radial-gradient(circle at 78% 10%, rgba(178,137,255,.18), transparent 30%),
+    linear-gradient(180deg, rgba(24,17,38,.94), rgba(13,10,22,.96));
+  box-shadow:0 26px 80px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.035);
+}
+.qstudio-detail-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:22px;
+  align-items:end;
+  padding-right:150px;
+}
+.qstudio-detail-chips{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}
+.qstudio-detail-chips span{
+  padding:7px 11px;
+  border-radius:999px;
+  border:1px solid rgba(226,211,255,.15);
+  background:rgba(255,255,255,.045);
+  color:rgba(238,231,255,.74);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:11px;
+}
+.qstudio-gallery{
+  display:grid;
+  gap:18px;
+}
+.qstudio-gallery-card,
+.qstudio-video-card{
+  margin:0;
+  overflow:hidden;
+  border-radius:22px;
+  border:1px solid rgba(226,211,255,.14);
+  background:rgba(12,9,20,.72);
+}
+.qstudio-gallery-card img,
+.qstudio-video-card video{
+  width:100%;
+  display:block;
+}
+.qstudio-gallery-card img{
+  max-height:860px;
+  object-fit:contain;
+  background:rgba(6,5,10,.56);
+}
+.qstudio-video-card video{
+  max-height:620px;
+  object-fit:cover;
+  background:#08050e;
+}
+.qstudio-gallery-card figcaption,
+.qstudio-video-card figcaption{
+  padding:13px 16px 15px;
+  border-top:1px solid rgba(226,211,255,.1);
+  color:rgba(238,231,255,.68);
+  font-size:13px;
+  line-height:1.6;
+}
+.worked-project-cover{
+  position:relative;
+  min-height:210px;
+  border-radius:24px;
+  overflow:hidden;
+  border:1px solid rgba(226,211,255,.14);
+  background:rgba(10,7,16,.82);
+}
+.worked-project-cover img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  opacity:.54;
+  filter:saturate(.92) contrast(.95);
+}
+.worked-project-cover::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg, rgba(13,9,22,.94), rgba(13,9,22,.42) 56%, rgba(13,9,22,.72));
+}
+.worked-project-cover > div{
+  position:relative;
+  z-index:1;
+  max-width:560px;
+  padding:28px;
+}
+.worked-project-cover h3{
+  margin:10px 0 8px;
+  color:#fff;
+  font-size:clamp(34px,4.4vw,64px);
+  line-height:1;
+  letter-spacing:-.06em;
+}
+.worked-project-cover p{
+  margin:0;
+  color:rgba(238,231,255,.74);
+  font-size:15px;
+  line-height:1.7;
+}
+.worked-project-layout{
+  display:grid;
+  grid-template-columns:minmax(230px,.34fr) minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.worked-project-list{
+  display:grid;
+  gap:10px;
+}
+.worked-project-tab{
+  width:100%;
+  display:grid;
+  grid-template-columns:42px 1fr;
+  gap:12px;
+  align-items:center;
+  padding:12px;
+  border:1px solid rgba(226,211,255,.1);
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+  color:#f7f2ff;
+  text-align:left;
+  cursor:pointer;
+  transition:transform .22s ease, background .22s ease, border-color .22s ease;
+}
+.worked-project-tab:hover,
+.worked-project-tab.active{
+  transform:translateX(4px);
+  border-color:rgba(226,211,255,.22);
+  background:rgba(181,141,255,.14);
+}
+.worked-project-logo{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.worked-project-logo img{
+  width:30px;
+  height:30px;
+  object-fit:cover;
+  border-radius:10px;
+}
+.worked-project-tab small,
+.worked-project-tab em{
+  display:block;
+  color:rgba(238,231,255,.56);
+  font-style:normal;
+  font-size:10.5px;
+  line-height:1.35;
+}
+.worked-project-tab small{
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.worked-project-tab b{
+  display:block;
+  margin:3px 0;
+  color:#fff;
+  font-size:16px;
+  line-height:1.2;
+}
+.worked-project-content{
+  display:grid;
+  gap:18px;
+}
+.worked-project-copy{
+  padding:20px;
+  border-radius:22px;
+  border:1px solid rgba(226,211,255,.12);
+  background:rgba(255,255,255,.035);
+}
+.worked-project-copy h4{
+  margin:14px 0 10px;
+  color:#fff;
+  font-size:clamp(28px,3vw,44px);
+  line-height:1.04;
+  letter-spacing:-.055em;
+}
+.worked-project-copy p{
+  margin:0;
+  color:rgba(238,231,255,.76);
+  font-size:14.5px;
+  line-height:1.9;
+}
+.worked-project-metrics{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0 0;
+}
+.worked-project-metrics span{
+  padding:12px;
+  border-radius:16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(226,211,255,.1);
+}
+.worked-project-metrics b,
+.worked-project-metrics small{
+  display:block;
+}
+.worked-project-metrics b{
+  color:rgba(255,211,179,.94);
+  font-size:16px;
+}
+.worked-project-metrics small{
+  margin-top:4px;
+  color:rgba(238,231,255,.58);
+  font-size:12px;
+}
+.worked-project-media{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.worked-project-media .detail-media-card.wide,
+.worked-project-media .detail-media-card:only-child{
+  grid-column:1 / -1;
+}
+.worked-project-media .detail-media-card{
+  background:rgba(12,9,20,.72);
+}
+.worked-project-media .detail-media-card img{
+  max-height:560px;
+  object-fit:contain;
+  background:rgba(246,240,232,.94);
+}
 .contact-dock{
   position:absolute;
   left:clamp(20px,4vw,42px);
@@ -1988,6 +2260,39 @@ a.ring{display:block;text-decoration:none}
   outline:none;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
   line-height:1.55;
+}
+.message-saved{
+  display:grid;
+  gap:8px;
+  padding:11px;
+  border-radius:16px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(234,223,255,.1);
+  color:rgba(239,231,255,.72);
+}
+.message-saved[hidden]{
+  display:none;
+}
+.message-saved strong{
+  color:rgba(255,211,179,.9);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.message-saved p{
+  margin:0;
+  color:rgba(247,242,255,.8);
+  font-size:13px;
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+.message-saved img{
+  width:100%;
+  max-height:120px;
+  object-fit:contain;
+  border-radius:12px;
+  background:rgba(250,246,255,.08);
+  border:1px solid rgba(234,223,255,.08);
 }
 .message-actions{
   display:flex;
@@ -2421,6 +2726,10 @@ a.ring{display:block;text-decoration:none}
   .published-detail-one{font-size:clamp(18px,4.8vw,28px)}
   .published-detail-points{grid-template-columns:1fr}
   .published-detail-gallery{grid-template-columns:1fr}
+  .qstudio-detail-head{grid-template-columns:1fr;padding-right:0}
+  .qstudio-detail-chips{justify-content:flex-start}
+  .worked-project-layout{grid-template-columns:1fr}
+  .worked-project-list{grid-template-columns:repeat(2,minmax(0,1fr))}
   .project-companion{display:block}
   .project-companion .overlap-preview{grid-column:auto;grid-row:auto;justify-self:auto}
   .tile-preview.multi{flex-wrap:wrap;justify-content:center}
@@ -2478,6 +2787,12 @@ a.ring{display:block;text-decoration:none}
   .detail-lead{font-size:16px}
   .detail-metrics{grid-template-columns:1fr}
   .detail-media-grid{grid-template-columns:1fr}
+  .worked-project-list,
+  .worked-project-media,
+  .worked-project-metrics{grid-template-columns:1fr}
+  .worked-project-cover{min-height:180px}
+  .worked-project-cover > div{padding:22px}
+  .qstudio-gallery-card img{max-height:620px}
   .wall{grid-template-columns:1fr}
   .wall-item.span-half,
   .wall-item.span-third{grid-column:1;min-height:260px}
@@ -2529,7 +2844,7 @@ a.ring{display:block;text-decoration:none}
       <span id="p2">Explore</span><i id="d2"></i>
       <span id="p3">Work Desk</span><i id="d3"></i>
       <span id="p4">Coffee Chat</span><i id="d4"></i>
-      <span id="p5">Come Say Hi</span>
+      <span id="p5">Contact</span>
     </div>
   </div>
   <button class="sound-toggle" id="sound-toggle" aria-label="Toggle sound"><strong>Sound Off</strong></button>
@@ -2554,8 +2869,6 @@ a.ring{display:block;text-decoration:none}
       <div class="tag depth-near" style="left:26.6%;top:54.8%;">See My Work</div>
       <button class="ring depth-mid" id="room-chat-trigger" style="left:72.6%;top:54.3%;" aria-label="Open coffee chat"></button>
       <div class="tag depth-mid" style="left:72.6%;top:48.1%;">Coffee Chat</div>
-      <button class="ring depth-far" id="room-contact-trigger" style="left:78.4%;top:25.6%;" aria-label="Come say hi to Q"></button>
-      <div class="tag depth-far" style="left:78.4%;top:21.4%;">Come Say Hi</div>
       <button class="ring depth-far" id="room-message-trigger" style="left:67.8%;top:28.4%;" aria-label="Leave a message"></button>
       <div class="tag depth-far" style="left:67.8%;top:24.2%;">Leave A Message</div>
     </div>
@@ -2568,7 +2881,7 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene" id="scene-desk">
     <img src="./assets/desk-new.png" alt="Q studio desk scene">
-    <video id="desk-loop-video" src="./assets/desk.mp4" muted playsinline loop preload="auto" poster="./assets/desk-new.png"></video>
+    <video id="desk-loop-video" src="./assets/desk_typing.mp4" muted playsinline loop preload="auto" poster="./assets/desk-new.png"></video>
     <button class="ring" id="desk-trigger" style="left:42.2%;top:53%;" aria-label="Open work showcase"></button>
     <div class="tag" style="left:42.2%;top:46.5%;">See My Work</div>
     <button class="ring depth-far" id="desk-contact-trigger" style="left:22.2%;top:38.2%;" aria-label="Come say hi to Q"></button>
@@ -2596,7 +2909,10 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene scene-chat" id="scene-chat">
     <img src="./assets/chat-new.png" alt="Q coffee chat scene">
-    <video id="chat-loop-video" src="./assets/chat.mp4" muted playsinline loop preload="auto" poster="./assets/chat-new.png"></video>
+    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat_idle.mp4" muted playsinline preload="auto" poster="./assets/chat-new.png"></video>
+    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat_relaxed.mp4" muted playsinline preload="auto"></video>
+    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat_waiting.mp4" muted playsinline loop preload="auto"></video>
+    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" muted playsinline loop preload="auto"></video>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <span class="q-stage-label">Q / Coffee Chat</span>
       <div class="q-stage-text" id="q-stage-text">Hi, I'm Q, an AI-native product builder. Ask me what I'm building, what I'm exploring with AI, or what small project I'm obsessed with lately.</div>
@@ -2630,15 +2946,15 @@ a.ring{display:block;text-decoration:none}
     <img src="./assets/contact-new.png" alt="Q studio contact scene">
     <a class="ring" href="mailto:jiejoe2017@gmail.com" style="left:31.3%;top:68.8%;" aria-label="Send email to Q"></a>
     <div class="tag" style="left:31.3%;top:62.3%;">Email</div>
-    <a class="ring" href="https://jiejoe.github.io/" target="_blank" rel="noopener" style="left:84.2%;top:41.6%;" aria-label="Open portfolio"></a>
-    <div class="tag" style="left:84.2%;top:35.1%;">Portfolio</div>
-    <button class="ring" id="back-room-trigger" style="left:22.5%;top:67%;" aria-label="Back to room"></button>
-    <div class="tag" style="left:22.5%;top:60.5%;">Back To Room</div>
+    <button class="ring" id="contact-message-trigger" style="left:84.2%;top:41.6%;" aria-label="Leave a message"></button>
+    <div class="tag" style="left:84.2%;top:35.1%;">Leave Message</div>
+    <button class="ring" id="back-room-trigger" style="left:22.5%;top:67%;" aria-label="Back to desk"></button>
+    <div class="tag" id="contact-back-tag" style="left:22.5%;top:60.5%;">Back To Desk</div>
     <div class="contact-dock">
       <div class="eyebrow">Come Say Hi</div>
       <div class="contact-links">
         <a class="contact-link primary" href="mailto:jiejoe2017@gmail.com">Write To Me</a>
-        <a class="contact-link" href="https://jiejoe.github.io/" target="_blank" rel="noopener">Open Portfolio</a>
+        <button class="contact-link" id="contact-message-btn" type="button">Leave Message</button>
         <button class="contact-link" id="copy-email-btn" type="button">Copy Email</button>
       </div>
       <div class="contact-meta">jiejoe2017@gmail.com · 杭州 / 上海</div>
@@ -2661,6 +2977,7 @@ a.ring{display:block;text-decoration:none}
       <div class="message-side">
         <label for="message-text">A tiny note</label>
         <textarea id="message-text" placeholder="写一句话，或者在左边留一个小标记。"></textarea>
+        <div class="message-saved" id="message-saved" hidden></div>
         <div class="message-actions">
           <button type="button" id="message-clear">Clear</button>
           <button type="button" class="primary" id="message-save">Leave It Here</button>
@@ -2671,6 +2988,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<script src="./app.js"></script>
+<script src="./app.js?v=20260710-video-states"></script>
 </body>
 </html>

@@ -37,16 +37,25 @@ const messageModal = document.getElementById("message-modal");
 const messageCanvas = document.getElementById("message-canvas");
 const messageText = document.getElementById("message-text");
 const messageStatus = document.getElementById("message-status");
+const messageSaved = document.getElementById("message-saved");
 const doorIdleVideo = document.getElementById("door-idle-video");
 const doorOpenVideo = document.getElementById("door-open-video");
 const roomLoopVideo = document.getElementById("room-loop-video");
 const deskLoopVideo = document.getElementById("desk-loop-video");
-const chatLoopVideo = document.getElementById("chat-loop-video");
+const chatIdleVideo = document.getElementById("chat-idle-video");
+const chatRelaxedVideo = document.getElementById("chat-relaxed-video");
+const chatWaitingVideo = document.getElementById("chat-waiting-video");
+const chatTalkVideo = document.getElementById("chat-talk-video");
 const contactVideo = document.getElementById("contact-video");
 const sceneLoopVideos = {
   room: roomLoopVideo,
-  desk: deskLoopVideo,
-  chat: chatLoopVideo
+  desk: deskLoopVideo
+};
+const chatStateVideos = {
+  idle: chatIdleVideo,
+  relaxed: chatRelaxedVideo,
+  waiting: chatWaitingVideo,
+  talk: chatTalkVideo
 };
 
 const order = ["door", "room", "desk", "chat", "contact"];
@@ -268,6 +277,25 @@ const selectedWorkItems = [
     ]
   }
 ];
+
+const qStudioItem = {
+  id: "qstudio",
+  order: "04 / 当前这个网站",
+  title: "Q Studio",
+  tag: "Work project",
+  cat: "当前这个网站",
+  url: "https://jiejoe.github.io/",
+  subtitle: "我在这现在搭建的这个个人网站",
+  one: "一个带游戏感的个人工作室，也是我最近持续打磨的互动网站实验。",
+  desc: "目前最近正在尝试搭建这个网站，尝试了多种办法用 Three.js 的方式，实践各种画风（如皮克斯风、粘土风、超现实高清主义风）以及技术栈部分。这是基于 Three.js 的前端互动游戏，长期探索搭建这种可互动、带游戏风格的个人工作室，并实践影视生成、游戏生成方面的工作流、功能场景和 Agent 应用。过程非常有趣，也对目前 Agent 工作流的各种工具和模型能力有了更多的理解。",
+  chips: ["AIGC", "影视游戏", "Three.js", "Agent Workflow"],
+  gallery: [
+    { src: "./assets/qstudio-homepage.png", alt: "Q Studio 个人网站场景页", caption: "当前网站的长页视觉和作品入口", wide: true },
+    { src: "./assets/qstudio-storyboard.png", alt: "Q Studio 互动短片故事版", caption: "房间、镜头和交互路径的故事版", wide: true }
+  ],
+  video: { src: "./assets/room.mp4", poster: "./assets/room-new.png", alt: "Q Studio 房间循环视频" }
+};
+
 const workWallItems = [
   {
     id: "twin",
@@ -309,32 +337,31 @@ const workWallItems = [
     previewMode: "shipu"
   },
   {
-    id: "taobao",
-    source: "worked",
-    order: "04 / Alibaba / Taobao",
-    title: "淘宝",
-    tag: "Alibaba / Taobao",
-    cat: "AI Shopping",
-    subtitle: "把收藏、足迹和种草，整理成可购物的下一步。",
+    id: "qstudio",
+    source: "qstudio",
+    order: "04 / 当前这个网站",
+    title: "Q Studio",
+    tag: "Work project",
+    cat: "当前这个网站",
+    subtitle: "我在这现在搭建的这个个人网站",
     accent: "sand",
     size: "span-third",
-    chips: ["导购", "收藏", "兴趣发现"],
-    previewMode: "plain",
-    cover: "./assets/ai-shopping-1.png"
+    chips: ["AIGC", "影视游戏"],
+    previewMode: "qstudio"
   },
   {
-    id: "meijian",
-    source: "worked",
-    order: "05 / Meijian · 0→1",
-    title: "美间",
-    tag: "Meijian · 0→1",
-    cat: "Design Tool",
-    subtitle: "把素材、方案、商品和交易串成一条工作流。",
+    id: "work-project",
+    source: "workProject",
+    order: "05 / Work project",
+    title: "Work project",
+    tag: "Work project",
+    cat: "工作项目",
+    subtitle: "工作中的一些项目",
     accent: "violet",
     size: "span-third",
-    chips: ["0→1", "设计工具", "内容社区"],
+    chips: ["AI Shopping", "AI Tools", "0→1"],
     previewMode: "plain",
-    cover: "./assets/meijian.png"
+    cover: "./assets/ai-shopping-1.png"
   }
 ];
 let activeWorkDetailId = null;
@@ -343,6 +370,8 @@ let activeSelectedId = "shipu";
 let activeWorkTab = "worked";
 const WORKER = "https://another-me-q.jiejoe-eth.workers.dev";
 let chatBusy = false;
+let chatSpeaking = false;
+let chatVisualState = "idle";
 const chatIntro =
   "Hi, I'm Q, an AI-native product builder. Ask me what I'm building, what I'm exploring with AI, or what small project I'm obsessed with lately.";
 let convo = [
@@ -408,7 +437,12 @@ function renderBrowserDetail() {
     return;
   }
 
-  if (wallItem.source === "worked") {
+  if (wallItem.source === "qstudio") {
+    browserDetail.innerHTML = renderQStudioDetail();
+  } else if (wallItem.source === "workProject") {
+    browserDetail.innerHTML = renderWorkProjectDetail();
+    bindWorkedProjectList();
+  } else if (wallItem.source === "worked") {
     const item = workedOnItems.find(entry => entry.id === wallItem.id) || workedOnItems[0];
     const mediaItems = item.media || [];
     browserDetail.innerHTML = `
@@ -466,6 +500,106 @@ function renderBrowserDetail() {
   }
 
   bindWorkBackButton();
+}
+
+function renderQStudioDetail() {
+  return `
+    <div class="work-detail-shell work-detail-shell--qstudio">
+      <div class="work-detail-topbar">
+        <button class="work-back-btn" type="button" id="work-back-btn"><span>←</span>Back To Wall</button>
+      </div>
+      <section class="qstudio-detail">
+        <a class="published-detail-link" href="${qStudioItem.url}" target="_blank" rel="noopener">Open Project</a>
+        <div class="qstudio-detail-head">
+          <div>
+            <div class="published-detail-meta">${qStudioItem.cat}</div>
+            <h3 class="published-detail-title">${qStudioItem.title}</h3>
+            <p class="published-detail-one">${qStudioItem.subtitle}</p>
+          </div>
+          <div class="qstudio-detail-chips">${qStudioItem.chips.map(chip => `<span>${chip}</span>`).join("")}</div>
+        </div>
+        <div class="published-detail-desc">${qStudioItem.desc}</div>
+        <div class="qstudio-gallery">
+          ${qStudioItem.gallery.map(media => `
+            <figure class="qstudio-gallery-card">
+              <img src="${media.src}" alt="${media.alt}" loading="lazy" decoding="async">
+              <figcaption>${media.caption}</figcaption>
+            </figure>
+          `).join("")}
+        </div>
+        <figure class="qstudio-video-card">
+          <video src="${qStudioItem.video.src}" poster="${qStudioItem.video.poster}" controls playsinline preload="metadata" aria-label="${qStudioItem.video.alt}"></video>
+          <figcaption>底部视频可以直接点击播放，作为当前互动房间的动态预览。</figcaption>
+        </figure>
+      </section>
+    </div>
+  `;
+}
+
+function renderWorkProjectDetail() {
+  const item = workedOnItems.find(entry => entry.id === activeWorkedId) || workedOnItems[0];
+  activeWorkedId = item.id;
+  return `
+    <div class="work-detail-shell work-detail-shell--worked">
+      <div class="work-detail-topbar">
+        <button class="work-back-btn" type="button" id="work-back-btn"><span>←</span>Back To Wall</button>
+      </div>
+      <section class="worked-project-detail">
+        <div class="worked-project-cover">
+          <img src="./assets/ai-shopping-1.png" alt="工作项目封面" loading="lazy" decoding="async">
+          <div>
+            <div class="published-detail-meta">Work project</div>
+            <h3>工作中的一些项目</h3>
+            <p>一些更偏真实业务、产品系统和工作流的项目记录。</p>
+          </div>
+        </div>
+        <div class="worked-project-layout">
+          <aside class="worked-project-list" aria-label="Work project list">
+            ${workedOnItems.map(entry => `
+              <button class="worked-project-tab ${entry.id === item.id ? "active" : ""}" type="button" data-worked-id="${entry.id}">
+                <span class="worked-project-logo"><img src="${entry.icon}" alt=""></span>
+                <span>
+                  <small>${entry.stamp} · ${entry.meta}</small>
+                  <b>${entry.name}</b>
+                  <em>${entry.blurb}</em>
+                </span>
+              </button>
+            `).join("")}
+          </aside>
+          <article class="worked-project-content">
+            <div class="worked-project-copy">
+              <div class="detail-top">
+                <div class="detail-meta">${item.chip}</div>
+                <a class="detail-link" href="${item.href}" target="_blank" rel="noopener">Open Link</a>
+              </div>
+              <h4>${item.title}</h4>
+              <p>${item.desc}</p>
+              <div class="worked-project-metrics">
+                ${item.metrics.map(metric => `<span><b>${metric[0]}</b><small>${metric[1]}</small></span>`).join("")}
+              </div>
+              <div class="detail-chip-row">${item.res ? `<span>${item.res}</span>` : ""}</div>
+            </div>
+            <div class="worked-project-media">
+              ${(item.media || []).map(media => renderDetailMedia(media)).join("")}
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function bindWorkedProjectList() {
+  Array.from(browserDetail.querySelectorAll("[data-worked-id]")).forEach(button => {
+    button.addEventListener("click", async () => {
+      activeWorkedId = button.dataset.workedId;
+      browserDetail.innerHTML = renderWorkProjectDetail();
+      bindWorkedProjectList();
+      bindWorkBackButton();
+      await primeAudio();
+      AudioSys.click();
+    });
+  });
 }
 
 function bindWorkBackButton() {
@@ -540,6 +674,11 @@ function renderWallPreview(item) {
       ${deviceMarkup("phone", "./assets/companion-call.png", "AI 陪伴通话", "contain")}
     </span>`;
   }
+  if (item.previewMode === "qstudio") {
+    return `<span class="tile-preview qstudio-preview">
+      <img src="./assets/qstudio-homepage.png" alt="Q Studio 当前网站" loading="lazy" decoding="async">
+    </span>`;
+  }
   if (item.previewMode === "plain" && item.cover) {
     return `<span class="tile-preview plain-preview"><img src="${item.cover}" alt="${item.title}" loading="lazy" decoding="async"></span>`;
   }
@@ -572,6 +711,83 @@ function setQSpeech(text, typing) {
   qStageText.classList.toggle("typing", Boolean(typing));
 }
 
+function resetSceneVideo(video) {
+  if (!video) return;
+  video.pause();
+  try {
+    video.currentTime = 0.001;
+  } catch (error) {
+    void error;
+  }
+}
+
+function setChatVisualState(nextState, { reset = true } = {}) {
+  const nextVideo = chatStateVideos[nextState];
+  if (!nextVideo) return;
+  chatVisualState = nextState;
+  const chatActive = scenes.chat.classList.contains("active");
+
+  Object.entries(chatStateVideos).forEach(([state, video]) => {
+    if (!video) return;
+    const selected = state === nextState;
+    video.classList.toggle("is-active", selected);
+    video.muted = true;
+    if (!selected || !chatActive) {
+      resetSceneVideo(video);
+      return;
+    }
+    if (reset) resetSceneVideo(video);
+    video.play().catch(() => {});
+  });
+}
+
+function startChatIdle(preferredState = "idle") {
+  const state = preferredState === "relaxed" ? "relaxed" : "idle";
+  setChatVisualState(state, { reset: true });
+}
+
+function setChatSpeaking(nextSpeaking) {
+  chatSpeaking = Boolean(nextSpeaking);
+  if (chatSpeaking) {
+    setChatVisualState("talk", { reset: true });
+    return;
+  }
+  if (chatBusy) {
+    setChatVisualState("waiting", { reset: true });
+    return;
+  }
+  startChatIdle("idle");
+}
+
+function bindTtsAudio(audio) {
+  if (!audio || !audio.addEventListener) {
+    throw new TypeError("bindTtsAudio expects an audio element");
+  }
+  const start = () => setChatSpeaking(true);
+  const stop = () => setChatSpeaking(false);
+  audio.addEventListener("playing", start);
+  ["ended", "pause", "error", "abort", "emptied"].forEach(type => audio.addEventListener(type, stop));
+  return () => {
+    audio.removeEventListener("playing", start);
+    ["ended", "pause", "error", "abort", "emptied"].forEach(type => audio.removeEventListener(type, stop));
+    stop();
+  };
+}
+
+function handleChatIdleEnded(state) {
+  if (!scenes.chat.classList.contains("active") || chatBusy || chatSpeaking || chatVisualState !== state) return;
+  startChatIdle(state === "idle" ? "relaxed" : "idle");
+}
+
+chatIdleVideo?.addEventListener("ended", () => handleChatIdleEnded("idle"));
+chatRelaxedVideo?.addEventListener("ended", () => handleChatIdleEnded("relaxed"));
+window.QRoomPlayback = Object.assign(window.QRoomPlayback || {}, {
+  setSpeaking: setChatSpeaking,
+  bindTtsAudio
+});
+window.addEventListener("qroom:speaking-start", () => setChatSpeaking(true));
+window.addEventListener("qroom:speaking-end", () => setChatSpeaking(false));
+
 async function sendChatMessage(prefill) {
   const text = (prefill || chatInput.value).trim();
   if (!text || chatBusy) return;
@@ -580,6 +796,7 @@ async function sendChatMessage(prefill) {
   meEcho.hidden = false;
   meEcho.textContent = text;
   setQSpeech("Let me think about that for a second…", true);
+  setChatVisualState(chatSpeaking ? "talk" : "waiting", { reset: true });
   convo.push({ role: "user", content: text });
   AudioSys.click();
   AudioSys.shimmer(820, 0.018);
@@ -631,6 +848,7 @@ async function sendChatMessage(prefill) {
   } finally {
     chatBusy = false;
     document.getElementById("send-btn").disabled = false;
+    if (!chatSpeaking) startChatIdle("idle");
   }
 }
 
@@ -678,7 +896,10 @@ const AudioSys = {
   setMuted(nextMuted) {
     this.muted = nextMuted;
     soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
-    if (!this.ctx) return;
+    if (!this.ctx) {
+      syncDeskVideoAudio();
+      return;
+    }
     const now = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(now);
     this.master.gain.setValueAtTime(this.master.gain.value, now);
@@ -693,6 +914,7 @@ const AudioSys = {
       this.shimmer(720, 0.028);
       this.syncSceneAudio();
     }
+    syncDeskVideoAudio();
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -802,9 +1024,9 @@ const AudioSys = {
   syncSceneAudio() {
     this.stopKeyboard();
     this.stopRoomDetails();
+    syncDeskVideoAudio();
     if (this.muted) return;
     if (scenes.room.classList.contains("active")) this.startRoomDetails();
-    if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.02);
     }
@@ -823,6 +1045,7 @@ function activate(name) {
   setProgress(order.indexOf(name));
   syncDoorSceneMedia(name);
   syncLoopSceneMedia(name);
+  syncChatSceneMedia(name);
   AudioSys.syncSceneAudio();
 }
 
@@ -849,12 +1072,88 @@ function syncLoopSceneMedia(activeScene) {
       video.play().catch(() => {});
       return;
     }
-    video.pause();
+    resetSceneVideo(video);
   });
+}
+
+function syncChatSceneMedia(activeScene) {
+  if (activeScene !== "chat") {
+    Object.values(chatStateVideos).forEach(resetSceneVideo);
+    return;
+  }
+  if (chatSpeaking) {
+    setChatVisualState("talk", { reset: true });
+    return;
+  }
+  if (chatBusy) {
+    setChatVisualState("waiting", { reset: true });
+    return;
+  }
+  startChatIdle(chatVisualState === "relaxed" ? "relaxed" : "idle");
+}
+
+function syncDeskVideoAudio() {
+  if (!deskLoopVideo) return;
+  const sceneActive = scenes.desk.classList.contains("active");
+  const panelOpen = workPanel.classList.contains("open");
+  const shouldSound = sceneActive && !panelOpen && !AudioSys.muted;
+  deskLoopVideo.volume = 0.38;
+  deskLoopVideo.muted = !shouldSound;
+  if (!sceneActive) {
+    resetSceneVideo(deskLoopVideo);
+    return;
+  }
+  const started = deskLoopVideo.play();
+  if (started) {
+    started.catch(() => {
+      deskLoopVideo.muted = true;
+      deskLoopVideo.play().catch(() => {});
+    });
+  }
 }
 
 let messageDrawing = false;
 let messageCanvasReady = false;
+let contactReturnScene = "desk";
+let resetMessageCanvas = () => {};
+
+function getSavedMessage() {
+  try {
+    const raw = localStorage.getItem("q-room-message");
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    void error;
+    return null;
+  }
+}
+
+function renderSavedMessage() {
+  if (!messageSaved) return;
+  const saved = getSavedMessage();
+  if (!saved || (!saved.text && !saved.sketch)) {
+    messageSaved.hidden = true;
+    messageSaved.innerHTML = "";
+    return;
+  }
+  const date = saved.updatedAt ? new Date(saved.updatedAt) : null;
+  const dateLabel = date && !Number.isNaN(date.getTime())
+    ? date.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+    : "Saved";
+  messageSaved.hidden = false;
+  messageSaved.innerHTML = `
+    <strong>Last message · ${dateLabel}</strong>
+    ${saved.text ? `<p>${escapeHtml(saved.text)}</p>` : ""}
+    ${saved.sketch ? `<img src="${saved.sketch}" alt="Saved sketch">` : ""}
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 function setupMessageCanvas() {
   if (!messageCanvas || messageCanvasReady) return;
@@ -862,7 +1161,7 @@ function setupMessageCanvas() {
   const ctx = messageCanvas.getContext("2d");
   if (!ctx) return;
 
-  const paintBase = () => {
+  resetMessageCanvas = () => {
     ctx.clearRect(0, 0, messageCanvas.width, messageCanvas.height);
     ctx.fillStyle = "rgba(250, 246, 255, 0.055)";
     ctx.fillRect(0, 0, messageCanvas.width, messageCanvas.height);
@@ -919,30 +1218,39 @@ function setupMessageCanvas() {
   messageCanvas.addEventListener("pointerup", end);
   messageCanvas.addEventListener("pointercancel", end);
 
-  document.getElementById("message-clear")?.addEventListener("click", async () => {
-    await primeAudio();
-    AudioSys.click();
-    paintBase();
-    if (messageStatus) messageStatus.textContent = "Board cleared.";
-  });
+  resetMessageCanvas();
+  renderSavedMessage();
+}
 
-  document.getElementById("message-save")?.addEventListener("click", async () => {
-    await primeAudio();
-    AudioSys.click();
-    try {
-      localStorage.setItem("q-room-message", JSON.stringify({
-        text: messageText?.value || "",
-        sketch: messageCanvas.toDataURL("image/png"),
-        updatedAt: new Date().toISOString()
-      }));
-      if (messageStatus) messageStatus.textContent = "Message saved locally.";
-    } catch (error) {
-      void error;
-      if (messageStatus) messageStatus.textContent = "Could not save here, but the mark stays on screen.";
-    }
-  });
+async function clearMessageBoard() {
+  setupMessageCanvas();
+  resetMessageCanvas();
+  if (messageText) messageText.value = "";
+  try {
+    localStorage.removeItem("q-room-message");
+  } catch (error) {
+    void error;
+  }
+  renderSavedMessage();
+  if (messageStatus) messageStatus.textContent = "Board cleared.";
+  primeAudio().then(() => AudioSys.click()).catch(() => {});
+}
 
-  paintBase();
+async function saveMessageBoard() {
+  setupMessageCanvas();
+  try {
+    localStorage.setItem("q-room-message", JSON.stringify({
+      text: messageText?.value || "",
+      sketch: messageCanvas?.toDataURL("image/png") || "",
+      updatedAt: new Date().toISOString()
+    }));
+    renderSavedMessage();
+    if (messageStatus) messageStatus.textContent = "Message saved in this room.";
+  } catch (error) {
+    void error;
+    if (messageStatus) messageStatus.textContent = "Could not save here, but the mark stays on screen.";
+  }
+  primeAudio().then(() => AudioSys.click()).catch(() => {});
 }
 
 async function openMessageBoard() {
@@ -950,7 +1258,8 @@ async function openMessageBoard() {
   setupMessageCanvas();
   messageModal?.classList.add("open");
   messageModal?.setAttribute("aria-hidden", "false");
-  if (messageStatus) messageStatus.textContent = "";
+  renderSavedMessage();
+  if (messageStatus) messageStatus.textContent = "Draw or write something. It will stay here in this browser.";
   AudioSys.click();
   AudioSys.shimmer(700, 0.018);
 }
@@ -970,6 +1279,7 @@ async function openPanel() {
   deskBackCue.classList.remove("visible");
   renderWorkBrowser();
   AudioSys.stopKeyboard();
+  syncDeskVideoAudio();
   AudioSys.click();
 }
 
@@ -979,7 +1289,7 @@ async function closePanel() {
   activeWorkDetailId = null;
   deskBackCue.classList.add("visible");
   AudioSys.click();
-  AudioSys.startKeyboard();
+  syncDeskVideoAudio();
 }
 
 async function primeAudio() {
@@ -996,6 +1306,7 @@ async function openDeskScene(openWorkPanel) {
   } else {
     workPanel.classList.remove("open");
     deskBackCue.classList.add("visible");
+    syncDeskVideoAudio();
   }
 }
 
@@ -1012,8 +1323,11 @@ async function openChatScene() {
   AudioSys.transition();
 }
 
-async function openContactScene() {
+async function openContactScene(returnScene) {
   await primeAudio();
+  contactReturnScene = returnScene || (scenes.desk.classList.contains("active") ? "desk" : "room");
+  const backTag = document.getElementById("contact-back-tag");
+  if (backTag) backTag.textContent = contactReturnScene === "desk" ? "Back To Desk" : "Back To Room";
   activate("contact");
   AudioSys.click();
   AudioSys.transition();
@@ -1096,7 +1410,6 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
 
 document.getElementById("room-desk-trigger").addEventListener("click", async () => openDeskScene(false));
 document.getElementById("room-chat-trigger").addEventListener("click", async () => openChatScene());
-document.getElementById("room-contact-trigger").addEventListener("click", async () => openContactScene());
 document.getElementById("room-message-trigger")?.addEventListener("click", async () => openMessageBoard());
 
 document.getElementById("room-exit-trigger").addEventListener("click", async () => {
@@ -1107,11 +1420,15 @@ document.getElementById("room-exit-trigger").addEventListener("click", async () 
 });
 
 document.getElementById("desk-trigger").addEventListener("click", async () => openPanel());
-document.getElementById("desk-contact-trigger")?.addEventListener("click", async () => openContactScene());
+document.getElementById("desk-contact-trigger")?.addEventListener("click", async () => openContactScene("desk"));
 document.getElementById("panel-close-side").addEventListener("click", async () => closePanel());
 
 document.getElementById("message-close")?.addEventListener("click", async () => closeMessageBoard());
 document.getElementById("message-backdrop")?.addEventListener("click", async () => closeMessageBoard());
+document.getElementById("message-clear")?.addEventListener("click", async () => clearMessageBoard());
+document.getElementById("message-save")?.addEventListener("click", async () => saveMessageBoard());
+document.getElementById("contact-message-trigger")?.addEventListener("click", async () => openMessageBoard());
+document.getElementById("contact-message-btn")?.addEventListener("click", async () => openMessageBoard());
 
 deskBackCue.addEventListener("click", async () => {
   await primeAudio();
@@ -1129,9 +1446,9 @@ chatBackCue.addEventListener("click", async () => {
 
 document.getElementById("back-room-trigger").addEventListener("click", async () => {
   await primeAudio();
-  activate("room");
+  activate(contactReturnScene === "desk" ? "desk" : "room");
   workPanel.classList.remove("open");
-  deskBackCue.classList.add("visible");
+  deskBackCue.classList.toggle("visible", contactReturnScene === "desk");
   AudioSys.click();
   AudioSys.transition();
   if (contactVideo) {
@@ -1176,6 +1493,7 @@ chatInput.addEventListener("keydown", async event => {
 soundToggle.addEventListener("click", async () => {
   if (!AudioSys.ctx) {
     await primeAudio();
+    if (AudioSys.muted) AudioSys.setMuted(false);
     return;
   }
   AudioSys.setMuted(!AudioSys.muted);
@@ -1209,7 +1527,7 @@ document.addEventListener("keydown", async event => {
   await closeMessageBoard();
 });
 
-[roomLoopVideo, deskLoopVideo, chatLoopVideo].forEach(video => {
+[roomLoopVideo, deskLoopVideo, ...Object.values(chatStateVideos)].forEach(video => {
   if (!video) return;
   video.addEventListener("loadedmetadata", () => {
     try {
@@ -1222,6 +1540,8 @@ document.addEventListener("keydown", async event => {
 
 syncDoorSceneMedia("door");
 syncLoopSceneMedia("door");
+syncChatSceneMedia("door");
+syncDeskVideoAudio();
 
 function applyDebugRoute() {
   const params = new URLSearchParams(window.location.search);
@@ -1235,6 +1555,7 @@ function applyDebugRoute() {
     if (exists) {
       activate("desk");
       workPanel.classList.add("open");
+      syncDeskVideoAudio();
       deskBackCue.classList.remove("visible");
       activeWorkDetailId = debugWork;
       renderWorkBrowser();
@@ -1245,6 +1566,7 @@ function applyDebugRoute() {
     setupMessageCanvas();
     messageModal?.classList.add("open");
     messageModal?.setAttribute("aria-hidden", "false");
+    if (messageStatus) messageStatus.textContent = "Draw or write something. It will stay here in this browser.";
   }
 }
 
