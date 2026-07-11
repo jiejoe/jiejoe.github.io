@@ -2668,6 +2668,29 @@ a.ring{display:block;text-decoration:none}
   white-space:pre-wrap;
   overflow-wrap:anywhere;
 }
+.message-note-sketch{
+  position:relative;
+  width:100%;
+  min-height:92px;
+  margin:-4px 0 16px;
+  border-radius:16px;
+  overflow:hidden;
+  background:linear-gradient(145deg, rgba(255,213,233,.08), rgba(174,126,226,.08));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.message-note-sketch svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
+.message-note-sketch path{
+  fill:none;
+  stroke:rgba(255,217,235,.9);
+  stroke-width:4.4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  filter:drop-shadow(0 0 6px rgba(255,135,193,.22));
+}
 .message-doodle{
   position:absolute;
   right:13px;
@@ -2736,6 +2759,41 @@ a.ring{display:block;text-decoration:none}
 }
 .message-compose input{min-height:46px}
 .message-compose textarea{min-height:190px;resize:vertical}
+.message-draw{
+  display:grid;
+  gap:8px;
+}
+.message-draw-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.message-draw-head span{
+  color:rgba(239,231,255,.46);
+  font-size:11px;
+  letter-spacing:.04em;
+}
+.message-draw-pad{
+  position:relative;
+  height:138px;
+  border-radius:18px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255,184,218,.14), transparent 34%),
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+    rgba(255,255,255,.045);
+  background-size:auto, 22px 22px, 22px 22px, auto;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+  touch-action:none;
+}
+.message-draw-pad canvas{
+  display:block;
+  width:100%;
+  height:100%;
+  cursor:crosshair;
+}
 .message-honeypot{position:absolute !important;left:-9999px !important;width:1px !important;height:1px !important;opacity:0 !important}
 .message-actions{
   display:flex;
@@ -3288,6 +3346,7 @@ a.ring{display:block;text-decoration:none}
   .message-wall{grid-template-columns:1fr;min-height:230px}
   .message-note{min-height:126px}
   .message-compose textarea{min-height:130px}
+  .message-draw-pad{height:116px}
   .panel h2{font-size:24px}
   .panel h3{font-size:24px}
   .work-card{min-height:auto}
@@ -3528,8 +3587,18 @@ a.ring{display:block;text-decoration:none}
         <input id="message-name" type="text" maxlength="28" autocomplete="name" placeholder="怎么称呼你？">
         <label for="message-text">Leave a note</label>
         <textarea id="message-text" maxlength="360" placeholder="写点什么吧。你留下的留言会出现在这面墙上。"></textarea>
+        <div class="message-draw">
+          <div class="message-draw-head">
+            <label for="message-doodle-canvas">Draw a doodle</label>
+            <span>Optional</span>
+          </div>
+          <div class="message-draw-pad">
+            <canvas id="message-doodle-canvas" width="420" height="160" aria-label="Draw a small doodle for your note"></canvas>
+          </div>
+        </div>
         <input class="message-honeypot" id="message-website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="message-actions">
+          <button type="button" id="message-doodle-clear">Clear Doodle</button>
           <button type="button" id="message-clear">Reset</button>
           <button type="submit" class="primary" id="message-save">Pin To The Wall</button>
         </div>
@@ -3539,6 +3608,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<script src="./app.js?v=20260711-room-controls-farewell-idle"></script>
+<script src="./app.js?v=20260711-doodle-message-wall"></script>
 </body>
 </html>

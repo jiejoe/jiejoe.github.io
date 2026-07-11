@@ -40,6 +40,8 @@ const messageName = document.getElementById("message-name");
 const messageText = document.getElementById("message-text");
 const messageWebsite = document.getElementById("message-website");
 const messageStatus = document.getElementById("message-status");
+const messageDoodleCanvas = document.getElementById("message-doodle-canvas");
+const messageDoodleClear = document.getElementById("message-doodle-clear");
 const siteLoader = document.getElementById("site-loader");
 const loaderStatus = document.getElementById("loader-status");
 const moodTrigger = document.getElementById("mood-trigger");
@@ -1205,6 +1207,134 @@ function messageDoodle(id) {
   return `<span class="message-doodle" style="--doodle-tilt:${tilt}deg" aria-hidden="true">${doodles[value % doodles.length]}</span>`;
 }
 
+const messageSketch = {
+  paths: [],
+  drawing: false,
+  activePath: null,
+  ctx: null
+};
+
+function normalizeSketchPoint(point) {
+  return [
+    Math.max(0, Math.min(1000, Math.round(Number(point?.[0]) || 0))),
+    Math.max(0, Math.min(1000, Math.round(Number(point?.[1]) || 0)))
+  ];
+}
+
+function normalizeMessageSketch(value) {
+  const rawPaths = Array.isArray(value?.paths) ? value.paths : [];
+  const paths = rawPaths.slice(0, 6).map(path => (
+    Array.isArray(path) ? path.slice(0, 24).map(normalizeSketchPoint).filter(point => point.length === 2) : []
+  )).filter(path => path.length > 1);
+  return paths.length ? { paths } : null;
+}
+
+function sketchToSvg(sketch) {
+  const safeSketch = normalizeMessageSketch(sketch);
+  if (!safeSketch) return "";
+  const paths = safeSketch.paths.map(path => {
+    const d = path.map(([x, y], index) => `${index ? "L" : "M"}${x / 10} ${y / 10}`).join(" ");
+    return `<path d="${d}"/>`;
+  }).join("");
+  return `<div class="message-note-sketch" aria-hidden="true"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${paths}</svg></div>`;
+}
+
+function drawSketchCanvas() {
+  if (!messageDoodleCanvas) return;
+  const ctx = messageSketch.ctx || messageDoodleCanvas.getContext("2d");
+  if (!ctx) return;
+  messageSketch.ctx = ctx;
+  const { width, height } = messageDoodleCanvas;
+  ctx.clearRect(0, 0, width, height);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(255, 220, 238, .92)";
+  ctx.lineWidth = Math.max(3, Math.min(width, height) * 0.028);
+  ctx.shadowColor = "rgba(255, 126, 190, .38)";
+  ctx.shadowBlur = 8;
+  messageSketch.paths.forEach(path => {
+    if (path.length < 2) return;
+    ctx.beginPath();
+    path.forEach(([x, y], index) => {
+      const px = (x / 1000) * width;
+      const py = (y / 1000) * height;
+      if (index) ctx.lineTo(px, py);
+      else ctx.moveTo(px, py);
+    });
+    ctx.stroke();
+  });
+}
+
+function resizeSketchCanvas() {
+  if (!messageDoodleCanvas) return;
+  const rect = messageDoodleCanvas.getBoundingClientRect();
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  const nextWidth = Math.max(1, Math.round(rect.width * ratio));
+  const nextHeight = Math.max(1, Math.round(rect.height * ratio));
+  if (messageDoodleCanvas.width !== nextWidth || messageDoodleCanvas.height !== nextHeight) {
+    messageDoodleCanvas.width = nextWidth;
+    messageDoodleCanvas.height = nextHeight;
+  }
+  drawSketchCanvas();
+}
+
+function sketchPointFromEvent(event) {
+  if (!messageDoodleCanvas) return [0, 0];
+  const rect = messageDoodleCanvas.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / Math.max(1, rect.width)) * 1000;
+  const y = ((event.clientY - rect.top) / Math.max(1, rect.height)) * 1000;
+  return normalizeSketchPoint([x, y]);
+}
+
+function clearMessageSketch() {
+  messageSketch.paths = [];
+  messageSketch.activePath = null;
+  messageSketch.drawing = false;
+  drawSketchCanvas();
+}
+
+function exportMessageSketch() {
+  return normalizeMessageSketch({ paths: messageSketch.paths });
+}
+
+function setupMessageSketch() {
+  if (!messageDoodleCanvas) return;
+  resizeSketchCanvas();
+  messageDoodleCanvas.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    resizeSketchCanvas();
+    messageDoodleCanvas.setPointerCapture?.(event.pointerId);
+    const point = sketchPointFromEvent(event);
+    messageSketch.activePath = [point];
+    messageSketch.paths.push(messageSketch.activePath);
+    messageSketch.paths = messageSketch.paths.slice(-6);
+    messageSketch.drawing = true;
+    drawSketchCanvas();
+  });
+  messageDoodleCanvas.addEventListener("pointermove", event => {
+    if (!messageSketch.drawing || !messageSketch.activePath) return;
+    event.preventDefault();
+    const point = sketchPointFromEvent(event);
+    const last = messageSketch.activePath[messageSketch.activePath.length - 1];
+    const distance = Math.abs(point[0] - last[0]) + Math.abs(point[1] - last[1]);
+    if (distance < 8) return;
+    if (messageSketch.activePath.length < 24) messageSketch.activePath.push(point);
+    drawSketchCanvas();
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(type => {
+    messageDoodleCanvas.addEventListener(type, event => {
+      if (!messageSketch.drawing) return;
+      event.preventDefault();
+      messageDoodleCanvas.releasePointerCapture?.(event.pointerId);
+      messageSketch.drawing = false;
+      messageSketch.activePath = null;
+      messageSketch.paths = messageSketch.paths.filter(path => path.length > 1);
+      drawSketchCanvas();
+    });
+  });
+  window.addEventListener("resize", resizeSketchCanvas);
+}
+
 function renderMessageWall(messages) {
   if (!messageWall) return;
   if (!messages.length) {
@@ -1215,6 +1345,7 @@ function renderMessageWall(messages) {
     <article class="message-note" style="--note-tilt:${messageTilt(message.id)}deg">
       ${messageDoodle(message.id)}
       <p>${escapeHtml(message.body)}</p>
+      ${sketchToSvg(message.doodle)}
       <div class="message-note-footer">
         <span>${escapeHtml(message.name)} · ${escapeHtml(formatMessageDate(message.createdAt))}</span>
         ${message.owned ? `<button class="message-note-delete" type="button" data-message-delete="${escapeHtml(message.id)}">Delete mine</button>` : ""}
@@ -1251,6 +1382,7 @@ async function clearMessageBoard() {
   if (messageText) messageText.value = "";
   if (messageWebsite) messageWebsite.value = "";
   if (messageStatus) messageStatus.textContent = "";
+  clearMessageSketch();
   primeAudio().then(() => AudioSys.click()).catch(() => {});
 }
 
@@ -1272,11 +1404,12 @@ async function saveMessageBoard(event) {
         "Content-Type": "application/json",
         "X-QRoom-Owner": getMessageOwnerToken()
       },
-      body: JSON.stringify({ name, message, website: messageWebsite?.value || "" })
+      body: JSON.stringify({ name, message, doodle: exportMessageSketch(), website: messageWebsite?.value || "" })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not leave message");
     if (messageText) messageText.value = "";
+    clearMessageSketch();
     if (name) {
       try { localStorage.setItem("qroom-message-name", name); } catch (error) { void error; }
     }
@@ -1322,6 +1455,7 @@ async function openMessageBoard() {
     try { messageName.value = localStorage.getItem("qroom-message-name") || ""; } catch (error) { void error; }
   }
   if (messageStatus) messageStatus.textContent = "你只能删除这台设备上由自己留下的留言。";
+  requestAnimationFrame(resizeSketchCanvas);
   void loadMessageWall();
   AudioSys.click();
   AudioSys.shimmer(700, 0.018);
@@ -1505,7 +1639,13 @@ document.getElementById("panel-close-side").addEventListener("click", async () =
 document.getElementById("message-close")?.addEventListener("click", async () => closeMessageBoard());
 document.getElementById("message-backdrop")?.addEventListener("click", async () => closeMessageBoard());
 document.getElementById("message-clear")?.addEventListener("click", async () => clearMessageBoard());
+messageDoodleClear?.addEventListener("click", async () => {
+  clearMessageSketch();
+  await primeAudio();
+  AudioSys.click();
+});
 messageForm?.addEventListener("submit", saveMessageBoard);
+setupMessageSketch();
 document.getElementById("contact-message-trigger")?.addEventListener("click", async () => openMessageBoard());
 
 deskBackCue.addEventListener("click", async () => {

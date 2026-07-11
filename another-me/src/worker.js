@@ -172,12 +172,13 @@ async function listRoomMessages(request, env) {
   const ownerHash = await ownerHashFromRequest(request);
   try {
     const { results } = await env.MESSAGE_DB.prepare(
-      "SELECT id, name, body, owner_hash, created_at FROM qroom_messages ORDER BY created_at DESC LIMIT 60"
+      "SELECT id, name, body, doodle, owner_hash, created_at FROM qroom_messages ORDER BY created_at DESC LIMIT 60"
     ).run();
     const messages = (results || []).map((row) => ({
       id: row.id,
       name: row.name,
       body: row.body,
+      doodle: parseMessageDoodle(row.doodle),
       createdAt: row.created_at,
       owned: Boolean(ownerHash && row.owner_hash === ownerHash),
     }));
@@ -205,6 +206,7 @@ async function createRoomMessage(request, env) {
 
   const name = cleanMessageText(body.name, 28) || "A visitor";
   const message = cleanMessageText(body.message, 360);
+  const doodle = cleanMessageDoodle(body.doodle);
   if (message.length < 2) return json({ error: "message is too short" }, 400);
 
   const ownerHash = await hashOwnerToken(ownerToken);
@@ -217,9 +219,9 @@ async function createRoomMessage(request, env) {
   const id = crypto.randomUUID();
   try {
     await env.MESSAGE_DB.prepare(
-      "INSERT INTO qroom_messages (id, name, body, owner_hash, created_at) VALUES (?, ?, ?, ?, ?)"
-    ).bind(id, name, message, ownerHash, createdAt).run();
-    return json({ message: { id, name, body: message, createdAt, owned: true } }, 201);
+      "INSERT INTO qroom_messages (id, name, body, doodle, owner_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind(id, name, message, doodle ? JSON.stringify(doodle) : null, ownerHash, createdAt).run();
+    return json({ message: { id, name, body: message, doodle, createdAt, owned: true } }, 201);
   } catch (error) {
     console.error(JSON.stringify({ event: "qroom_message_create_failed", error: String(error) }));
     return json({ error: "could not leave message" }, 503);
@@ -249,6 +251,30 @@ async function deleteRoomMessage(request, env, id) {
 function cleanMessageText(value, maxLength) {
   if (typeof value !== "string") return "";
   return value.replace(/\r/g, "").replace(/[\t ]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, maxLength);
+}
+
+function cleanMessageDoodle(value) {
+  if (!value || typeof value !== "object" || !Array.isArray(value.paths)) return null;
+  const paths = value.paths.slice(0, 6).map((path) => {
+    if (!Array.isArray(path)) return [];
+    return path.slice(0, 24).map((point) => {
+      if (!Array.isArray(point) || point.length < 2) return null;
+      const x = Math.round(Number(point[0]));
+      const y = Math.round(Number(point[1]));
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+      return [Math.max(0, Math.min(1000, x)), Math.max(0, Math.min(1000, y))];
+    }).filter(Boolean);
+  }).filter((path) => path.length > 1);
+  return paths.length ? { paths } : null;
+}
+
+function parseMessageDoodle(value) {
+  if (!value) return null;
+  try {
+    return cleanMessageDoodle(JSON.parse(value));
+  } catch {
+    return null;
+  }
 }
 
 function isValidOwnerToken(token) {
