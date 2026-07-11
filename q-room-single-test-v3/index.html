@@ -239,7 +239,8 @@ body{
   height:100%;
   object-fit:cover;
   display:block;
-  filter:saturate(1.03) contrast(1.02) brightness(.965);
+  filter:saturate(1.02) contrast(1.01) brightness(.94);
+  transition:opacity .24s ease;
 }
 .scene > video{
   position:absolute;
@@ -248,8 +249,11 @@ body{
   height:100%;
   object-fit:cover;
   display:block;
+  background:#09070d;
   filter:saturate(1.02) contrast(1.01) brightness(.94);
+  transition:opacity .24s ease;
 }
+.scene.media-ready > img{opacity:0}
 #scene-door > video{object-position:50% 50%}
 #scene-door > video.door-idle{
   z-index:1;
@@ -285,6 +289,7 @@ body{
   transition:opacity .24s ease;
 }
 #scene-coffee > video.coffee-action-video.is-active{opacity:1}
+#scene-coffee.coffee-playing > img{opacity:0}
 #scene-desk > img,
 #scene-desk > video{object-position:50% 50%}
 #scene-chat > img,
@@ -3802,9 +3807,9 @@ a.ring{display:block;text-decoration:none}
   <button class="sound-toggle" id="sound-toggle" aria-label="Toggle room sound"><strong>Sound Off</strong></button>
 
   <section class="scene active" id="scene-door">
-    <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/door-video-poster.jpg" muted playsinline loop preload="auto"></video>
-    <video id="door-open-video" class="door-open" src="./assets/door_open.mp4" poster="./assets/door-video-poster.jpg" playsinline preload="auto"></video>
-    <img src="./assets/door-video-poster.jpg" alt="Q studio door entrance">
+    <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/poster-door-idle.jpg" muted playsinline loop preload="auto"></video>
+    <video id="door-open-video" class="door-open" src="./assets/door_open.mp4" poster="./assets/poster-door-open.jpg" playsinline preload="auto"></video>
+    <img src="./assets/poster-door-idle.jpg" alt="Q studio door entrance">
     <div class="copy">
       <p>Q Studio is awake</p>
       <h1>Knock. Enter The AI Room.</h1>
@@ -3820,8 +3825,8 @@ a.ring{display:block;text-decoration:none}
   </section>
 
   <section class="scene" id="scene-room">
-    <img src="./assets/room-new-immersive-v2.png" alt="Q studio room overview">
-    <video id="room-loop-video" src="./assets/room.mp4?v=coffee-pour-only-loop-v2" muted playsinline loop preload="auto" poster="./assets/room-new-immersive-v2.png"></video>
+    <img src="./assets/poster-room.jpg" alt="Q studio room overview">
+    <video id="room-loop-video" src="./assets/room.mp4?v=coffee-pour-only-loop-v2" muted playsinline loop preload="auto" poster="./assets/poster-room.jpg"></video>
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <div class="tag depth-near" style="left:26.6%;top:54.8%;">See My Work</div>
@@ -3850,9 +3855,9 @@ a.ring{display:block;text-decoration:none}
   </section>
 
   <section class="scene scene-coffee" id="scene-coffee">
-    <img src="./assets/coffee-choice-player-pov-v1.png" alt="First-person view facing the Q Studio coffee bar">
-    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/vid-coffee-pourover-seedance2mini-720-5s-v1.mp4" playsinline preload="metadata"></video>
-    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/vid-coffee-iced-americano-seedance2mini-720-5s-v1.mp4" playsinline preload="metadata"></video>
+    <img src="./assets/poster-coffee-americano.jpg" alt="First-person view facing the Q Studio coffee bar">
+    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/vid-coffee-pourover-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-pourover.jpg" playsinline preload="metadata"></video>
+    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/vid-coffee-iced-americano-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-americano.jpg" playsinline preload="metadata"></video>
 
     <div class="coffee-order-badge" id="coffee-order-badge" aria-live="polite">Preparing your coffee</div>
     <div class="coffee-toast" id="coffee-toast" role="status" aria-live="polite">
@@ -3928,8 +3933,8 @@ a.ring{display:block;text-decoration:none}
   </section>
 
   <section class="scene" id="scene-desk">
-    <img src="./assets/desk-new.png" alt="Q studio desk scene">
-    <video id="desk-loop-video" src="./assets/desk_typing.mp4" muted playsinline loop preload="auto" poster="./assets/desk-new.png"></video>
+    <img src="./assets/poster-desk-typing.jpg" alt="Q studio desk scene">
+    <video id="desk-loop-video" src="./assets/desk_typing.mp4" muted playsinline loop preload="auto" poster="./assets/poster-desk-typing.jpg"></video>
     <button class="ring" id="desk-trigger" style="left:42.2%;top:53%;" aria-label="Open work showcase"></button>
     <div class="tag" style="left:42.2%;top:46.5%;">See My Work</div>
     <button class="ring depth-far" id="desk-contact-trigger" style="left:12.8%;top:42%;" aria-label="Check Q's email"></button>
@@ -3956,11 +3961,11 @@ a.ring{display:block;text-decoration:none}
   </section>
 
   <section class="scene scene-chat" id="scene-chat">
-    <img src="./assets/chat-new.png" alt="Q coffee chat scene">
-    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat_idle.mp4" muted playsinline preload="auto" poster="./assets/chat-new.png"></video>
-    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat_relaxed.mp4" muted playsinline preload="auto"></video>
-    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat_waiting.mp4" muted playsinline loop preload="auto"></video>
-    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" muted playsinline loop preload="auto"></video>
+    <img src="./assets/poster-chat-idle.jpg" alt="Q coffee chat scene">
+    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat_idle.mp4" poster="./assets/poster-chat-idle.jpg" muted playsinline preload="auto"></video>
+    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat_relaxed.mp4" poster="./assets/poster-chat-relaxed.jpg" muted playsinline preload="auto"></video>
+    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat_waiting.mp4" poster="./assets/poster-chat-waiting.jpg" muted playsinline loop preload="auto"></video>
+    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" poster="./assets/poster-chat-talk.jpg" muted playsinline loop preload="auto"></video>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <span class="q-stage-label">Q / Coffee Chat</span>
       <div class="q-stage-text" id="q-stage-text">Hi，我是 Q，一个 AI Native 的 Product Builder。我每天会做很多小项目，也一直在研究人和 Agent 怎样更自然地协作。你可以先让我介绍自己，或者问我最近在做什么。</div>
@@ -4040,6 +4045,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<script src="./app.js?v=20260711-coffee-menu-v1"></script>
+<script src="./app.js?v=20260711-video-continuity-v1"></script>
 </body>
 </html>

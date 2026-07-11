@@ -88,6 +88,42 @@ let activeCoffeeVideoKey = "";
 let activeCoffeeLabel = "";
 let coffeeToastTimer = 0;
 
+function setSceneFallbackReady(scene, video) {
+  if (!scene || !video) return;
+  scene.classList.toggle("media-ready", video.readyState >= 2 && !video.error);
+}
+
+function bindPrimarySceneFallback(scene, video) {
+  if (!scene || !video) return;
+  const showVideo = () => setSceneFallbackReady(scene, video);
+  const showFallback = () => scene.classList.remove("media-ready");
+  video.addEventListener("loadeddata", showVideo);
+  video.addEventListener("playing", showVideo);
+  video.addEventListener("error", showFallback);
+  video.addEventListener("emptied", showFallback);
+  showVideo();
+}
+
+function bindChatSceneFallback(video) {
+  if (!video || !scenes.chat) return;
+  const syncSelectedVideo = () => {
+    if (video.classList.contains("is-active")) setSceneFallbackReady(scenes.chat, video);
+  };
+  const showFallback = () => {
+    if (video.classList.contains("is-active")) scenes.chat.classList.remove("media-ready");
+  };
+  video.addEventListener("loadeddata", syncSelectedVideo);
+  video.addEventListener("playing", syncSelectedVideo);
+  video.addEventListener("error", showFallback);
+  video.addEventListener("emptied", showFallback);
+  syncSelectedVideo();
+}
+
+bindPrimarySceneFallback(scenes.door, doorIdleVideo);
+bindPrimarySceneFallback(scenes.room, roomLoopVideo);
+bindPrimarySceneFallback(scenes.desk, deskLoopVideo);
+Object.values(chatStateVideos).forEach(bindChatSceneFallback);
+
 function startSiteLoader() {
   if (!siteLoader) return;
   const criticalMedia = [
@@ -837,6 +873,7 @@ function syncCoffeeVideoAudio() {
 }
 
 function resetCoffeeExperience() {
+  scenes.coffee?.classList.remove("coffee-playing");
   Object.values(coffeeVideos).forEach(video => {
     if (!video) return;
     resetSceneVideo(video);
@@ -866,6 +903,7 @@ function playCoffeeVideo(videoKey, label) {
   AudioSys.ensureStarted().catch(() => {});
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
+  scenes.coffee?.classList.remove("coffee-playing");
 
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
@@ -910,6 +948,15 @@ function holdCoffeeFinalFrame(videoKey) {
 
 Object.entries(coffeeVideos).forEach(([key, video]) => {
   video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
+  video?.addEventListener("playing", () => {
+    if (activeCoffeeVideoKey === key) scenes.coffee?.classList.add("coffee-playing");
+  });
+  video?.addEventListener("error", () => {
+    if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
+  });
+  video?.addEventListener("emptied", () => {
+    if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
+  });
 });
 
 function setChatVisualState(nextState, { reset = true } = {}) {
@@ -917,6 +964,7 @@ function setChatVisualState(nextState, { reset = true } = {}) {
   if (!nextVideo) return;
   chatVisualState = nextState;
   const chatActive = scenes.chat.classList.contains("active");
+  setSceneFallbackReady(scenes.chat, nextVideo);
 
   Object.entries(chatStateVideos).forEach(([state, video]) => {
     if (!video) return;
