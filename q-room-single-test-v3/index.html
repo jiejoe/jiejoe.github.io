@@ -2671,7 +2671,7 @@ a.ring{display:block;text-decoration:none}
 .message-note-sketch{
   position:relative;
   width:100%;
-  min-height:92px;
+  aspect-ratio:7 / 4;
   margin:-4px 0 16px;
   border-radius:16px;
   overflow:hidden;
@@ -2782,7 +2782,9 @@ a.ring{display:block;text-decoration:none}
 }
 .message-draw-pad{
   position:relative;
-  height:240px;
+  width:100%;
+  height:auto;
+  aspect-ratio:7 / 4;
   border-radius:18px;
   overflow:hidden;
   background:
@@ -3353,7 +3355,7 @@ a.ring{display:block;text-decoration:none}
   .message-wall{grid-template-columns:1fr;min-height:260px}
   .message-note{min-height:126px}
   .message-compose textarea{min-height:112px}
-  .message-draw-pad{height:210px}
+  .message-draw-pad{height:auto}
   .panel h2{font-size:24px}
   .panel h3{font-size:24px}
   .work-card{min-height:auto}
@@ -3587,7 +3589,7 @@ a.ring{display:block;text-decoration:none}
         <button class="message-close" id="message-close" type="button" aria-label="Close">×</button>
       </div>
       <form class="message-compose" id="message-form">
-        <p class="message-guide">先写一段话，或者直接画一张小涂鸦，二选一就可以。也可以两个都留。</p>
+        <p class="message-guide">留下你来过的痕迹</p>
         <label for="message-name">Your name</label>
         <input id="message-name" type="text" maxlength="28" autocomplete="name" placeholder="怎么称呼你？">
         <label for="message-text">Write a note · optional</label>
@@ -3595,7 +3597,6 @@ a.ring{display:block;text-decoration:none}
         <div class="message-draw">
           <div class="message-draw-head">
             <label for="message-doodle-canvas">Draw a doodle · optional</label>
-            <span>文字 / 涂鸦二选一</span>
           </div>
           <div class="message-draw-pad">
             <canvas id="message-doodle-canvas" width="420" height="160" aria-label="Draw a small doodle for your note"></canvas>
