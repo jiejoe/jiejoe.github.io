@@ -1282,6 +1282,7 @@ const AudioSys = {
     ];
     const notes = phrases[this.ambientStep % phrases.length];
     const now = this.ctx.currentTime;
+    const chordEnd = now + 5.08;
     notes.forEach((frequency, index) => {
       const oscillator = this.ctx.createOscillator();
       const filter = this.ctx.createBiquadFilter();
@@ -1297,12 +1298,14 @@ const AudioSys = {
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.exponentialRampToValueAtTime(peak, start + 0.9);
       gain.gain.setValueAtTime(peak, start + 3.4);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 5.7);
+      // Every voice in this chord ends before the next chord starts. This
+      // keeps the background as one musical layer instead of a crossfade.
+      gain.gain.exponentialRampToValueAtTime(0.0001, chordEnd);
       oscillator.connect(filter);
       filter.connect(gain);
       gain.connect(this.musicBus || this.master);
       oscillator.start(start);
-      oscillator.stop(start + 5.8);
+      oscillator.stop(chordEnd + 0.04);
     });
     this.ambientStep += 1;
   },
