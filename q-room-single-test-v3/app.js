@@ -903,6 +903,8 @@ const AudioSys = {
   master: null,
   keyboardTimer: null,
   roomTimer: null,
+  ambientTimer: null,
+  ambientStep: 0,
   lastClickAt: 0,
   async ensureStarted() {
     if (!this.ctx) {
@@ -915,7 +917,6 @@ const AudioSys = {
       // Some browsers keep resume() pending; never let it block the UI gesture.
       this.ctx.resume().catch(() => {});
     }
-    if (this.muted) this.setMuted(false);
   },
   setMuted(nextMuted) {
     this.muted = nextMuted;
@@ -932,8 +933,10 @@ const AudioSys = {
     if (this.muted) {
       this.stopKeyboard();
       this.stopRoomDetails();
+      this.stopAmbient();
     } else {
       this.shimmer(720, 0.036);
+      this.startAmbient();
       this.syncSceneAudio();
     }
     syncRoomVideoAudio();
@@ -1043,12 +1046,61 @@ const AudioSys = {
     clearTimeout(this.roomTimer);
     this.roomTimer = null;
   },
+  ambientChord() {
+    if (!this.ctx || this.muted) return;
+    const chords = [
+      [146.83, 220.00, 277.18, 329.63],
+      [130.81, 196.00, 246.94, 329.63],
+      [110.00, 164.81, 220.00, 277.18],
+      [123.47, 185.00, 246.94, 293.66]
+    ];
+    const notes = chords[this.ambientStep % chords.length];
+    const now = this.ctx.currentTime;
+    notes.forEach((frequency, index) => {
+      const oscillator = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+      oscillator.type = index % 2 ? "sine" : "triangle";
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.detune.value = index % 2 ? 4 : -4;
+      filter.type = "lowpass";
+      filter.frequency.value = 920;
+      filter.Q.value = 0.55;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.018 : 0.011, now + 1.35);
+      gain.gain.setValueAtTime(index === 0 ? 0.018 : 0.011, now + 3.7);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 5.4);
+      oscillator.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.master);
+      oscillator.start(now);
+      oscillator.stop(now + 5.5);
+    });
+    this.ambientStep += 1;
+  },
+  startAmbient() {
+    if (this.ambientTimer || this.muted || !this.ctx) return;
+    const loop = () => {
+      if (this.muted) {
+        this.ambientTimer = null;
+        return;
+      }
+      this.ambientChord();
+      this.ambientTimer = window.setTimeout(loop, 4200);
+    };
+    loop();
+  },
+  stopAmbient() {
+    window.clearTimeout(this.ambientTimer);
+    this.ambientTimer = null;
+  },
   syncSceneAudio() {
     this.stopKeyboard();
     this.stopRoomDetails();
     syncRoomVideoAudio();
     syncDeskVideoAudio();
     if (this.muted) return;
+    this.startAmbient();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
@@ -1118,8 +1170,7 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.volume = 0.52;
-  roomLoopVideo.muted = !sceneActive || AudioSys.muted;
+  roomLoopVideo.muted = true;
   if (!sceneActive) return;
   const started = roomLoopVideo.play();
   if (started) {
@@ -1133,10 +1184,7 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  const panelOpen = workPanel.classList.contains("open");
-  const shouldSound = sceneActive && !panelOpen && !AudioSys.muted;
-  deskLoopVideo.volume = 0.38;
-  deskLoopVideo.muted = !shouldSound;
+  deskLoopVideo.muted = true;
   if (!sceneActive) {
     resetSceneVideo(deskLoopVideo);
     return;
@@ -1596,8 +1644,7 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   doorScene.classList.add("opening");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
-  doorOpenVideo.muted = AudioSys.muted;
-  doorOpenVideo.volume = 0.86;
+  doorOpenVideo.muted = true;
   try {
     doorOpenVideo.currentTime = 0;
   } catch (error) {
@@ -1691,14 +1738,9 @@ chatInput.addEventListener("keydown", async event => {
 
 soundToggle.addEventListener("click", async () => {
   if (!AudioSys.ctx) {
-    AudioSys.muted = true;
     await AudioSys.ensureStarted().catch(() => {});
-  } else {
-    AudioSys.setMuted(!AudioSys.muted);
   }
-  if (doorOpenVideo) {
-    doorOpenVideo.muted = AudioSys.muted;
-  }
+  AudioSys.setMuted(!AudioSys.muted);
 });
 
 moodTrigger?.addEventListener("click", async () => {
