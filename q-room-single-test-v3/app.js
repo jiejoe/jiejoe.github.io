@@ -29,6 +29,7 @@ const browserDetail = document.getElementById("browser-detail");
 const workTabs = Array.from(document.querySelectorAll("[data-work-tab]"));
 const deskBackCue = document.getElementById("desk-back-cue");
 const chatBackCue = document.getElementById("chat-back-cue");
+const qStageBubble = document.getElementById("q-stage-bubble");
 const qStageText = document.getElementById("q-stage-text");
 const meEcho = document.getElementById("me-echo");
 const chatInput = document.getElementById("chat-input");
@@ -66,6 +67,7 @@ const coffeeMenuEspresso = document.getElementById("coffee-menu-espresso");
 const coffeeOrderBadge = document.getElementById("coffee-order-badge");
 const coffeeToast = document.getElementById("coffee-toast");
 const coffeeResultControls = document.getElementById("coffee-result-controls");
+const coffeeChatAssist = document.querySelector(".coffee-chat-assist");
 const coffeePourVideo = document.getElementById("coffee-pourover-video");
 const coffeeAmericanoVideo = document.getElementById("coffee-americano-video");
 const coffeeSectionButtons = Array.from(document.querySelectorAll("[data-coffee-section]"));
@@ -485,16 +487,12 @@ const MESSAGE_ENDPOINT = WORKER + "/qroom-messages";
 let chatBusy = false;
 let chatAnswering = false;
 let chatVisualState = "idle";
-let chatVisited = false;
-const chatIntro =
-  "Hi，我是 Q，一个 AI Native 的 Product Builder。我每天会做很多小项目，也一直在研究人和 Agent 怎样更自然地协作。你可以先让我介绍自己，或者问我最近在做什么。";
 let convo = [
   {
     role: "system",
     content:
       "You are Q, an AI Native product manager and builder. Speak warmly, naturally, and specifically in first person. Keep each answer to two or three TTS-friendly sentences, without Markdown lists. You have eight or nine years of product experience across Taobao AI shopping, Meijian, and Homestyler. Recently you are building 拾谱, an iOS and iPad personal guitar score library, while researching Music Agent and how agents can help people learn. You care about the personalized pain points in learning: different blockers, pacing, prior knowledge, and feedback styles. You also study how people collaborate with one or multiple agents in ways that genuinely improve productivity. If asked to introduce yourself, connect your product background, current small projects, and this direction. Stay grounded and do not mention hackathons unless the visitor brings them up."
-  },
-  { role: "assistant", content: chatIntro }
+  }
 ];
 
 function renderWorkBrowser() {
@@ -827,6 +825,10 @@ function setQSpeech(text, typing) {
   qStageText.classList.toggle("typing", Boolean(typing));
 }
 
+function setChatBubbleVisible(visible) {
+  qStageBubble?.classList.toggle("is-visible", Boolean(visible));
+}
+
 function resetSceneVideo(video) {
   if (!video) return;
   video.pause();
@@ -874,6 +876,7 @@ function syncCoffeeVideoAudio() {
 
 function resetCoffeeExperience() {
   scenes.coffee?.classList.remove("coffee-playing");
+  coffeeChatAssist?.classList.remove("is-visible");
   Object.values(coffeeVideos).forEach(video => {
     if (!video) return;
     resetSceneVideo(video);
@@ -904,6 +907,7 @@ function playCoffeeVideo(videoKey, label) {
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
   scenes.coffee?.classList.remove("coffee-playing");
+  coffeeChatAssist?.classList.remove("is-visible");
 
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
@@ -944,12 +948,17 @@ function holdCoffeeFinalFrame(videoKey) {
   }
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Ready · ${activeCoffeeLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = false;
+  coffeeChatAssist?.classList.add("is-visible");
 }
 
 Object.entries(coffeeVideos).forEach(([key, video]) => {
   video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
   video?.addEventListener("playing", () => {
     if (activeCoffeeVideoKey === key) scenes.coffee?.classList.add("coffee-playing");
+  });
+  video?.addEventListener("timeupdate", () => {
+    if (activeCoffeeVideoKey !== key || !video.duration) return;
+    if (video.currentTime >= video.duration * 0.8) coffeeChatAssist?.classList.add("is-visible");
   });
   video?.addEventListener("error", () => {
     if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
@@ -1008,6 +1017,7 @@ chatRelaxedVideo?.addEventListener("ended", () => handleChatIdleEnded("relaxed")
 async function sendChatMessage(prefill) {
   const text = (prefill || chatInput.value).trim();
   if (!text || chatBusy) return;
+  setChatBubbleVisible(true);
   setChatAnswering(false);
   chatBusy = true;
   chatInput.value = "";
@@ -1086,13 +1096,13 @@ window.sendChatMessage = sendChatMessage;
 
 const AudioSys = {
   ctx: null,
-  muted: localStorage.getItem("qroom-muted") !== "0",
+  muted: localStorage.getItem("qroom-muted") === "1",
   master: null,
   keyboardTimer: null,
   roomTimer: null,
   ambientTimer: null,
   ambientStep: 0,
-  soundChoiceMade: false,
+  soundChoiceMade: localStorage.getItem("qroom-muted") !== null,
   lastClickAt: 0,
   async ensureStarted() {
     if (!this.ctx) {
@@ -1304,6 +1314,10 @@ const AudioSys = {
 };
 
 soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
+
+document.addEventListener("pointerdown", () => {
+  if (!AudioSys.muted) AudioSys.ensureStarted().catch(() => {});
+}, { capture: true });
 
 function setProgress(stepIndex) {
   progressLabels.forEach((el, i) => el.classList.toggle("active", i === stepIndex));
@@ -1792,23 +1806,13 @@ async function openCoffeeScene() {
 
 async function openChatScene() {
   await primeAudio();
+  setChatBubbleVisible(false);
+  setQSpeech("", false);
+  if (meEcho) meEcho.hidden = true;
   activate("chat");
-  const shouldIntroduce = !chatVisited;
-  chatVisited = true;
-  const lastAssistantEntry = [...convo].reverse().find(item => item.role === "assistant");
-  const lastAssistant = lastAssistantEntry ? lastAssistantEntry.content : "";
-  const visibleText = lastAssistant || chatIntro;
-  setQSpeech(visibleText, false);
   AudioSys.click();
   AudioSys.transition();
-  if (shouldIntroduce) {
-    setChatVisualState("talk", { reset: true });
-    window.setTimeout(() => {
-      if (scenes.chat.classList.contains("active") && !chatBusy) startChatIdle("relaxed");
-    }, 1800);
-  } else {
-    startChatIdle("idle");
-  }
+  setChatVisualState("relaxed", { reset: true });
 }
 
 async function openContactScene(returnScene) {
@@ -1934,13 +1938,9 @@ document.getElementById("coffee-latte-option")?.addEventListener("click", async 
   AudioSys.shimmer(430, 0.014);
 });
 
-document.getElementById("coffee-replay")?.addEventListener("click", async () => {
-  if (!activeCoffeeVideoKey) return;
-  await playCoffeeVideo(activeCoffeeVideoKey, activeCoffeeLabel);
-});
-
 document.getElementById("coffee-choose-again")?.addEventListener("click", async () => {
   await primeAudio();
+  coffeeChatAssist?.classList.remove("is-visible");
   coffeeMenuCard?.classList.remove("is-minimized");
   coffeeOrderBadge?.classList.remove("is-visible");
   if (coffeeResultControls) coffeeResultControls.hidden = true;

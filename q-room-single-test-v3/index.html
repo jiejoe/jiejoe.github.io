@@ -290,6 +290,11 @@ body{
 }
 #scene-coffee > video.coffee-action-video.is-active{opacity:1}
 #scene-coffee.coffee-playing > img{opacity:0}
+#scene-coffee:not(.coffee-playing) > img{animation:coffeeSceneBreath 9s ease-in-out infinite alternate}
+@keyframes coffeeSceneBreath{
+  from{transform:scale(1)}
+  to{transform:scale(1.012)}
+}
 #scene-desk > img,
 #scene-desk > video{object-position:50% 50%}
 #scene-chat > img,
@@ -588,6 +593,7 @@ a.ring{display:block;text-decoration:none}
 .ring.depth-mid{width:48px;height:48px}
 .ring.depth-far{width:30px;height:30px;box-shadow:inset 0 0 0 1px rgba(227,214,255,.6),0 0 14px rgba(189,150,255,.18)}
 .ring.depth-far::before{inset:-5px}
+.ring.coffee-entry-ring{width:38px;height:38px}
 
 .scene-coffee::after{
   z-index:2;
@@ -869,24 +875,40 @@ a.ring{display:block;text-decoration:none}
   flex-direction:column;
   align-items:center;
   gap:10px;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(8px);
+  transition:opacity .28s ease,transform .28s ease;
 }
+.coffee-chat-assist.is-visible{opacity:1;pointer-events:auto;transform:translateY(0)}
 .coffee-chat-ring{
+  position:relative;
   display:grid;
   place-items:center;
-  width:58px;
-  height:58px;
-  border:1px solid rgba(229,212,255,.64);
+  width:44px;
+  height:44px;
+  border:none;
   border-radius:50%;
-  background:radial-gradient(circle at 40% 35%,rgba(203,164,255,.24),rgba(21,14,34,.34));
+  background:rgba(255,255,255,.014);
   color:#f8f0ff;
   font-family:Georgia,"Times New Roman",serif;
-  font-size:24px;
-  box-shadow:inset 0 0 20px rgba(199,155,255,.1),0 0 30px rgba(184,126,255,.24);
+  font-size:17px;
+  box-shadow:inset 0 0 0 1.25px var(--line),0 0 22px var(--purple-soft);
   backdrop-filter:blur(10px);
   cursor:pointer;
   transition:transform .22s ease,box-shadow .22s ease;
 }
-.coffee-chat-ring:hover{transform:scale(1.07);box-shadow:inset 0 0 24px rgba(199,155,255,.16),0 0 40px rgba(184,126,255,.38)}
+.coffee-chat-ring::before{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border:1px solid rgba(227,214,255,.14);
+  border-radius:50%;
+  opacity:0;
+  transition:opacity .22s ease;
+}
+.coffee-chat-ring:hover{transform:scale(1.08);box-shadow:inset 0 0 0 1.4px rgba(248,242,255,.92),0 0 30px rgba(189,150,255,.38)}
+.coffee-chat-ring:hover::before{opacity:1}
 .coffee-chat-assist span{
   max-width:120px;
   color:rgba(250,245,255,.76);
@@ -3393,8 +3415,12 @@ a.ring{display:block;text-decoration:none}
   border:1px solid rgba(255,255,255,.1);
   box-shadow:0 18px 40px rgba(0,0,0,.26), 0 0 26px rgba(189,150,255,.12);
   backdrop-filter:blur(18px);
-  transform:translateX(-50%);
+  opacity:0;
+  pointer-events:none;
+  transform:translate(-50%,10px);
+  transition:opacity .24s ease,transform .28s ease;
 }
+.q-stage-bubble.is-visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 #scene-chat .cue{
   right:26px;
   top:92px;
@@ -3412,14 +3438,6 @@ a.ring{display:block;text-decoration:none}
   border-top-color:rgba(14,10,22,.76);
   border-left-color:rgba(14,10,22,.76);
   transform:translateX(-50%);
-}
-.q-stage-label{
-  display:block;
-  margin-bottom:8px;
-  font-size:11px;
-  letter-spacing:.24em;
-  text-transform:uppercase;
-  color:rgba(255,216,184,.9);
 }
 .q-stage-text{
   min-height:48px;
@@ -3698,6 +3716,7 @@ a.ring{display:block;text-decoration:none}
     padding:14px 16px;
     transform:none;
   }
+  .q-stage-bubble.is-visible{transform:none}
   #scene-chat > img,
   #scene-chat > video{object-position:55% 50%}
   .q-stage-text{font-size:14px;line-height:1.6}
@@ -3729,7 +3748,7 @@ a.ring{display:block;text-decoration:none}
   .coffee-kind{min-height:116px;padding:13px}
   .coffee-kind-index{margin-bottom:14px}
   .coffee-chat-assist{right:14px;bottom:auto;top:76px;gap:6px}
-  .coffee-chat-ring{width:46px;height:46px;font-size:19px}
+  .coffee-chat-ring{width:40px;height:40px;font-size:16px}
   .coffee-chat-assist span{max-width:96px;font-size:8px}
   .coffee-back-btn{left:14px;bottom:18px;height:36px}
   .coffee-result-controls{bottom:70px}
@@ -3830,7 +3849,7 @@ a.ring{display:block;text-decoration:none}
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <div class="tag depth-near" style="left:26.6%;top:54.8%;">See My Work</div>
-      <button class="ring depth-mid" id="room-coffee-trigger" style="left:43.4%;top:36.8%;" aria-label="Make coffee"></button>
+      <button class="ring depth-mid coffee-entry-ring" id="room-coffee-trigger" style="left:43.4%;top:36.8%;" aria-label="Make coffee"></button>
       <div class="tag depth-mid" style="left:43.4%;top:30.5%;">Make Coffee</div>
       <button class="ring depth-mid" id="room-chat-trigger" style="left:72.6%;top:54.3%;" aria-label="Open coffee chat"></button>
       <div class="tag depth-mid" style="left:72.6%;top:48.1%;">Coffee Chat</div>
@@ -3856,8 +3875,8 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene scene-coffee" id="scene-coffee">
     <img src="./assets/poster-coffee-americano.jpg" alt="First-person view facing the Q Studio coffee bar">
-    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/vid-coffee-pourover-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-pourover.jpg" playsinline preload="metadata"></video>
-    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/vid-coffee-iced-americano-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-americano.jpg" playsinline preload="metadata"></video>
+    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/vid-coffee-pourover-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-pourover.jpg" playsinline preload="auto"></video>
+    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/vid-coffee-iced-americano-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-americano.jpg" playsinline preload="auto"></video>
 
     <div class="coffee-order-badge" id="coffee-order-badge" aria-live="polite">Preparing your coffee</div>
     <div class="coffee-toast" id="coffee-toast" role="status" aria-live="polite">
@@ -3921,7 +3940,6 @@ a.ring{display:block;text-decoration:none}
     </section>
 
     <div class="coffee-result-controls" id="coffee-result-controls" hidden>
-      <button type="button" id="coffee-replay">Replay</button>
       <button class="primary" type="button" id="coffee-choose-again">Choose another</button>
     </div>
 
@@ -3967,8 +3985,7 @@ a.ring{display:block;text-decoration:none}
     <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat_waiting.mp4" poster="./assets/poster-chat-waiting.jpg" muted playsinline loop preload="auto"></video>
     <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" poster="./assets/poster-chat-talk.jpg" muted playsinline loop preload="auto"></video>
     <div class="q-stage-bubble" id="q-stage-bubble">
-      <span class="q-stage-label">Q / Coffee Chat</span>
-      <div class="q-stage-text" id="q-stage-text">Hi，我是 Q，一个 AI Native 的 Product Builder。我每天会做很多小项目，也一直在研究人和 Agent 怎样更自然地协作。你可以先让我介绍自己，或者问我最近在做什么。</div>
+      <div class="q-stage-text" id="q-stage-text"></div>
     </div>
     <div class="chat-shell">
       <div class="chat-meta">
