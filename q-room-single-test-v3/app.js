@@ -1344,7 +1344,7 @@ function renderMessageWall(messages) {
   messageWall.innerHTML = messages.map(message => `
     <article class="message-note" style="--note-tilt:${messageTilt(message.id)}deg">
       ${messageDoodle(message.id)}
-      <p>${escapeHtml(message.body)}</p>
+      ${message.body ? `<p>${escapeHtml(message.body)}</p>` : ""}
       ${sketchToSvg(message.doodle)}
       <div class="message-note-footer">
         <span>${escapeHtml(message.name)} · ${escapeHtml(formatMessageDate(message.createdAt))}</span>
@@ -1390,8 +1390,9 @@ async function saveMessageBoard(event) {
   event?.preventDefault();
   const name = messageName?.value.trim() || "";
   const message = messageText?.value.trim() || "";
-  if (message.length < 2) {
-    if (messageStatus) messageStatus.textContent = "写两句话再留到墙上吧。";
+  const doodle = exportMessageSketch();
+  if (message.length < 2 && !doodle) {
+    if (messageStatus) messageStatus.textContent = "写一句话，或者画一个小涂鸦，就能贴到墙上。";
     return;
   }
   const submitButton = document.getElementById("message-save");
@@ -1404,7 +1405,7 @@ async function saveMessageBoard(event) {
         "Content-Type": "application/json",
         "X-QRoom-Owner": getMessageOwnerToken()
       },
-      body: JSON.stringify({ name, message, doodle: exportMessageSketch(), website: messageWebsite?.value || "" })
+      body: JSON.stringify({ name, message, doodle, website: messageWebsite?.value || "" })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not leave message");

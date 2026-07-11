@@ -207,7 +207,7 @@ async function createRoomMessage(request, env) {
   const name = cleanMessageText(body.name, 28) || "A visitor";
   const message = cleanMessageText(body.message, 360);
   const doodle = cleanMessageDoodle(body.doodle);
-  if (message.length < 2) return json({ error: "message is too short" }, 400);
+  if (message.length < 2 && !doodle) return json({ error: "write a note or draw a doodle" }, 400);
 
   const ownerHash = await hashOwnerToken(ownerToken);
   const createdAt = Date.now();
