@@ -3,6 +3,7 @@ document.body.setAttribute("data-script-ready", "yes");
 const scenes = {
   door: document.getElementById("scene-door"),
   room: document.getElementById("scene-room"),
+  coffee: document.getElementById("scene-coffee"),
   desk: document.getElementById("scene-desk"),
   chat: document.getElementById("scene-chat"),
   contact: document.getElementById("scene-contact")
@@ -56,6 +57,19 @@ const chatRelaxedVideo = document.getElementById("chat-relaxed-video");
 const chatWaitingVideo = document.getElementById("chat-waiting-video");
 const chatTalkVideo = document.getElementById("chat-talk-video");
 const contactVideo = document.getElementById("contact-video");
+const coffeeMenuCard = document.getElementById("coffee-menu-card");
+const coffeeMenuTitle = document.getElementById("coffee-menu-title");
+const coffeeMenuBack = document.getElementById("coffee-menu-back");
+const coffeeMenuRoot = document.getElementById("coffee-menu-root");
+const coffeeMenuPour = document.getElementById("coffee-menu-pour");
+const coffeeMenuEspresso = document.getElementById("coffee-menu-espresso");
+const coffeeOrderBadge = document.getElementById("coffee-order-badge");
+const coffeeToast = document.getElementById("coffee-toast");
+const coffeeResultControls = document.getElementById("coffee-result-controls");
+const coffeePourVideo = document.getElementById("coffee-pourover-video");
+const coffeeAmericanoVideo = document.getElementById("coffee-americano-video");
+const coffeeSectionButtons = Array.from(document.querySelectorAll("[data-coffee-section]"));
+const coffeeDrinkButtons = Array.from(document.querySelectorAll("[data-coffee-video]"));
 const sceneLoopVideos = {
   room: roomLoopVideo,
   desk: deskLoopVideo
@@ -66,6 +80,13 @@ const chatStateVideos = {
   waiting: chatWaitingVideo,
   talk: chatTalkVideo
 };
+const coffeeVideos = {
+  pourover: coffeePourVideo,
+  americano: coffeeAmericanoVideo
+};
+let activeCoffeeVideoKey = "";
+let activeCoffeeLabel = "";
+let coffeeToastTimer = 0;
 
 function startSiteLoader() {
   if (!siteLoader) return;
@@ -130,7 +151,14 @@ function setRoomMood(nextMood) {
 startSiteLoader();
 setRoomMood("glow");
 
-const order = ["door", "room", "desk", "chat", "contact"];
+const sceneProgress = {
+  door: 0,
+  room: 1,
+  coffee: 1,
+  desk: 2,
+  chat: 3,
+  contact: 4
+};
 const workedOnItems = [
   {
     id: "taobao",
@@ -773,6 +801,117 @@ function resetSceneVideo(video) {
   }
 }
 
+function setCoffeeMenuStep(step = "root") {
+  const nextStep = ["pour", "espresso"].includes(step) ? step : "root";
+  if (coffeeMenuRoot) coffeeMenuRoot.hidden = nextStep !== "root";
+  if (coffeeMenuPour) coffeeMenuPour.hidden = nextStep !== "pour";
+  if (coffeeMenuEspresso) coffeeMenuEspresso.hidden = nextStep !== "espresso";
+  if (coffeeMenuBack) coffeeMenuBack.hidden = nextStep === "root";
+  if (coffeeMenuTitle) {
+    coffeeMenuTitle.textContent = nextStep === "pour"
+      ? "Choose your beans"
+      : nextStep === "espresso"
+        ? "Choose a drink"
+        : "Choose a menu";
+  }
+}
+
+function showCoffeeToast(title, detail) {
+  if (!coffeeToast) return;
+  const titleNode = coffeeToast.querySelector("strong");
+  const detailNode = coffeeToast.querySelector("span");
+  if (titleNode) titleNode.textContent = title;
+  if (detailNode) detailNode.textContent = detail;
+  window.clearTimeout(coffeeToastTimer);
+  coffeeToast.classList.add("is-visible");
+  coffeeToastTimer = window.setTimeout(() => coffeeToast.classList.remove("is-visible"), 2800);
+}
+
+function syncCoffeeVideoAudio() {
+  const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
+  Object.entries(coffeeVideos).forEach(([key, video]) => {
+    if (!video) return;
+    video.volume = 0.88;
+    video.muted = !coffeeActive || key !== activeCoffeeVideoKey || AudioSys.muted;
+  });
+}
+
+function resetCoffeeExperience() {
+  Object.values(coffeeVideos).forEach(video => {
+    if (!video) return;
+    resetSceneVideo(video);
+    video.classList.remove("is-active");
+    video.muted = true;
+  });
+  activeCoffeeVideoKey = "";
+  activeCoffeeLabel = "";
+  coffeeMenuCard?.classList.remove("is-minimized");
+  coffeeOrderBadge?.classList.remove("is-visible");
+  coffeeToast?.classList.remove("is-visible");
+  if (coffeeResultControls) coffeeResultControls.hidden = true;
+  setCoffeeMenuStep("root");
+}
+
+function syncCoffeeSceneMedia(activeScene) {
+  if (activeScene !== "coffee") {
+    Object.values(coffeeVideos).forEach(video => video?.pause());
+    return;
+  }
+  syncCoffeeVideoAudio();
+}
+
+function playCoffeeVideo(videoKey, label) {
+  const nextVideo = coffeeVideos[videoKey];
+  if (!nextVideo) return;
+  AudioSys.ensureStarted().catch(() => {});
+  activeCoffeeVideoKey = videoKey;
+  activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
+
+  Object.entries(coffeeVideos).forEach(([key, video]) => {
+    if (!video) return;
+    video.pause();
+    video.classList.toggle("is-active", key === videoKey);
+    try {
+      video.currentTime = 0;
+    } catch (error) {
+      void error;
+    }
+  });
+
+  coffeeMenuCard?.classList.add("is-minimized");
+  coffeeOrderBadge?.classList.add("is-visible");
+  if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${activeCoffeeLabel}`;
+  if (coffeeResultControls) coffeeResultControls.hidden = true;
+  syncCoffeeVideoAudio();
+
+  nextVideo.play().catch(() => {
+    nextVideo.muted = true;
+    nextVideo.play().catch(() => {
+      coffeeMenuCard?.classList.remove("is-minimized");
+      showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
+    });
+  });
+}
+
+function holdCoffeeFinalFrame(videoKey) {
+  const video = coffeeVideos[videoKey];
+  if (!video || activeCoffeeVideoKey !== videoKey) return;
+  video.pause();
+  if (Number.isFinite(video.duration)) {
+    try {
+      video.currentTime = Math.max(0, video.duration - 0.045);
+    } catch (error) {
+      void error;
+    }
+  }
+  if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Ready · ${activeCoffeeLabel}`;
+  if (coffeeResultControls) coffeeResultControls.hidden = false;
+}
+
+Object.entries(coffeeVideos).forEach(([key, video]) => {
+  video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
+});
+
 function setChatVisualState(nextState, { reset = true } = {}) {
   const nextVideo = chatStateVideos[nextState];
   if (!nextVideo) return;
@@ -899,7 +1038,7 @@ window.sendChatMessage = sendChatMessage;
 
 const AudioSys = {
   ctx: null,
-  muted: localStorage.getItem("qroom-muted") === "1",
+  muted: localStorage.getItem("qroom-muted") !== "0",
   master: null,
   keyboardTimer: null,
   roomTimer: null,
@@ -911,20 +1050,23 @@ const AudioSys = {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.0001;
+      this.master.gain.value = this.muted ? 0.0001 : 0.68;
       this.master.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") {
       // Some browsers keep resume() pending; never let it block the UI gesture.
       this.ctx.resume().catch(() => {});
     }
+    if (!this.muted) this.startAmbient();
   },
   setMuted(nextMuted) {
     this.muted = nextMuted;
+    localStorage.setItem("qroom-muted", this.muted ? "1" : "0");
     soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
     if (!this.ctx) {
       syncRoomVideoAudio();
       syncDeskVideoAudio();
+      syncCoffeeVideoAudio();
       return;
     }
     const now = this.ctx.currentTime;
@@ -942,6 +1084,7 @@ const AudioSys = {
     }
     syncRoomVideoAudio();
     syncDeskVideoAudio();
+    syncCoffeeVideoAudio();
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -1102,6 +1245,7 @@ const AudioSys = {
     this.stopRoomDetails();
     syncRoomVideoAudio();
     syncDeskVideoAudio();
+    syncCoffeeVideoAudio();
     if (this.muted) return;
     this.startAmbient();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
@@ -1110,6 +1254,8 @@ const AudioSys = {
     }
   }
 };
+
+soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
 
 function setProgress(stepIndex) {
   progressLabels.forEach((el, i) => el.classList.toggle("active", i === stepIndex));
@@ -1120,10 +1266,11 @@ function activate(name) {
   Object.entries(scenes).forEach(([key, scene]) => {
     scene.classList.toggle("active", key === name);
   });
-  setProgress(order.indexOf(name));
+  setProgress(sceneProgress[name] ?? 0);
   syncDoorSceneMedia(name);
   syncLoopSceneMedia(name);
   syncChatSceneMedia(name);
+  syncCoffeeSceneMedia(name);
   AudioSys.syncSceneAudio();
 }
 
@@ -1586,6 +1733,15 @@ async function openDeskScene(openWorkPanel) {
   }
 }
 
+async function openCoffeeScene() {
+  await primeAudio();
+  resetCoffeeExperience();
+  activate("coffee");
+  AudioSys.click();
+  AudioSys.transition();
+  AudioSys.shimmer(760, 0.018);
+}
+
 async function openChatScene() {
   await primeAudio();
   activate("chat");
@@ -1700,8 +1856,62 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
 });
 
 document.getElementById("room-desk-trigger").addEventListener("click", async () => openDeskScene(false));
+document.getElementById("room-coffee-trigger")?.addEventListener("click", async () => openCoffeeScene());
 document.getElementById("room-chat-trigger").addEventListener("click", async () => openChatScene());
 document.getElementById("room-message-trigger")?.addEventListener("click", async () => openMessageBoard());
+
+coffeeSectionButtons.forEach(button => {
+  button.addEventListener("click", async () => {
+    await primeAudio();
+    setCoffeeMenuStep(button.dataset.coffeeSection || "root");
+    AudioSys.shimmer(button.dataset.coffeeSection === "espresso" ? 680 : 820, 0.018);
+  });
+});
+
+coffeeMenuBack?.addEventListener("click", async () => {
+  await primeAudio();
+  setCoffeeMenuStep("root");
+  AudioSys.click(0.72);
+});
+
+coffeeDrinkButtons.forEach(button => {
+  button.addEventListener("click", async () => {
+    await playCoffeeVideo(button.dataset.coffeeVideo || "", button.dataset.coffeeLabel || "");
+  });
+});
+
+document.getElementById("coffee-latte-option")?.addEventListener("click", async () => {
+  await primeAudio();
+  showCoffeeToast("Run out of milk.", "Try an Iced Americano instead.");
+  AudioSys.shimmer(430, 0.014);
+});
+
+document.getElementById("coffee-replay")?.addEventListener("click", async () => {
+  if (!activeCoffeeVideoKey) return;
+  await playCoffeeVideo(activeCoffeeVideoKey, activeCoffeeLabel);
+});
+
+document.getElementById("coffee-choose-again")?.addEventListener("click", async () => {
+  await primeAudio();
+  coffeeMenuCard?.classList.remove("is-minimized");
+  coffeeOrderBadge?.classList.remove("is-visible");
+  if (coffeeResultControls) coffeeResultControls.hidden = true;
+  setCoffeeMenuStep("root");
+  AudioSys.shimmer(720, 0.016);
+});
+
+document.getElementById("coffee-back-trigger")?.addEventListener("click", async () => {
+  await primeAudio();
+  resetCoffeeExperience();
+  activate("room");
+  AudioSys.transition();
+});
+
+document.getElementById("coffee-chat-trigger")?.addEventListener("click", async () => {
+  await primeAudio();
+  Object.values(coffeeVideos).forEach(video => video?.pause());
+  await openChatScene();
+});
 
 document.getElementById("room-exit-trigger").addEventListener("click", async () => {
   await primeAudio();

@@ -275,6 +275,16 @@ body{
 }
 #scene-room > img,
 #scene-room > video{object-position:42% 50%}
+#scene-coffee > img,
+#scene-coffee > video{object-position:50% 50%}
+#scene-coffee > img{z-index:0}
+#scene-coffee > video.coffee-action-video{
+  z-index:1;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .24s ease;
+}
+#scene-coffee > video.coffee-action-video.is-active{opacity:1}
 #scene-desk > img,
 #scene-desk > video{object-position:50% 50%}
 #scene-chat > img,
@@ -573,6 +583,315 @@ a.ring{display:block;text-decoration:none}
 .ring.depth-mid{width:48px;height:48px}
 .ring.depth-far{width:30px;height:30px;box-shadow:inset 0 0 0 1px rgba(227,214,255,.6),0 0 14px rgba(189,150,255,.18)}
 .ring.depth-far::before{inset:-5px}
+
+.scene-coffee::after{
+  z-index:2;
+  background:
+    linear-gradient(90deg,rgba(5,3,9,.12),transparent 48%,rgba(5,3,9,.18)),
+    radial-gradient(circle at 52% 52%,transparent 38%,rgba(5,3,9,.3) 100%);
+}
+.coffee-menu-card{
+  position:absolute;
+  z-index:26;
+  top:50%;
+  right:clamp(28px,5vw,86px);
+  width:min(350px,32vw);
+  padding:22px;
+  border:1px solid rgba(215,191,255,.32);
+  border-radius:26px;
+  background:
+    linear-gradient(145deg,rgba(35,22,55,.86),rgba(14,10,24,.78)),
+    rgba(15,10,24,.76);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 0 34px rgba(171,112,255,.08),
+    0 28px 70px rgba(2,1,5,.42),
+    0 0 42px rgba(159,105,255,.16);
+  backdrop-filter:blur(20px) saturate(1.22);
+  transform:translateY(-50%);
+  transform-origin:right center;
+  transition:opacity .28s ease,transform .34s cubic-bezier(.2,.8,.2,1);
+}
+.coffee-menu-card::before{
+  content:"";
+  position:absolute;
+  inset:9px;
+  border:1px solid rgba(224,207,255,.08);
+  border-radius:19px;
+  pointer-events:none;
+}
+.coffee-menu-card [hidden],
+.coffee-result-controls[hidden]{display:none !important}
+.coffee-menu-card.is-minimized{
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(-50%) translateX(26px) scale(.94);
+}
+.coffee-menu-head{
+  position:relative;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding-bottom:16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.coffee-menu-kicker{
+  display:block;
+  margin-bottom:8px;
+  color:rgba(216,194,255,.58);
+  font-size:9px;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+}
+.coffee-menu-head h2{
+  margin:0;
+  color:#fbf7ff;
+  font-size:clamp(24px,2.4vw,34px);
+  line-height:.95;
+  letter-spacing:-.045em;
+  font-weight:580;
+  text-shadow:0 0 22px rgba(186,131,255,.28);
+}
+.coffee-menu-back{
+  flex:0 0 auto;
+  border:1px solid rgba(215,191,255,.2);
+  border-radius:999px;
+  padding:7px 10px;
+  background:rgba(199,165,255,.07);
+  color:rgba(244,237,255,.76);
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.coffee-menu-copy{
+  margin:14px 0 15px;
+  color:rgba(242,234,255,.56);
+  font-size:12px;
+  line-height:1.55;
+}
+.coffee-choice-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.coffee-kind,
+.coffee-option{
+  position:relative;
+  min-width:0;
+  border:1px solid rgba(205,174,255,.2);
+  border-radius:18px;
+  background:linear-gradient(160deg,rgba(194,151,255,.11),rgba(255,255,255,.025));
+  color:#fff;
+  text-align:left;
+  cursor:pointer;
+  overflow:hidden;
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
+}
+.coffee-kind{
+  min-height:142px;
+  padding:15px;
+}
+.coffee-kind::after,
+.coffee-option::after{
+  content:"";
+  position:absolute;
+  width:80px;
+  height:80px;
+  right:-26px;
+  bottom:-34px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(193,145,255,.26),rgba(193,145,255,0) 70%);
+  pointer-events:none;
+}
+.coffee-kind:hover,
+.coffee-option:hover{
+  transform:translateY(-2px);
+  border-color:rgba(226,205,255,.5);
+  background:linear-gradient(160deg,rgba(194,151,255,.2),rgba(255,255,255,.045));
+  box-shadow:0 14px 32px rgba(93,50,153,.24),0 0 24px rgba(182,122,255,.12);
+}
+.coffee-kind-index{
+  display:inline-grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  margin-bottom:22px;
+  border:1px solid rgba(225,205,255,.35);
+  border-radius:50%;
+  color:#d9bbff;
+  font-size:9px;
+  box-shadow:0 0 18px rgba(189,135,255,.2);
+}
+.coffee-kind strong,
+.coffee-option strong{
+  display:block;
+  font-size:14px;
+  font-weight:580;
+  letter-spacing:-.01em;
+}
+.coffee-kind small,
+.coffee-option small{
+  display:block;
+  margin-top:6px;
+  color:rgba(238,228,255,.48);
+  font-size:9px;
+  line-height:1.45;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.coffee-option-list{display:grid;gap:8px}
+.coffee-option{
+  min-height:66px;
+  padding:13px 15px;
+}
+.coffee-option--unavailable{border-style:dashed}
+.coffee-menu-foot{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:16px;
+  color:rgba(235,224,255,.38);
+  font-size:9px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.coffee-menu-foot::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#c79bff;
+  box-shadow:0 0 12px rgba(199,155,255,.9);
+}
+.coffee-toast{
+  position:absolute;
+  z-index:29;
+  left:50%;
+  top:16%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:min(420px,76vw);
+  padding:13px 17px;
+  border:1px solid rgba(255,215,235,.24);
+  border-radius:999px;
+  background:rgba(28,17,39,.86);
+  color:#fff1f8;
+  box-shadow:0 18px 44px rgba(0,0,0,.3),0 0 26px rgba(255,143,196,.14);
+  backdrop-filter:blur(18px);
+  opacity:0;
+  pointer-events:none;
+  transform:translate(-50%,-12px);
+  transition:opacity .24s ease,transform .24s ease;
+}
+.coffee-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+.coffee-toast strong{font-size:12px;letter-spacing:.02em}
+.coffee-toast span{color:rgba(255,230,242,.58);font-size:10px}
+.coffee-order-badge{
+  position:absolute;
+  z-index:25;
+  left:50%;
+  top:10%;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:9px 14px;
+  border:1px solid rgba(214,188,255,.18);
+  border-radius:999px;
+  background:rgba(14,9,22,.56);
+  color:rgba(248,242,255,.72);
+  font-size:10px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  backdrop-filter:blur(12px);
+  opacity:0;
+  transform:translate(-50%,-8px);
+  transition:opacity .24s ease,transform .24s ease;
+}
+.coffee-order-badge.is-visible{opacity:1;transform:translate(-50%,0)}
+.coffee-order-badge::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#c99dff;
+  box-shadow:0 0 12px rgba(201,157,255,.9);
+}
+.coffee-result-controls{
+  position:absolute;
+  z-index:27;
+  left:50%;
+  bottom:clamp(26px,5vh,52px);
+  display:flex;
+  gap:8px;
+  transform:translateX(-50%);
+}
+.coffee-result-controls button,
+.coffee-back-btn{
+  border:1px solid rgba(222,205,255,.22);
+  border-radius:999px;
+  background:rgba(15,10,24,.7);
+  color:rgba(249,245,255,.82);
+  box-shadow:0 14px 34px rgba(0,0,0,.2);
+  backdrop-filter:blur(12px);
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+.coffee-result-controls button{height:39px;padding:0 15px;font-size:9px}
+.coffee-result-controls button.primary{
+  border-color:rgba(211,179,255,.38);
+  background:linear-gradient(135deg,rgba(129,81,205,.82),rgba(179,126,255,.76));
+  color:#fff;
+}
+.coffee-back-btn{
+  position:absolute;
+  z-index:27;
+  left:clamp(18px,2vw,28px);
+  bottom:clamp(20px,4vh,38px);
+  height:38px;
+  padding:0 15px;
+  font-size:9px;
+}
+.coffee-chat-assist{
+  position:absolute;
+  z-index:27;
+  right:clamp(22px,3vw,48px);
+  bottom:clamp(86px,13vh,132px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.coffee-chat-ring{
+  display:grid;
+  place-items:center;
+  width:58px;
+  height:58px;
+  border:1px solid rgba(229,212,255,.64);
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,rgba(203,164,255,.24),rgba(21,14,34,.34));
+  color:#f8f0ff;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:24px;
+  box-shadow:inset 0 0 20px rgba(199,155,255,.1),0 0 30px rgba(184,126,255,.24);
+  backdrop-filter:blur(10px);
+  cursor:pointer;
+  transition:transform .22s ease,box-shadow .22s ease;
+}
+.coffee-chat-ring:hover{transform:scale(1.07);box-shadow:inset 0 0 24px rgba(199,155,255,.16),0 0 40px rgba(184,126,255,.38)}
+.coffee-chat-assist span{
+  max-width:120px;
+  color:rgba(250,245,255,.76);
+  font-size:9px;
+  line-height:1.45;
+  letter-spacing:.12em;
+  text-align:center;
+  text-transform:uppercase;
+  text-shadow:0 0 16px rgba(189,150,255,.38);
+}
 
 .tag{
   position:absolute;
@@ -3387,6 +3706,30 @@ a.ring{display:block;text-decoration:none}
   .chat-meta-copy{flex-direction:column;align-items:flex-start;gap:4px}
   .chat-suggestions{gap:6px}
   .chat-chip{font-size:12px}
+  #scene-coffee > img,
+  #scene-coffee > video{object-position:50% 50%}
+  .coffee-menu-card{
+    left:14px;
+    right:14px;
+    top:auto;
+    bottom:76px;
+    width:auto;
+    max-height:56dvh;
+    padding:18px;
+    overflow:auto;
+    transform:none;
+  }
+  .coffee-menu-card.is-minimized{transform:translateY(18px) scale(.97)}
+  .coffee-menu-head h2{font-size:26px}
+  .coffee-kind{min-height:116px;padding:13px}
+  .coffee-kind-index{margin-bottom:14px}
+  .coffee-chat-assist{right:14px;bottom:auto;top:76px;gap:6px}
+  .coffee-chat-ring{width:46px;height:46px;font-size:19px}
+  .coffee-chat-assist span{max-width:96px;font-size:8px}
+  .coffee-back-btn{left:14px;bottom:18px;height:36px}
+  .coffee-result-controls{bottom:70px}
+  .coffee-order-badge{top:75px;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .coffee-toast{top:132px;max-width:calc(100vw - 28px);border-radius:20px}
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -3482,6 +3825,8 @@ a.ring{display:block;text-decoration:none}
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <div class="tag depth-near" style="left:26.6%;top:54.8%;">See My Work</div>
+      <button class="ring depth-mid" id="room-coffee-trigger" style="left:43.4%;top:36.8%;" aria-label="Make coffee"></button>
+      <div class="tag depth-mid" style="left:43.4%;top:30.5%;">Make Coffee</div>
       <button class="ring depth-mid" id="room-chat-trigger" style="left:72.6%;top:54.3%;" aria-label="Open coffee chat"></button>
       <div class="tag depth-mid" style="left:72.6%;top:48.1%;">Coffee Chat</div>
       <button class="ring depth-far" id="room-message-trigger" style="left:67.8%;top:28.4%;" aria-label="Leave a message"></button>
@@ -3501,6 +3846,84 @@ a.ring{display:block;text-decoration:none}
         </div>
       </div>
       <button class="room-exit-btn" id="room-exit-trigger" aria-label="Exit Q Studio">Exit</button>
+    </div>
+  </section>
+
+  <section class="scene scene-coffee" id="scene-coffee">
+    <img src="./assets/coffee-choice-player-pov-v1.png" alt="First-person view facing the Q Studio coffee bar">
+    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/vid-coffee-pourover-seedance2mini-720-5s-v1.mp4" playsinline preload="metadata"></video>
+    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/vid-coffee-iced-americano-seedance2mini-720-5s-v1.mp4" playsinline preload="metadata"></video>
+
+    <div class="coffee-order-badge" id="coffee-order-badge" aria-live="polite">Preparing your coffee</div>
+    <div class="coffee-toast" id="coffee-toast" role="status" aria-live="polite">
+      <strong>Run out of milk.</strong>
+      <span>Try an Iced Americano instead.</span>
+    </div>
+
+    <section class="coffee-menu-card" id="coffee-menu-card" aria-label="Coffee menu">
+      <header class="coffee-menu-head">
+        <div>
+          <span class="coffee-menu-kicker">Q / Coffee Lab</span>
+          <h2 id="coffee-menu-title">Choose a menu</h2>
+        </div>
+        <button class="coffee-menu-back" id="coffee-menu-back" type="button" hidden>All drinks</button>
+      </header>
+
+      <div id="coffee-menu-root">
+        <p class="coffee-menu-copy">Pick a brewing path. I’ll take care of the rest.</p>
+        <div class="coffee-choice-grid">
+          <button class="coffee-kind" type="button" data-coffee-section="pour">
+            <span class="coffee-kind-index">01</span>
+            <strong>Pour Over</strong>
+            <small>Hot · slow ritual</small>
+          </button>
+          <button class="coffee-kind" type="button" data-coffee-section="espresso">
+            <span class="coffee-kind-index">02</span>
+            <strong>Espresso</strong>
+            <small>Bold · over ice</small>
+          </button>
+        </div>
+      </div>
+
+      <div id="coffee-menu-pour" hidden>
+        <p class="coffee-menu-copy">Choose today’s beans. Every selection starts the same hand-pour ritual.</p>
+        <div class="coffee-option-list">
+          <button class="coffee-option" type="button" data-coffee-video="pourover" data-coffee-label="Geisha">
+            <strong>Geisha</strong><small>Floral · jasmine · bergamot</small>
+          </button>
+          <button class="coffee-option" type="button" data-coffee-video="pourover" data-coffee-label="Huakui">
+            <strong>Huakui</strong><small>Peach · honey · black tea</small>
+          </button>
+          <button class="coffee-option" type="button" data-coffee-video="pourover" data-coffee-label="Caturra">
+            <strong>Caturra</strong><small>Cacao · citrus · caramel</small>
+          </button>
+        </div>
+      </div>
+
+      <div id="coffee-menu-espresso" hidden>
+        <p class="coffee-menu-copy">A quick espresso route from the machine in front of you.</p>
+        <div class="coffee-option-list">
+          <button class="coffee-option coffee-option--unavailable" id="coffee-latte-option" type="button">
+            <strong>Iced Latte</strong><small>Milk · currently unavailable</small>
+          </button>
+          <button class="coffee-option" type="button" data-coffee-video="americano" data-coffee-label="Iced Americano">
+            <strong>Iced Americano</strong><small>Espresso · ice · water</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="coffee-menu-foot">First-person auto brew</div>
+    </section>
+
+    <div class="coffee-result-controls" id="coffee-result-controls" hidden>
+      <button type="button" id="coffee-replay">Replay</button>
+      <button class="primary" type="button" id="coffee-choose-again">Choose another</button>
+    </div>
+
+    <button class="coffee-back-btn" id="coffee-back-trigger" type="button">Back to room</button>
+    <div class="coffee-chat-assist">
+      <button class="coffee-chat-ring" id="coffee-chat-trigger" type="button" aria-label="So, have a coffee chat?">?</button>
+      <span>So, have a coffee chat?</span>
     </div>
   </section>
 
@@ -3617,6 +4040,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<script src="./app.js?v=20260711-clearer-interaction-audio"></script>
+<script src="./app.js?v=20260711-coffee-menu-v1"></script>
 </body>
 </html>
