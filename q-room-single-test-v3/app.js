@@ -866,11 +866,11 @@ function showCoffeeToast(title, detail) {
 }
 
 function syncCoffeeVideoAudio() {
-  Object.values(coffeeVideos).forEach(video => {
+  const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
+  Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
-    // Scene videos stay visual-only so their audio never replaces the
-    // continuous room music when the active video changes.
-    video.muted = true;
+    video.volume = 0.46;
+    video.muted = AudioSys.muted || !coffeeActive || key !== activeCoffeeVideoKey;
   });
 }
 
@@ -925,8 +925,11 @@ function playCoffeeVideo(videoKey, label) {
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${activeCoffeeLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = true;
   syncCoffeeVideoAudio();
+  nextVideo.muted = true;
 
-  nextVideo.play().catch(() => {
+  nextVideo.play().then(() => {
+    syncCoffeeVideoAudio();
+  }).catch(() => {
     nextVideo.muted = true;
     nextVideo.play().catch(() => {
       coffeeMenuCard?.classList.remove("is-minimized");
@@ -955,6 +958,7 @@ Object.entries(coffeeVideos).forEach(([key, video]) => {
   video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
   video?.addEventListener("playing", () => {
     if (activeCoffeeVideoKey === key) scenes.coffee?.classList.add("coffee-playing");
+    syncCoffeeVideoAudio();
   });
   video?.addEventListener("timeupdate", () => {
     if (activeCoffeeVideoKey !== key || !video.duration) return;
@@ -1098,6 +1102,8 @@ const AudioSys = {
   ctx: null,
   muted: localStorage.getItem("qroom-muted") === "1",
   master: null,
+  musicBus: null,
+  effectsBus: null,
   keyboardTimer: null,
   roomTimer: null,
   ambientTimer: null,
@@ -1108,7 +1114,13 @@ const AudioSys = {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
+      this.musicBus = this.ctx.createGain();
+      this.effectsBus = this.ctx.createGain();
       this.master.gain.value = this.muted ? 0.0001 : 0.68;
+      this.musicBus.gain.value = 1;
+      this.effectsBus.gain.value = 0.82;
+      this.musicBus.connect(this.master);
+      this.effectsBus.connect(this.master);
       this.master.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") {
@@ -1116,15 +1128,18 @@ const AudioSys = {
       this.ctx.resume().catch(() => {});
     }
     if (!this.muted) this.startAmbient();
+    this.publishState();
   },
   setMuted(nextMuted) {
     this.muted = nextMuted;
     localStorage.setItem("qroom-muted", this.muted ? "1" : "0");
     soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
     if (!this.ctx) {
+      syncDoorVideoAudio();
       syncRoomVideoAudio();
       syncDeskVideoAudio();
       syncCoffeeVideoAudio();
+      this.publishState();
       return;
     }
     const now = this.ctx.currentTime;
@@ -1140,9 +1155,17 @@ const AudioSys = {
       this.startAmbient();
       this.syncSceneAudio();
     }
+    syncDoorVideoAudio();
     syncRoomVideoAudio();
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
+    this.publishState();
+  },
+  publishState() {
+    document.body.dataset.audioMix = "music-effects-video";
+    document.body.dataset.audioMuted = String(this.muted);
+    document.body.dataset.audioBackground = this.ambientTimer ? "playing" : "stopped";
+    document.body.dataset.audioBuses = this.musicBus && this.effectsBus ? "ready" : "pending";
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -1151,7 +1174,7 @@ const AudioSys = {
     osc.type = type || "sine";
     osc.frequency.value = freq;
     osc.connect(gain);
-    gain.connect(this.master);
+    gain.connect(this.effectsBus || this.master);
     const now = this.ctx.currentTime;
     gain.gain.setValueAtTime(vol, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
@@ -1173,7 +1196,7 @@ const AudioSys = {
     filter.Q.value = 0.72;
     src.connect(filter);
     filter.connect(gain);
-    gain.connect(this.master);
+    gain.connect(this.effectsBus || this.master);
     const now = this.ctx.currentTime;
     filter.frequency.setValueAtTime(from, now);
     filter.frequency.exponentialRampToValueAtTime(Math.max(80, to), now + dur);
@@ -1269,14 +1292,14 @@ const AudioSys = {
       filter.frequency.value = index === 2 ? 1450 : 640;
       filter.Q.value = 0.7;
       const start = now + index * 0.34;
-      const peak = index === 0 ? 0.006 : index === 1 ? 0.0042 : 0.0032;
+      const peak = index === 0 ? 0.011 : index === 1 ? 0.0076 : 0.0058;
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.exponentialRampToValueAtTime(peak, start + 0.55);
       gain.gain.setValueAtTime(peak, start + 2.1);
       gain.gain.exponentialRampToValueAtTime(0.0001, start + 3.8);
       oscillator.connect(filter);
       filter.connect(gain);
-      gain.connect(this.master);
+      gain.connect(this.musicBus || this.master);
       oscillator.start(start);
       oscillator.stop(start + 3.9);
     });
@@ -1293,14 +1316,17 @@ const AudioSys = {
       this.ambientTimer = window.setTimeout(loop, 3600);
     };
     loop();
+    this.publishState();
   },
   stopAmbient() {
     window.clearTimeout(this.ambientTimer);
     this.ambientTimer = null;
+    this.publishState();
   },
   syncSceneAudio() {
     this.stopKeyboard();
     this.stopRoomDetails();
+    syncDoorVideoAudio();
     syncRoomVideoAudio();
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
@@ -1347,16 +1373,28 @@ function syncDoorSceneMedia(activeScene) {
       void error;
     }
     doorIdleVideo.play().catch(() => {});
+    syncDoorVideoAudio();
     return;
   }
   doorIdleVideo.pause();
+  doorOpenVideo.muted = true;
+}
+
+function syncDoorVideoAudio() {
+  if (!doorIdleVideo || !doorOpenVideo) return;
+  const doorOpening = scenes.door.classList.contains("active") && scenes.door.classList.contains("opening");
+  doorIdleVideo.muted = true;
+  doorOpenVideo.volume = 0.58;
+  doorOpenVideo.muted = AudioSys.muted || !doorOpening;
 }
 
 function syncLoopSceneMedia(activeScene) {
   Object.entries(sceneLoopVideos).forEach(([key, video]) => {
     if (!video) return;
     if (key === activeScene) {
-      video.play().catch(() => {});
+      // Start the selected loop through its audio synchronizer. It begins
+      // muted and is unmuted only after playback succeeds.
+      video.muted = true;
       return;
     }
     resetSceneVideo(video);
@@ -1382,11 +1420,21 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
+  roomLoopVideo.volume = 0.24;
+  if (!sceneActive) {
+    roomLoopVideo.muted = true;
+    return;
+  }
+  if (!roomLoopVideo.paused) {
+    roomLoopVideo.muted = AudioSys.muted;
+    return;
+  }
   roomLoopVideo.muted = true;
-  if (!sceneActive) return;
   const started = roomLoopVideo.play();
   if (started) {
-    started.catch(() => {
+    started.then(() => {
+      roomLoopVideo.muted = AudioSys.muted || !scenes.room.classList.contains("active");
+    }).catch(() => {
       roomLoopVideo.muted = true;
       roomLoopVideo.play().catch(() => {});
     });
@@ -1396,19 +1444,31 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  deskLoopVideo.muted = true;
+  deskLoopVideo.volume = 0.24;
   if (!sceneActive) {
+    deskLoopVideo.muted = true;
     resetSceneVideo(deskLoopVideo);
     return;
   }
+  if (!deskLoopVideo.paused) {
+    deskLoopVideo.muted = AudioSys.muted;
+    return;
+  }
+  deskLoopVideo.muted = true;
   const started = deskLoopVideo.play();
   if (started) {
-    started.catch(() => {
+    started.then(() => {
+      deskLoopVideo.muted = AudioSys.muted || !scenes.desk.classList.contains("active");
+    }).catch(() => {
       deskLoopVideo.muted = true;
       deskLoopVideo.play().catch(() => {});
     });
   }
 }
+
+roomLoopVideo?.addEventListener("playing", syncRoomVideoAudio);
+deskLoopVideo?.addEventListener("playing", syncDeskVideoAudio);
+doorOpenVideo?.addEventListener("playing", syncDoorVideoAudio);
 
 let contactReturnScene = "desk";
 let messageLoadId = 0;
@@ -1880,8 +1940,7 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   doorScene.classList.add("opening");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
-  doorOpenVideo.volume = 0.46;
-  doorOpenVideo.muted = AudioSys.muted;
+  syncDoorVideoAudio();
   try {
     doorOpenVideo.currentTime = 0;
   } catch (error) {
