@@ -594,6 +594,10 @@ a.ring{display:block;text-decoration:none}
 .ring.depth-far{width:30px;height:30px;box-shadow:inset 0 0 0 1px rgba(227,214,255,.6),0 0 14px rgba(189,150,255,.18)}
 .ring.depth-far::before{inset:-5px}
 .ring.coffee-entry-ring{width:38px;height:38px}
+.room-map .ring::before{inset:-18px}
+.room-map .ring.depth-far::before{inset:-14px}
+.room-map .ring,
+.room-action-label{touch-action:manipulation}
 
 .scene-coffee::after{
   z-index:2;
@@ -938,6 +942,20 @@ a.ring{display:block;text-decoration:none}
   z-index:24;
 }
 .room-map .tag{font-size:11px}
+.room-action-label{
+  border:0;
+  padding:9px 12px;
+  background:transparent;
+  font:inherit;
+  cursor:pointer;
+  pointer-events:auto;
+}
+.room-action-label:hover,
+.room-action-label:focus-visible{
+  color:#fff;
+  text-shadow:0 0 10px rgba(234,220,255,.9),0 0 24px rgba(189,150,255,.68);
+  outline:none;
+}
 .tag.depth-near{font-size:12.5px}
 .tag.depth-mid{font-size:11px}
 .tag.depth-far{font-size:8.5px;color:rgba(250,247,255,.8);text-shadow:0 0 12px rgba(189,150,255,.3)}
@@ -3848,13 +3866,13 @@ a.ring{display:block;text-decoration:none}
     <video id="room-loop-video" src="./assets/room.mp4?v=coffee-pour-only-loop-v2" muted playsinline loop preload="auto" poster="./assets/poster-room.jpg"></video>
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
-      <div class="tag depth-near" style="left:26.6%;top:54.8%;">See My Work</div>
+      <button class="tag depth-near room-action-label" id="room-desk-label" type="button" style="left:26.6%;top:54.8%;">See My Work</button>
       <button class="ring depth-mid coffee-entry-ring" id="room-coffee-trigger" style="left:43.4%;top:36.8%;" aria-label="Make coffee"></button>
-      <div class="tag depth-mid" style="left:43.4%;top:30.5%;">Make Coffee</div>
+      <button class="tag depth-mid room-action-label" id="room-coffee-label" type="button" style="left:43.4%;top:30.5%;">Make Coffee</button>
       <button class="ring depth-mid" id="room-chat-trigger" style="left:72.6%;top:54.3%;" aria-label="Open coffee chat"></button>
-      <div class="tag depth-mid" style="left:72.6%;top:48.1%;">Coffee Chat</div>
+      <button class="tag depth-mid room-action-label" id="room-chat-label" type="button" style="left:72.6%;top:48.1%;">Coffee Chat</button>
       <button class="ring depth-far" id="room-message-trigger" style="left:67.8%;top:28.4%;" aria-label="Leave a message"></button>
-      <div class="tag depth-far" style="left:67.8%;top:24.2%;">Leave A Message</div>
+      <button class="tag depth-far room-action-label" id="room-message-label" type="button" style="left:67.8%;top:24.2%;">Leave A Message</button>
     </div>
     <div class="copy room-hint">
       <p>AI room map · choose an action</p>
@@ -4062,7 +4080,6 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<audio id="background-music" src="./assets/bgm.mp3?v=20260712" loop preload="auto"></audio>
-<script src="./app.js?v=20260712-persistent-bgm-v1"></script>
+<script src="./app.js?v=20260712-room-hitbox-ambient-v1"></script>
 </body>
 </html>
