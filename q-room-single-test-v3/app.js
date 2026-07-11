@@ -917,7 +917,7 @@ const AudioSys = {
   },
   setMuted(nextMuted) {
     this.muted = nextMuted;
-    soundToggle.innerHTML = `<strong>${this.muted ? "FX Off" : "FX On"}</strong>`;
+    soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
     if (!this.ctx) {
       syncRoomVideoAudio();
       syncDeskVideoAudio();
