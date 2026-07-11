@@ -1665,7 +1665,7 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
     await primeAudio();
   }
   AudioSys.click(0.42);
-  AudioSys.door(0.52);
+  AudioSys.door(0.28);
   const doorScene = scenes.door;
   doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
@@ -1675,7 +1675,8 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   doorScene.classList.add("opening");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
-  doorOpenVideo.muted = true;
+  doorOpenVideo.volume = 0.34;
+  doorOpenVideo.muted = AudioSys.muted;
   try {
     doorOpenVideo.currentTime = 0;
   } catch (error) {
