@@ -209,14 +209,21 @@ async function runChatStream(env, messages, options) {
   let lastError = null;
   for (const model of models) {
     try {
+      const input = {
+        messages,
+        stream: true,
+        temperature: options.temperature,
+        max_completion_tokens: options.maxTokens,
+      };
+      // Kimi K2.6 enables long-form reasoning by default. Qroom needs a
+      // short conversational answer; otherwise the entire completion budget
+      // can be consumed by reasoning without emitting any visible content.
+      if (model === "@cf/moonshotai/kimi-k2.6") {
+        input.chat_template_kwargs = { thinking: false };
+      }
       const stream = await env.AI.run(
         model,
-        {
-          messages,
-          stream: true,
-          temperature: options.temperature,
-          max_tokens: options.maxTokens,
-        },
+        input,
         {
           gateway: {
             id: "default",

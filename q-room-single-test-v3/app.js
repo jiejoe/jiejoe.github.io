@@ -866,11 +866,11 @@ function showCoffeeToast(title, detail) {
 }
 
 function syncCoffeeVideoAudio() {
-  const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
-  Object.entries(coffeeVideos).forEach(([key, video]) => {
+  Object.values(coffeeVideos).forEach(video => {
     if (!video) return;
-    video.volume = 0.88;
-    video.muted = !coffeeActive || key !== activeCoffeeVideoKey || AudioSys.muted;
+    // Scene videos stay visual-only so their audio never replaces the
+    // continuous room music when the active video changes.
+    video.muted = true;
   });
 }
 
@@ -1382,8 +1382,7 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.volume = 0.32;
-  roomLoopVideo.muted = !sceneActive || AudioSys.muted;
+  roomLoopVideo.muted = true;
   if (!sceneActive) return;
   const started = roomLoopVideo.play();
   if (started) {
@@ -1397,9 +1396,7 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  const panelOpen = workPanel.classList.contains("open");
-  deskLoopVideo.volume = 0.28;
-  deskLoopVideo.muted = !sceneActive || panelOpen || AudioSys.muted;
+  deskLoopVideo.muted = true;
   if (!sceneActive) {
     resetSceneVideo(deskLoopVideo);
     return;

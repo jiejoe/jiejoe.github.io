@@ -24,12 +24,14 @@ function requestFor(messages) {
 
 test("streams the primary model response", async () => {
   const models = [];
+  const inputs = [];
   const env = {
-    CHAT_MODEL: "primary-model",
+    CHAT_MODEL: "@cf/moonshotai/kimi-k2.6",
     CHAT_FALLBACK_MODEL: "fallback-model",
     AI: {
-      async run(model) {
+      async run(model, input) {
         models.push(model);
+        inputs.push(input);
         return streamOf("你好");
       },
     },
@@ -38,7 +40,10 @@ test("streams the primary model response", async () => {
   const response = await worker.fetch(requestFor([{ role: "user", content: "你好" }]), env, {});
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /^text\/event-stream/);
-  assert.deepEqual(models, ["primary-model"]);
+  assert.deepEqual(models, ["@cf/moonshotai/kimi-k2.6"]);
+  assert.deepEqual(inputs[0].chat_template_kwargs, { thinking: false });
+  assert.equal(inputs[0].max_completion_tokens, 400);
+  assert.equal("max_tokens" in inputs[0], false);
   assert.match(await response.text(), /你好/);
 });
 
