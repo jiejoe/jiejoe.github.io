@@ -35,6 +35,7 @@ const meEcho = document.getElementById("me-echo");
 const chatInput = document.getElementById("chat-input");
 const chatChips = Array.from(document.querySelectorAll(".chat-chip"));
 const soundToggle = document.getElementById("sound-toggle");
+const backgroundMusic = document.getElementById("background-music");
 const messageModal = document.getElementById("message-modal");
 const messageWall = document.getElementById("message-wall");
 const messageForm = document.getElementById("message-form");
@@ -869,7 +870,8 @@ function syncCoffeeVideoAudio() {
   const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
-    video.volume = 0.46;
+    // Keep the brew sound present without masking the separate music track.
+    video.volume = 0.3;
     video.muted = AudioSys.muted || !coffeeActive || key !== activeCoffeeVideoKey;
   });
 }
@@ -1104,6 +1106,12 @@ const AudioSys = {
   master: null,
   musicBus: null,
   effectsBus: null,
+  fileMusicGain: null,
+  musicBuffer: null,
+  musicSource: null,
+  musicSourceStartedAt: 0,
+  musicOffset: 0,
+  musicLoadPromise: null,
   keyboardTimer: null,
   roomTimer: null,
   ambientTimer: null,
@@ -1116,18 +1124,104 @@ const AudioSys = {
       this.master = this.ctx.createGain();
       this.musicBus = this.ctx.createGain();
       this.effectsBus = this.ctx.createGain();
+      this.fileMusicGain = this.ctx.createGain();
       this.master.gain.value = this.muted ? 0.0001 : 0.68;
       this.musicBus.gain.value = 1;
       this.effectsBus.gain.value = 0.82;
+      this.fileMusicGain.gain.value = 0.38;
       this.musicBus.connect(this.master);
       this.effectsBus.connect(this.master);
+      this.fileMusicGain.connect(this.master);
       this.master.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") {
       // Some browsers keep resume() pending; never let it block the UI gesture.
       this.ctx.resume().catch(() => {});
     }
-    if (!this.muted) this.startAmbient();
+    if (!this.muted) await this.playBackgroundMusic();
+    this.publishState();
+  },
+  async playBackgroundMusic() {
+    if (this.muted) return;
+    if (backgroundMusic) {
+      backgroundMusic.volume = 0.26;
+      backgroundMusic.muted = false;
+      try {
+        await backgroundMusic.play();
+        if (this.muted) {
+          backgroundMusic.muted = true;
+          backgroundMusic.pause();
+          return;
+        }
+        this.stopBufferedMusic(false);
+        this.stopAmbient();
+        this.publishState();
+        return;
+      } catch (error) {
+        void error;
+      }
+    }
+    try {
+      await this.startBufferedMusic();
+      this.stopAmbient();
+    } catch (error) {
+      void error;
+      // The generated pad is the final fallback if the MP3 cannot be decoded.
+      this.startAmbient();
+    }
+  },
+  async startBufferedMusic() {
+    if (this.muted || this.musicSource || !this.ctx || !this.fileMusicGain || !backgroundMusic) return;
+    if (!this.musicBuffer) {
+      if (!this.musicLoadPromise) {
+        const sourceUrl = backgroundMusic.currentSrc || backgroundMusic.src;
+        this.musicLoadPromise = fetch(sourceUrl)
+          .then(response => {
+            if (!response.ok) throw new Error(`Background music ${response.status}`);
+            return response.arrayBuffer();
+          })
+          .then(data => this.ctx.decodeAudioData(data));
+      }
+      this.musicBuffer = await this.musicLoadPromise;
+    }
+    if (this.muted || this.musicSource) return;
+    const source = this.ctx.createBufferSource();
+    source.buffer = this.musicBuffer;
+    source.loop = true;
+    source.connect(this.fileMusicGain);
+    const offset = this.musicBuffer.duration ? this.musicOffset % this.musicBuffer.duration : 0;
+    source.start(0, offset);
+    this.musicSource = source;
+    this.musicSourceStartedAt = this.ctx.currentTime - offset;
+    source.addEventListener("ended", () => {
+      if (this.musicSource === source) this.musicSource = null;
+      this.publishState();
+    });
+    this.publishState();
+  },
+  stopBufferedMusic(resetOffset) {
+    if (this.musicSource && this.ctx && this.musicBuffer?.duration) {
+      this.musicOffset = resetOffset
+        ? 0
+        : Math.max(0, (this.ctx.currentTime - this.musicSourceStartedAt) % this.musicBuffer.duration);
+      const source = this.musicSource;
+      this.musicSource = null;
+      try {
+        source.stop();
+      } catch (error) {
+        void error;
+      }
+    } else if (resetOffset) {
+      this.musicOffset = 0;
+    }
+  },
+  pauseBackgroundMusic() {
+    if (backgroundMusic) {
+      backgroundMusic.muted = true;
+      backgroundMusic.pause();
+    }
+    this.stopBufferedMusic(false);
+    this.stopAmbient();
     this.publishState();
   },
   setMuted(nextMuted) {
@@ -1135,6 +1229,8 @@ const AudioSys = {
     localStorage.setItem("qroom-muted", this.muted ? "1" : "0");
     soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
     if (!this.ctx) {
+      if (this.muted) this.pauseBackgroundMusic();
+      else this.playBackgroundMusic().catch(() => this.startAmbient());
       syncDoorVideoAudio();
       syncRoomVideoAudio();
       syncDeskVideoAudio();
@@ -1149,10 +1245,10 @@ const AudioSys = {
     if (this.muted) {
       this.stopKeyboard();
       this.stopRoomDetails();
-      this.stopAmbient();
+      this.pauseBackgroundMusic();
     } else {
       this.shimmer(720, 0.036);
-      this.startAmbient();
+      this.playBackgroundMusic().catch(() => this.startAmbient());
       this.syncSceneAudio();
     }
     syncDoorVideoAudio();
@@ -1162,9 +1258,13 @@ const AudioSys = {
     this.publishState();
   },
   publishState() {
+    const fileMusicPlaying = Boolean(backgroundMusic && !backgroundMusic.paused && !backgroundMusic.muted);
     document.body.dataset.audioMix = "music-effects-video";
     document.body.dataset.audioMuted = String(this.muted);
-    document.body.dataset.audioBackground = this.ambientTimer ? "playing" : "stopped";
+    document.body.dataset.audioBackground = fileMusicPlaying
+      ? "playing-file"
+      : this.musicSource ? "playing-buffer"
+      : this.ambientTimer ? "playing-fallback" : "stopped";
     document.body.dataset.audioBuses = this.musicBus && this.effectsBus ? "ready" : "pending";
   },
   tone(freq, dur, vol, type) {
@@ -1331,13 +1431,21 @@ const AudioSys = {
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
     if (this.muted) return;
-    this.startAmbient();
+    this.playBackgroundMusic().catch(() => this.startAmbient());
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
     }
   }
 };
+
+backgroundMusic?.addEventListener("play", () => AudioSys.publishState());
+backgroundMusic?.addEventListener("pause", () => AudioSys.publishState());
+backgroundMusic?.addEventListener("error", () => {
+  if (!AudioSys.muted) {
+    AudioSys.startBufferedMusic().catch(() => AudioSys.startAmbient());
+  }
+});
 
 soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
 
