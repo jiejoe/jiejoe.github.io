@@ -989,9 +989,9 @@ const AudioSys = {
     this.tone(620, 0.06, 0.078 * scale, "triangle");
     setTimeout(() => this.tone(1080, 0.07, 0.042 * scale, "sine"), 28);
   },
-  door() {
-    this.noise(0.18, 0.028, 420, 90);
-    setTimeout(() => this.tone(118, 0.22, 0.052, "triangle"), 36);
+  door(scale = 1) {
+    this.noise(0.18, 0.028 * scale, 420, 90);
+    setTimeout(() => this.tone(118, 0.22, 0.052 * scale, "triangle"), 36);
   },
   transition(delay = 76) {
     window.setTimeout(() => {
@@ -1634,7 +1634,7 @@ if (contactVideo) {
 document.getElementById("door-trigger").addEventListener("click", async () => {
   await primeAudio();
   AudioSys.click(0.42);
-  AudioSys.door();
+  AudioSys.door(0.52);
   const doorScene = scenes.door;
   doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
