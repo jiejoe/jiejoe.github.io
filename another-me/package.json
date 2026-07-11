@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev --config wrangler.jsonc",
     "deploy": "wrangler deploy --config wrangler.jsonc",
-    "types": "wrangler types --config wrangler.jsonc"
+    "types": "wrangler types --config wrangler.jsonc",
+    "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260710.1",

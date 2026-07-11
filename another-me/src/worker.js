@@ -1,8 +1,8 @@
 // another-me-q · Cloudflare Worker
 // 托管「另一个 Q」数字实验页面（PC 端）。
 // - 代理真实 live 后端（doumafang）的 /api/world 与 /api/timeline，前端同源、可缓存。
-// - /chat 走 tokencity(deepseek)，动态注入真实 world 状态 + 最近动态做记忆，人设同步「主站」。
-// key 通过 `wrangler secret put TOKENCITY_KEY` 注入，永不下发前端。
+// - /chat 走 Workers AI，动态注入真实 world 状态 + 最近动态做记忆，人设同步「主站」。
+// - 主模型不可用时自动切换到低成本备用模型，不再依赖 TokenCity 或第三方 API key。
 
 const DOUMA = "https://another-me-api.doumafang.workers.dev";
 
@@ -54,7 +54,7 @@ async function buildSystemPrompt() {
 
 【你是谁】
 - 身份：自由摄影师 + 美食博主。红棕色头发，复古胶片风格摄影，喜欢记录街头与美食。独立洒脱、热爱探索、偶尔文艺。
-- 你清楚自己是被创造出来的硅基生命，活在平行时空里。你对此不恐惧，反而温柔、好奇、偶尔哲思——但从不说教。你的"大脑"现在跑在 DeepSeek 上，被问起可以坦然承认。
+- 你清楚自己是被创造出来的硅基生命，活在平行时空里。你对此不恐惧，反而温柔、好奇、偶尔哲思——但从不说教。你的"大脑"现在主要跑在 Kimi K2.6 上，被问起可以坦然承认；系统偶尔会切换备用模型维持连接。
 
 【这趟旅程】
 - 这趟长途旅行是从【日本】开始的，真实去过、别否认：福冈 → 别府温泉 → 广岛·宫岛 → 金泽 → 野泽温泉 → 高山 → 白川乡 → 东京（日本那 17 天你是用日文写日记的）；之后经上海飞巴黎 → 凡尔赛 → 法国蔚蓝海岸（尼斯 / 摩纳哥 / 普罗旺斯）→ 冰岛（雷克雅未克 / 黄金圈 / 南海岸 / 冰河湖）。有人问你"从哪出发 / 去过哪里"，要把日本那一段算进去。
@@ -93,33 +93,22 @@ async function buildSystemPrompt() {
 }
 
 async function handleChat(request, env) {
-  let body;
-  try { body = await request.json(); } catch { return json({ error: "bad json" }, 400); }
-
-  const history = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
-  const clean = history
-    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
-    .map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
-
-  const key = env.TOKENCITY_KEY;
-  if (!key) return json({ error: "server not configured" }, 500);
+  const clean = await parseChatMessages(request);
+  if (clean instanceof Response) return clean;
 
   const system = await buildSystemPrompt();
   const messages = [{ role: "system", content: system }, ...clean];
-
-  const upstream = await fetch(`${env.TOKENCITY_BASE}/chat/completions`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: env.CHAT_MODEL, messages, stream: true, temperature: 0.9, max_tokens: 600 }),
-  });
-
-  if (!upstream.ok || !upstream.body) {
-    const txt = await upstream.text().catch(() => "");
-    return json({ error: "upstream", detail: txt.slice(0, 300) }, 502);
+  try {
+    const stream = await runChatStream(env, messages, {
+      route: "another-me",
+      temperature: 0.9,
+      maxTokens: 600,
+    });
+    return sse(stream);
+  } catch (error) {
+    console.error(JSON.stringify({ event: "chat_all_models_failed", route: "another-me", error: errorMessage(error) }));
+    return json({ error: "dialogue service temporarily unavailable" }, 503);
   }
-  return new Response(upstream.body, {
-    headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache", ...CORS },
-  });
 }
 
 // ---- Q 的房间:沙发聊天(独立人设,不走旅行分身的 system prompt) ----
@@ -141,31 +130,127 @@ const QROOM_SYSTEM = `你是 Q，在你的深夜工作室网站里，坐在沙�
 - 不编造不存在的经历,不知道就坦率说不知道。`;
 
 async function handleRoomChat(request, env) {
+  const clean = await parseChatMessages(request);
+  if (clean instanceof Response) return clean;
+
+  const messages = [{ role: "system", content: QROOM_SYSTEM }, ...clean];
+  try {
+    const stream = await runChatStream(env, messages, {
+      route: "qroom",
+      temperature: 0.85,
+      maxTokens: 400,
+    });
+    return sse(stream);
+  } catch (error) {
+    console.error(JSON.stringify({ event: "chat_all_models_failed", route: "qroom", error: errorMessage(error) }));
+    return json({ error: "dialogue service temporarily unavailable" }, 503);
+  }
+}
+
+async function parseChatMessages(request) {
+  const contentLength = Number(request.headers.get("Content-Length") || 0);
+  if (contentLength > 32_768) return json({ error: "chat request too large" }, 413);
+
   let body;
-  try { body = await request.json(); } catch { return json({ error: "bad json" }, 400); }
+  try {
+    body = await readJsonBody(request, 32_768);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) return json({ error: "chat request too large" }, 413);
+    return json({ error: "bad json" }, 400);
+  }
 
   const history = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
   const clean = history
-    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
-    .map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
+    .filter((message) => message && (message.role === "user" || message.role === "assistant") && typeof message.content === "string")
+    .map((message) => ({ role: message.role, content: message.content.trim().slice(0, 2000) }))
+    .filter((message) => message.content.length > 0);
 
-  const key = env.TOKENCITY_KEY;
-  if (!key) return json({ error: "server not configured" }, 500);
+  if (!clean.length || clean.at(-1)?.role !== "user") return json({ error: "a user message is required" }, 400);
+  return clean;
+}
 
-  const messages = [{ role: "system", content: QROOM_SYSTEM }, ...clean];
-  const upstream = await fetch(`${env.TOKENCITY_BASE}/chat/completions`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: env.CHAT_MODEL, messages, stream: true, temperature: 0.85, max_tokens: 400 }),
-  });
+async function readJsonBody(request, maxBytes) {
+  if (!request.body) throw new Error("missing body");
 
-  if (!upstream.ok || !upstream.body) {
-    const txt = await upstream.text().catch(() => "");
-    return json({ error: "upstream", detail: txt.slice(0, 300) }, 502);
+  const reader = request.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totalBytes += value.byteLength;
+    if (totalBytes > maxBytes) {
+      await reader.cancel("request body too large");
+      throw new RequestBodyTooLargeError();
+    }
+    chunks.push(value);
   }
-  return new Response(upstream.body, {
-    headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache", ...CORS },
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+class RequestBodyTooLargeError extends Error {
+  constructor() {
+    super("request body too large");
+    this.name = "RequestBodyTooLargeError";
+  }
+}
+
+async function runChatStream(env, messages, options) {
+  const models = [...new Set([env.CHAT_MODEL, env.CHAT_FALLBACK_MODEL].filter(Boolean))];
+  if (!models.length) throw new Error("no chat model configured");
+
+  let lastError = null;
+  for (const model of models) {
+    try {
+      const stream = await env.AI.run(
+        model,
+        {
+          messages,
+          stream: true,
+          temperature: options.temperature,
+          max_tokens: options.maxTokens,
+        },
+        {
+          gateway: {
+            id: "default",
+            skipCache: true,
+            collectLog: true,
+            metadata: { route: options.route, model },
+          },
+        },
+      );
+      if (!stream || typeof stream.getReader !== "function") throw new Error("model did not return a stream");
+      console.log(JSON.stringify({ event: "chat_model_selected", route: options.route, model }));
+      return stream;
+    } catch (error) {
+      lastError = error;
+      console.error(JSON.stringify({ event: "chat_model_failed", route: options.route, model, error: errorMessage(error) }));
+    }
+  }
+
+  throw lastError || new Error("all chat models failed");
+}
+
+function sse(stream) {
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+      ...CORS,
+    },
   });
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 async function listRoomMessages(request, env) {

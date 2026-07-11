@@ -2,15 +2,19 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "another-me-q",
   "main": "src/worker.js",
-  "compatibility_date": "2026-07-10",
+  "compatibility_date": "2026-07-11",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS"
   },
+  "ai": {
+    "binding": "AI",
+    "remote": true
+  },
   "vars": {
-    "TOKENCITY_BASE": "https://api.tokencity.ai/v1",
-    "CHAT_MODEL": "deepseek/deepseek-v3.2"
+    "CHAT_MODEL": "@cf/moonshotai/kimi-k2.6",
+    "CHAT_FALLBACK_MODEL": "@cf/zai-org/glm-4.7-flash"
   },
   "d1_databases": [
     {
