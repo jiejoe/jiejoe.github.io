@@ -986,9 +986,9 @@ const AudioSys = {
     // Pointer and click handlers can both fire for one control; keep one clean sound.
     if (now - this.lastClickAt < 180) return;
     this.lastClickAt = now;
-    this.noise(0.045, 0.072 * scale, 4600, 1500);
-    this.tone(620, 0.06, 0.078 * scale, "triangle");
-    setTimeout(() => this.tone(1080, 0.07, 0.042 * scale, "sine"), 28);
+    this.noise(0.045, 0.09 * scale, 4600, 1500);
+    this.tone(620, 0.06, 0.098 * scale, "triangle");
+    setTimeout(() => this.tone(1080, 0.07, 0.052 * scale, "sine"), 28);
   },
   door(scale = 1) {
     this.noise(0.18, 0.028 * scale, 420, 90);
@@ -1664,8 +1664,8 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   } else {
     await primeAudio();
   }
-  AudioSys.click(0.42);
-  AudioSys.door(0.28);
+  AudioSys.click(0.65);
+  AudioSys.door(0.45);
   const doorScene = scenes.door;
   doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
@@ -1675,7 +1675,7 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
   doorScene.classList.add("opening");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
-  doorOpenVideo.volume = 0.34;
+  doorOpenVideo.volume = 0.46;
   doorOpenVideo.muted = AudioSys.muted;
   try {
     doorOpenVideo.currentTime = 0;
