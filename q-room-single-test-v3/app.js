@@ -1103,24 +1103,18 @@ const AudioSys = {
   ctx: null,
   muted: localStorage.getItem("qroom-muted") === "1",
   master: null,
-  musicBus: null,
   effectsBus: null,
   keyboardTimer: null,
   roomTimer: null,
-  ambientTimer: null,
-  ambientStep: 0,
   soundChoiceMade: localStorage.getItem("qroom-muted") !== null,
   lastClickAt: 0,
   async ensureStarted() {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
-      this.musicBus = this.ctx.createGain();
       this.effectsBus = this.ctx.createGain();
       this.master.gain.value = this.muted ? 0.0001 : 0.68;
-      this.musicBus.gain.value = 1.12;
       this.effectsBus.gain.value = 0.82;
-      this.musicBus.connect(this.master);
       this.effectsBus.connect(this.master);
       this.master.connect(this.ctx.destination);
     }
@@ -1128,7 +1122,6 @@ const AudioSys = {
       // Some browsers keep resume() pending; never let it block the UI gesture.
       this.ctx.resume().catch(() => {});
     }
-    if (!this.muted) this.startAmbient();
     this.publishState();
   },
   setMuted(nextMuted) {
@@ -1150,10 +1143,8 @@ const AudioSys = {
     if (this.muted) {
       this.stopKeyboard();
       this.stopRoomDetails();
-      this.stopAmbient();
     } else {
       this.shimmer(720, 0.036);
-      this.startAmbient();
       this.syncSceneAudio();
     }
     syncDoorVideoAudio();
@@ -1165,8 +1156,9 @@ const AudioSys = {
   publishState() {
     document.body.dataset.audioMix = "music-effects-video";
     document.body.dataset.audioMuted = String(this.muted);
-    document.body.dataset.audioBackground = this.ambientTimer ? "playing-ambient" : "stopped";
-    document.body.dataset.audioBuses = this.musicBus && this.effectsBus ? "ready" : "pending";
+    // A real background track will be attached here after the user selects it.
+    document.body.dataset.audioBackground = this.muted ? "stopped" : "awaiting-selection";
+    document.body.dataset.audioBuses = this.effectsBus ? "ready" : "pending";
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -1272,61 +1264,6 @@ const AudioSys = {
     clearTimeout(this.roomTimer);
     this.roomTimer = null;
   },
-  ambientChord() {
-    if (!this.ctx || this.muted) return;
-    const phrases = [
-      [146.83, 220.00, 329.63],
-      [130.81, 196.00, 293.66],
-      [110.00, 164.81, 246.94],
-      [123.47, 185.00, 277.18]
-    ];
-    const notes = phrases[this.ambientStep % phrases.length];
-    const now = this.ctx.currentTime;
-    const chordEnd = now + 5.08;
-    notes.forEach((frequency, index) => {
-      const oscillator = this.ctx.createOscillator();
-      const filter = this.ctx.createBiquadFilter();
-      const gain = this.ctx.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, now);
-      oscillator.detune.value = index % 2 ? 3 : -3;
-      filter.type = "lowpass";
-      filter.frequency.value = index === 2 ? 1320 : 760;
-      filter.Q.value = 0.45;
-      const start = now + index * 0.28;
-      const peak = index === 0 ? 0.038 : index === 1 ? 0.026 : 0.018;
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(peak, start + 0.9);
-      gain.gain.setValueAtTime(peak, start + 3.4);
-      // Every voice in this chord ends before the next chord starts. This
-      // keeps the background as one musical layer instead of a crossfade.
-      gain.gain.exponentialRampToValueAtTime(0.0001, chordEnd);
-      oscillator.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.musicBus || this.master);
-      oscillator.start(start);
-      oscillator.stop(chordEnd + 0.04);
-    });
-    this.ambientStep += 1;
-  },
-  startAmbient() {
-    if (this.ambientTimer || this.muted || !this.ctx) return;
-    const loop = () => {
-      if (this.muted) {
-        this.ambientTimer = null;
-        return;
-      }
-      this.ambientChord();
-      this.ambientTimer = window.setTimeout(loop, 5200);
-    };
-    loop();
-    this.publishState();
-  },
-  stopAmbient() {
-    window.clearTimeout(this.ambientTimer);
-    this.ambientTimer = null;
-    this.publishState();
-  },
   syncSceneAudio() {
     this.stopKeyboard();
     this.stopRoomDetails();
@@ -1335,7 +1272,6 @@ const AudioSys = {
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
     if (this.muted) return;
-    this.startAmbient();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
