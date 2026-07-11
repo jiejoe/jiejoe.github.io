@@ -255,9 +255,9 @@ function cleanMessageText(value, maxLength) {
 
 function cleanMessageDoodle(value) {
   if (!value || typeof value !== "object" || !Array.isArray(value.paths)) return null;
-  const paths = value.paths.slice(0, 6).map((path) => {
+  const paths = value.paths.slice(0, 8).map((path) => {
     if (!Array.isArray(path)) return [];
-    return path.slice(0, 24).map((point) => {
+    return path.slice(0, 96).map((point) => {
       if (!Array.isArray(point) || point.length < 2) return null;
       const x = Math.round(Number(point[0]));
       const y = Math.round(Number(point[1]));

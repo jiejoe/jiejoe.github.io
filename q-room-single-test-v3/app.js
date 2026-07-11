@@ -899,7 +899,7 @@ window.sendChatMessage = sendChatMessage;
 
 const AudioSys = {
   ctx: null,
-  muted: true,
+  muted: localStorage.getItem("qroom-muted") === "1",
   master: null,
   keyboardTimer: null,
   roomTimer: null,
@@ -1048,33 +1048,35 @@ const AudioSys = {
   },
   ambientChord() {
     if (!this.ctx || this.muted) return;
-    const chords = [
-      [146.83, 220.00, 277.18, 329.63],
-      [130.81, 196.00, 246.94, 329.63],
-      [110.00, 164.81, 220.00, 277.18],
-      [123.47, 185.00, 246.94, 293.66]
+    const phrases = [
+      [146.83, 220.00, 329.63],
+      [130.81, 196.00, 293.66],
+      [110.00, 164.81, 246.94],
+      [123.47, 185.00, 277.18]
     ];
-    const notes = chords[this.ambientStep % chords.length];
+    const notes = phrases[this.ambientStep % phrases.length];
     const now = this.ctx.currentTime;
     notes.forEach((frequency, index) => {
       const oscillator = this.ctx.createOscillator();
       const filter = this.ctx.createBiquadFilter();
       const gain = this.ctx.createGain();
-      oscillator.type = index % 2 ? "sine" : "triangle";
+      oscillator.type = index === 2 ? "sine" : "triangle";
       oscillator.frequency.setValueAtTime(frequency, now);
-      oscillator.detune.value = index % 2 ? 4 : -4;
+      oscillator.detune.value = index % 2 ? 3 : -3;
       filter.type = "lowpass";
-      filter.frequency.value = 920;
-      filter.Q.value = 0.55;
+      filter.frequency.value = index === 2 ? 1450 : 640;
+      filter.Q.value = 0.7;
+      const start = now + index * 0.34;
+      const peak = index === 0 ? 0.006 : index === 1 ? 0.0042 : 0.0032;
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.018 : 0.011, now + 1.35);
-      gain.gain.setValueAtTime(index === 0 ? 0.018 : 0.011, now + 3.7);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 5.4);
+      gain.gain.exponentialRampToValueAtTime(peak, start + 0.55);
+      gain.gain.setValueAtTime(peak, start + 2.1);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 3.8);
       oscillator.connect(filter);
       filter.connect(gain);
       gain.connect(this.master);
-      oscillator.start(now);
-      oscillator.stop(now + 5.5);
+      oscillator.start(start);
+      oscillator.stop(start + 3.9);
     });
     this.ambientStep += 1;
   },
@@ -1086,7 +1088,7 @@ const AudioSys = {
         return;
       }
       this.ambientChord();
-      this.ambientTimer = window.setTimeout(loop, 4200);
+      this.ambientTimer = window.setTimeout(loop, 3600);
     };
     loop();
   },
@@ -1170,7 +1172,8 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.muted = true;
+  roomLoopVideo.volume = 0.32;
+  roomLoopVideo.muted = !sceneActive || AudioSys.muted;
   if (!sceneActive) return;
   const started = roomLoopVideo.play();
   if (started) {
@@ -1184,7 +1187,9 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  deskLoopVideo.muted = true;
+  const panelOpen = workPanel.classList.contains("open");
+  deskLoopVideo.volume = 0.28;
+  deskLoopVideo.muted = !sceneActive || panelOpen || AudioSys.muted;
   if (!sceneActive) {
     resetSceneVideo(deskLoopVideo);
     return;
@@ -1271,8 +1276,8 @@ function normalizeSketchPoint(point) {
 
 function normalizeMessageSketch(value) {
   const rawPaths = Array.isArray(value?.paths) ? value.paths : [];
-  const paths = rawPaths.slice(0, 6).map(path => (
-    Array.isArray(path) ? path.slice(0, 24).map(normalizeSketchPoint).filter(point => point.length === 2) : []
+  const paths = rawPaths.slice(0, 8).map(path => (
+    Array.isArray(path) ? path.slice(0, 96).map(normalizeSketchPoint).filter(point => point.length === 2) : []
   )).filter(path => path.length > 1);
   return paths.length ? { paths } : null;
 }
@@ -1334,6 +1339,20 @@ function sketchPointFromEvent(event) {
   return normalizeSketchPoint([x, y]);
 }
 
+function drawSketchSegment(from, to) {
+  if (!messageDoodleCanvas || !messageSketch.ctx) return;
+  const ctx = messageSketch.ctx;
+  const { width, height } = messageDoodleCanvas;
+  const fromX = (from[0] / 1000) * width;
+  const fromY = (from[1] / 1000) * height;
+  const toX = (to[0] / 1000) * width;
+  const toY = (to[1] / 1000) * height;
+  ctx.beginPath();
+  ctx.moveTo(fromX, fromY);
+  ctx.quadraticCurveTo((fromX + toX) / 2, (fromY + toY) / 2, toX, toY);
+  ctx.stroke();
+}
+
 function clearMessageSketch() {
   messageSketch.paths = [];
   messageSketch.activePath = null;
@@ -1355,25 +1374,31 @@ function setupMessageSketch() {
     const point = sketchPointFromEvent(event);
     messageSketch.activePath = [point];
     messageSketch.paths.push(messageSketch.activePath);
-    messageSketch.paths = messageSketch.paths.slice(-6);
+    messageSketch.paths = messageSketch.paths.slice(-8);
     messageSketch.drawing = true;
     drawSketchCanvas();
   });
   messageDoodleCanvas.addEventListener("pointermove", event => {
     if (!messageSketch.drawing || !messageSketch.activePath) return;
     event.preventDefault();
-    const point = sketchPointFromEvent(event);
-    const last = messageSketch.activePath[messageSketch.activePath.length - 1];
-    const distance = Math.abs(point[0] - last[0]) + Math.abs(point[1] - last[1]);
-    if (distance < 8) return;
-    if (messageSketch.activePath.length < 24) messageSketch.activePath.push(point);
-    drawSketchCanvas();
+    const samples = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [event];
+    samples.forEach(sample => {
+      if (!messageSketch.activePath || messageSketch.activePath.length >= 96) return;
+      const point = sketchPointFromEvent(sample);
+      const last = messageSketch.activePath[messageSketch.activePath.length - 1];
+      const distance = Math.abs(point[0] - last[0]) + Math.abs(point[1] - last[1]);
+      if (distance < 5) return;
+      messageSketch.activePath.push(point);
+      drawSketchSegment(last, point);
+    });
   });
-  ["pointerup", "pointercancel", "pointerleave"].forEach(type => {
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => {
     messageDoodleCanvas.addEventListener(type, event => {
       if (!messageSketch.drawing) return;
       event.preventDefault();
-      messageDoodleCanvas.releasePointerCapture?.(event.pointerId);
+      if (messageDoodleCanvas.hasPointerCapture?.(event.pointerId)) {
+        messageDoodleCanvas.releasePointerCapture(event.pointerId);
+      }
       messageSketch.drawing = false;
       messageSketch.activePath = null;
       messageSketch.paths = messageSketch.paths.filter(path => path.length > 1);
