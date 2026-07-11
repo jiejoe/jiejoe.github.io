@@ -905,6 +905,7 @@ const AudioSys = {
   roomTimer: null,
   ambientTimer: null,
   ambientStep: 0,
+  soundChoiceMade: false,
   lastClickAt: 0,
   async ensureStarted() {
     if (!this.ctx) {
@@ -1657,7 +1658,12 @@ if (contactVideo) {
 }
 
 document.getElementById("door-trigger").addEventListener("click", async () => {
-  await primeAudio();
+  if (AudioSys.muted && !AudioSys.soundChoiceMade) {
+    AudioSys.ensureStarted().catch(() => {});
+    AudioSys.setMuted(false);
+  } else {
+    await primeAudio();
+  }
   AudioSys.click(0.42);
   AudioSys.door(0.52);
   const doorScene = scenes.door;
@@ -1761,10 +1767,11 @@ chatInput.addEventListener("keydown", async event => {
   sendChatMessage();
 });
 
-soundToggle.addEventListener("click", async () => {
+soundToggle.addEventListener("click", () => {
   if (!AudioSys.ctx) {
-    await AudioSys.ensureStarted().catch(() => {});
+    AudioSys.ensureStarted().catch(() => {});
   }
+  AudioSys.soundChoiceMade = true;
   AudioSys.setMuted(!AudioSys.muted);
 });
 
