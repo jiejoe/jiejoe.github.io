@@ -307,7 +307,7 @@ body{
   z-index:1;
   opacity:0;
   pointer-events:none;
-  transition:opacity .36s ease;
+  transition:opacity .22s ease;
 }
 #scene-chat > video.chat-state-video.is-active.frame-ready{opacity:1}
 #scene-contact > img{object-position:50% 50%}
@@ -3431,23 +3431,13 @@ a.ring{display:block;text-decoration:none}
   z-index:25;
   width:min(680px,68vw);
   max-height:min(36vh,280px);
-  overflow-y:auto;
+  overflow:hidden;
   padding:12px 4px 6px;
   opacity:0;
   pointer-events:none;
   transform:translate(-50%,10px);
   transition:opacity .24s ease,transform .28s ease;
-  scrollbar-width:none;
 }
-.q-stage-bubble.has-clipped-top{
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 100%);
-  mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 100%);
-}
-.q-stage-bubble.has-clipped-top.has-clipped-bottom{
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 12px),transparent 100%);
-  mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 12px),transparent 100%);
-}
-.q-stage-bubble::-webkit-scrollbar{display:none}
 .q-stage-bubble.is-visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 #scene-chat .cue{
   right:26px;
@@ -3790,7 +3780,7 @@ a.ring{display:block;text-decoration:none}
     bottom:clamp(150px,19dvh,190px);
     width:auto;
     max-height:min(37dvh,330px);
-    overflow:auto;
+    overflow:hidden;
     padding:12px 4px 6px;
     transform:none;
   }
@@ -4110,7 +4100,7 @@ a.ring{display:block;text-decoration:none}
     <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
     <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat-v4/chat-sit-sip-seedance2-imageonly-720.mp4?v=20260712-v4" poster="./assets/chat-v2/poster-chat-sit.jpg" muted playsinline preload="auto"></video>
     <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
-    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat-v4/chat-talk-seedance2-imageonly-720-loop.mp4?v=20260712-v4" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
+    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat-v4/chat-talk-seedance2-imageonly-720-loop-matched.mp4?v=20260712-v7" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <div class="q-stage-text" id="q-stage-text"></div>
     </div>
@@ -4187,6 +4177,6 @@ a.ring{display:block;text-decoration:none}
 
 <audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
 <audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-single-bgm-full-sfx-v36"></script>
+<script src="./app.js?v=20260712-chat-bubbles-transition-v40"></script>
 </body>
 </html>

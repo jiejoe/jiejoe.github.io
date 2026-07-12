@@ -556,6 +556,7 @@ let chatBusy = false;
 let chatAnswering = false;
 let chatVisualState = "waiting";
 let chatRunId = 0;
+let chatVisualTransitionId = 0;
 let activeChatController = null;
 let convo = [
   {
@@ -979,31 +980,19 @@ function renderDetailMedia(media) {
   `;
 }
 
-function syncQBubbleEdges() {
-  if (!qStageBubble) return;
-  const maxScroll = Math.max(0, qStageBubble.scrollHeight - qStageBubble.clientHeight);
-  qStageBubble.classList.toggle("has-clipped-top", qStageBubble.scrollTop > 3);
-  qStageBubble.classList.toggle("has-clipped-bottom", qStageBubble.scrollTop < maxScroll - 3);
-}
-
-function fitMobileQMessages() {
-  if (!qStageBubble || !qStageText || !window.matchMedia("(max-width: 680px)").matches) return;
-  let messages = Array.from(qStageText.querySelectorAll(".q-stage-message:not(.is-typing)"));
-  while (qStageBubble.scrollHeight > qStageBubble.clientHeight + 2 && messages.length > 3) {
-    messages.shift()?.remove();
-  }
-}
-
-function scrollQMessagesToBottom() {
-  if (!qStageBubble) return;
+function pruneQMessagesToFit() {
+  if (!qStageBubble || !qStageText) return;
   window.requestAnimationFrame(() => {
-    fitMobileQMessages();
-    qStageBubble.scrollTop = window.matchMedia("(max-width: 680px)").matches ? 0 : qStageBubble.scrollHeight;
-    syncQBubbleEdges();
+    qStageBubble.scrollTop = 0;
+    const messages = Array.from(qStageText.querySelectorAll(".q-stage-message"));
+    while (qStageBubble.scrollHeight > qStageBubble.clientHeight + 2 && messages.length) {
+      messages.shift()?.remove();
+    }
+    if (!qStageText.childElementCount) setChatBubbleVisible(false);
   });
 }
 
-qStageBubble?.addEventListener("scroll", syncQBubbleEdges, { passive: true });
+window.addEventListener("resize", pruneQMessagesToFit);
 
 function removeQTypingBubble() {
   qStageText?.querySelector(".q-stage-message.is-typing")?.remove();
@@ -1041,7 +1030,7 @@ function appendQSpeechBubble(content) {
   qStageText.appendChild(bubble);
   trimQMessages();
   setChatBubbleVisible(true);
-  scrollQMessagesToBottom();
+  pruneQMessagesToFit();
   return bubble;
 }
 
@@ -1054,7 +1043,7 @@ function showQTypingBubble() {
   for (let i = 0; i < 3; i += 1) bubble.appendChild(document.createElement("i"));
   qStageText.appendChild(bubble);
   setChatBubbleVisible(true);
-  scrollQMessagesToBottom();
+  pruneQMessagesToFit();
 }
 
 function setQSpeech(text, typing) {
@@ -1111,9 +1100,6 @@ async function revealQSpeechBubbles(parts, runId) {
 
 function setChatBubbleVisible(visible) {
   qStageBubble?.classList.toggle("is-visible", Boolean(visible));
-  if (!visible) {
-    qStageBubble?.classList.remove("has-clipped-top", "has-clipped-bottom");
-  }
 }
 
 function resetVisibleChatTurn() {
@@ -1322,30 +1308,70 @@ Object.entries(coffeeVideos).forEach(([key, video]) => bindCoffeeVideoEvents(key
 function setChatVisualState(nextState, { reset = true } = {}) {
   const nextVideo = chatStateVideos[nextState];
   if (!nextVideo) return;
+  const transitionId = ++chatVisualTransitionId;
   chatVisualState = nextState;
   const chatActive = scenes.chat.classList.contains("active");
-  setSceneFallbackReady(scenes.chat, nextVideo);
+  const videos = Object.values(chatStateVideos).filter(Boolean);
+  const currentVideo = videos.find(video => video.classList.contains("is-active")) || null;
 
-  Object.entries(chatStateVideos).forEach(([state, video]) => {
-    if (!video) return;
-    const selected = state === nextState;
-    const wasSelected = video.classList.contains("is-active");
-    video.classList.toggle("is-active", selected);
+  videos.forEach(video => {
     video.muted = true;
-    if (!selected || !chatActive) {
-      video.pause();
-      if (wasSelected && chatActive) {
-        window.setTimeout(() => {
-          if (!video.classList.contains("is-active")) resetSceneVideo(video);
-        }, 380);
-      } else {
-        resetSceneVideo(video);
-      }
-      return;
-    }
-    if (reset) resetSceneVideo(video);
-    video.play().catch(() => {});
   });
+
+  if (!chatActive) {
+    videos.forEach(video => {
+      const selected = video === nextVideo;
+      video.classList.toggle("is-active", selected);
+      video.classList.remove("frame-ready");
+      video.pause();
+      if (selected && reset) resetSceneVideo(video);
+    });
+    return;
+  }
+
+  if (currentVideo === nextVideo) {
+    if (!nextVideo.classList.contains("frame-ready")) {
+      if (reset) resetSceneVideo(nextVideo);
+      nextVideo.play().then(() => {
+        revealVideoFrame(nextVideo, () => {
+          if (transitionId !== chatVisualTransitionId) return;
+          nextVideo.classList.add("frame-ready");
+          scenes.chat.classList.add("media-ready");
+        });
+      }).catch(() => {});
+    } else if (nextVideo.paused) {
+      nextVideo.play().catch(() => {});
+    }
+    return;
+  }
+
+  videos.forEach(video => {
+    if (video === currentVideo || video === nextVideo) return;
+    video.pause();
+    video.classList.remove("is-active", "frame-ready");
+    resetSceneVideo(video);
+  });
+
+  nextVideo.pause();
+  nextVideo.classList.remove("is-active", "frame-ready");
+  if (reset) resetSceneVideo(nextVideo);
+
+  nextVideo.play().then(() => {
+    revealVideoFrame(nextVideo, () => {
+      if (transitionId !== chatVisualTransitionId) return;
+      nextVideo.classList.add("is-active", "frame-ready");
+      scenes.chat.classList.add("media-ready");
+      currentVideo?.classList.remove("is-active");
+
+      if (!currentVideo) return;
+      window.setTimeout(() => {
+        if (transitionId !== chatVisualTransitionId || currentVideo.classList.contains("is-active")) return;
+        currentVideo.pause();
+        currentVideo.classList.remove("frame-ready");
+        resetSceneVideo(currentVideo);
+      }, 420);
+    });
+  }).catch(() => {});
 }
 
 function startChatRest(preferredState = "waiting") {
