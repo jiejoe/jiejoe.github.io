@@ -1498,10 +1498,9 @@ async function sendChatMessage(prefill, scriptedKey = "") {
 
 window.sendChatMessage = sendChatMessage;
 
-// This version explicitly preserves the three independent tracks: UI click,
-// active video audio, and background music. Reset stale mute preferences once
-// when upgrading from the older audio implementation.
-const AUDIO_MIX_VERSION = "balanced-room-v2";
+// Keep one continuous background track. Scene videos stay visual-only, while
+// coffee media and short UI effects remain intentional foreground sounds.
+const AUDIO_MIX_VERSION = "single-background-v3";
 const BGM_VOLUME = 0.22;
 const UI_CLICK_VOLUME = 0.14;
 const UI_CLICK_MAX_VOLUME = 0.18;
@@ -1554,7 +1553,7 @@ const AudioSys = {
     this.publishState();
   },
   startBackgroundMusic() {
-    if (!backgroundMusic || this.muted) return;
+    if (!backgroundMusic || this.muted || document.hidden) return;
     backgroundMusic.volume = BGM_VOLUME;
     backgroundMusic.muted = false;
     document.body.dataset.audioBackgroundAttempt = String(Date.now());
@@ -1755,7 +1754,6 @@ const AudioSys = {
     syncCoffeeVideoAudio();
     if (this.muted) return;
     this.startBackgroundMusic();
-    if (scenes.room.classList.contains("active")) this.startRoomDetails();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
@@ -1812,6 +1810,24 @@ uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
 
 soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
 AudioSys.publishState();
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    AudioSys.stopKeyboard();
+    AudioSys.stopRoomDetails();
+    AudioSys.pauseBackgroundMusic();
+    if (roomLoopVideo) roomLoopVideo.muted = true;
+    if (deskLoopVideo) deskLoopVideo.muted = true;
+    Object.values(coffeeVideos).forEach(video => {
+      if (video) video.muted = true;
+    });
+    AudioSys.publishState();
+    return;
+  }
+  if (AudioSys.muted) return;
+  AudioSys.startBackgroundMusic();
+  AudioSys.syncSceneAudio();
+});
 
 document.addEventListener("pointerdown", () => {
   if (!AudioSys.muted) AudioSys.ensureStarted().catch(() => {});
@@ -1897,21 +1913,12 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.volume = 1;
-  if (!sceneActive) {
-    roomLoopVideo.muted = true;
-    return;
-  }
-  if (!roomLoopVideo.paused) {
-    roomLoopVideo.muted = AudioSys.muted;
-    return;
-  }
+  roomLoopVideo.volume = 0;
   roomLoopVideo.muted = true;
+  if (!sceneActive || !roomLoopVideo.paused) return;
   const started = roomLoopVideo.play();
   if (started) {
-    started.then(() => {
-      roomLoopVideo.muted = AudioSys.muted || !scenes.room.classList.contains("active");
-    }).catch(() => {
+    started.catch(() => {
       roomLoopVideo.muted = true;
       roomLoopVideo.play().catch(() => {});
     });
@@ -1921,22 +1928,16 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  deskLoopVideo.volume = 0.45;
+  deskLoopVideo.volume = 0;
+  deskLoopVideo.muted = true;
   if (!sceneActive) {
-    deskLoopVideo.muted = true;
     resetSceneVideo(deskLoopVideo);
     return;
   }
-  if (!deskLoopVideo.paused) {
-    deskLoopVideo.muted = AudioSys.muted;
-    return;
-  }
-  deskLoopVideo.muted = true;
+  if (!deskLoopVideo.paused) return;
   const started = deskLoopVideo.play();
   if (started) {
-    started.then(() => {
-      deskLoopVideo.muted = AudioSys.muted || !scenes.desk.classList.contains("active");
-    }).catch(() => {
+    started.catch(() => {
       deskLoopVideo.muted = true;
       deskLoopVideo.play().catch(() => {});
     });
