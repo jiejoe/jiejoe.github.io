@@ -985,7 +985,11 @@ function pruneQMessagesToFit() {
   window.requestAnimationFrame(() => {
     qStageBubble.scrollTop = 0;
     const messages = Array.from(qStageText.querySelectorAll(".q-stage-message"));
-    while (qStageBubble.scrollHeight > qStageBubble.clientHeight + 2 && messages.length) {
+    const maxHeight = Number.parseFloat(window.getComputedStyle(qStageBubble).maxHeight);
+    const availableHeight = Number.isFinite(maxHeight) && maxHeight > 0
+      ? maxHeight
+      : qStageBubble.clientHeight;
+    while (qStageBubble.scrollHeight > availableHeight + 2 && messages.length > 1) {
       messages.shift()?.remove();
     }
     if (!qStageText.childElementCount) setChatBubbleVisible(false);
