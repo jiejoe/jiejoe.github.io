@@ -249,11 +249,13 @@ body{
   height:100%;
   object-fit:cover;
   display:block;
-  background:#09070d;
+  opacity:0;
+  background:transparent;
   filter:saturate(1.02) contrast(1.01) brightness(.94);
   transition:opacity .24s ease;
 }
 .scene.media-ready > img{opacity:0}
+.scene.media-ready > video:not(.door-open):not(.coffee-action-video):not(.chat-state-video){opacity:1}
 #scene-door > video{object-position:50% 50%}
 #scene-door > video.door-idle{
   z-index:1;
@@ -263,10 +265,11 @@ body{
   opacity:0;
   pointer-events:none;
 }
-#scene-door.opening > video.door-open{
+#scene-door.opening.opening-frame-ready > video.door-open{
   opacity:1;
 }
-#scene-door.opening > img,
+#scene-door.opening > img{opacity:1}
+#scene-door.opening.opening-frame-ready > img,
 #scene-door.opening > video.door-idle{
   opacity:0;
 }
@@ -288,7 +291,7 @@ body{
   pointer-events:none;
   transition:opacity .24s ease;
 }
-#scene-coffee > video.coffee-action-video.is-active{opacity:1}
+#scene-coffee > video.coffee-action-video.is-active.frame-ready{opacity:1}
 #scene-coffee.coffee-playing > img{opacity:0}
 #scene-coffee:not(.coffee-playing) > img{animation:coffeeSceneBreath 9s ease-in-out infinite alternate}
 @keyframes coffeeSceneBreath{
@@ -306,7 +309,7 @@ body{
   pointer-events:none;
   transition:opacity .36s ease;
 }
-#scene-chat > video.chat-state-video.is-active{opacity:1}
+#scene-chat > video.chat-state-video.is-active.frame-ready{opacity:1}
 #scene-contact > img{object-position:50% 50%}
 .scene-chat::after{
   background:
@@ -2323,6 +2326,9 @@ a.ring{display:block;text-decoration:none}
   isolation:isolate;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
   touch-action:pan-y;
   font:inherit;
   backdrop-filter:blur(16px);
@@ -3473,12 +3479,20 @@ a.ring{display:block;text-decoration:none}
   width:min(680px,68vw);
   max-height:min(36vh,280px);
   overflow-y:auto;
-  padding:4px;
+  padding:12px 4px 6px;
   opacity:0;
   pointer-events:none;
   transform:translate(-50%,10px);
   transition:opacity .24s ease,transform .28s ease;
   scrollbar-width:none;
+}
+.q-stage-bubble.has-clipped-top{
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 100%);
+}
+.q-stage-bubble.has-clipped-top.has-clipped-bottom{
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 12px),transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 16px,#000 calc(100% - 12px),transparent 100%);
 }
 .q-stage-bubble::-webkit-scrollbar{display:none}
 .q-stage-bubble.is-visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
@@ -3753,6 +3767,8 @@ a.ring{display:block;text-decoration:none}
     border-radius:22px;
     transform:none;
     overscroll-behavior-y:contain;
+    background:rgba(16,11,24,.97);
+    backdrop-filter:none;
   }
   .panel.open{transform:none}
   .panel-head{padding-right:126px}
@@ -3778,6 +3794,7 @@ a.ring{display:block;text-decoration:none}
   .worked-project-cover > div{padding:22px}
   .qstudio-gallery-card img{max-height:620px}
   .wall{grid-template-columns:1fr}
+  .wall-item{backdrop-filter:none}
   .browser-detail[data-mode="wall"],
   .wall{touch-action:pan-y}
   .wall-item.span-half,
@@ -3800,6 +3817,7 @@ a.ring{display:block;text-decoration:none}
     -webkit-overflow-scrolling:touch;
     touch-action:pan-y;
   }
+  .message-backdrop{backdrop-filter:none}
   .message-head h2{font-size:24px}
   .message-wall{grid-template-columns:1fr;min-height:260px}
   .message-note{min-height:126px}
@@ -3818,9 +3836,9 @@ a.ring{display:block;text-decoration:none}
     top:auto;
     bottom:clamp(150px,19dvh,190px);
     width:auto;
-    max-height:min(34dvh,300px);
+    max-height:min(37dvh,330px);
     overflow:auto;
-    padding:4px;
+    padding:12px 4px 6px;
     transform:none;
   }
   .q-stage-bubble.is-visible{transform:none}
@@ -3872,7 +3890,18 @@ a.ring{display:block;text-decoration:none}
   }
   .coffee-chat-ring{width:40px;height:40px;font-size:16px}
   .coffee-chat-assist span{max-width:96px;font-size:8px}
-  .coffee-result-controls{bottom:70px}
+  .coffee-result-controls{
+    z-index:42;
+    left:14px;
+    right:14px;
+    bottom:calc(72px + env(safe-area-inset-bottom));
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    transform:none;
+  }
+  .coffee-result-controls:not([hidden]){display:grid}
+  .coffee-result-controls button{height:46px;padding:0 12px;font-size:9px}
+  .coffee-chat-assist{display:none}
   .coffee-order-badge{top:75px;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .coffee-toast{top:132px;max-width:calc(100vw - 28px);border-radius:20px}
 }
@@ -4095,6 +4124,7 @@ a.ring{display:block;text-decoration:none}
 
     <div class="coffee-result-controls" id="coffee-result-controls" hidden>
       <button class="primary" type="button" id="coffee-choose-again">Choose another</button>
+      <button type="button" id="coffee-result-chat">Coffee chat</button>
     </div>
 
     <button class="cue visible" id="coffee-back-trigger" type="button" aria-label="Back to room from coffee">
@@ -4217,6 +4247,6 @@ a.ring{display:block;text-decoration:none}
 
 <audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
 <audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-audio-balance-v28"></script>
+<script src="./app.js?v=20260712-mobile-stability-v31"></script>
 </body>
 </html>
