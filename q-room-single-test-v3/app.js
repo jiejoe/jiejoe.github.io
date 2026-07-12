@@ -1160,11 +1160,10 @@ function showCoffeeToast(title, detail) {
 
 function syncCoffeeVideoAudio() {
   const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
-  const keepMutedForTouch = window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
     video.volume = 0.3;
-    video.muted = AudioSys.muted || keepMutedForTouch || !coffeeActive || key !== activeCoffeeVideoKey;
+    video.muted = AudioSys.muted || !coffeeActive || key !== activeCoffeeVideoKey;
   });
 }
 
@@ -1235,7 +1234,7 @@ async function playCoffeeVideo(videoKey, label) {
   coffeeOrderBadge?.classList.add("is-visible");
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${nextLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = true;
-  nextVideo.muted = true;
+  nextVideo.muted = AudioSys.muted;
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = nextLabel;
 
@@ -1279,22 +1278,25 @@ function holdCoffeeFinalFrame(videoKey) {
 
 function bindCoffeeVideoEvents(key, video) {
   if (!video) return;
-  video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
+  const isCurrentVideo = () => coffeeVideos[key] === video;
+  video?.addEventListener("ended", () => {
+    if (isCurrentVideo()) holdCoffeeFinalFrame(key);
+  });
   video?.addEventListener("timeupdate", () => {
-    if (activeCoffeeVideoKey !== key || !Number.isFinite(video.duration) || video.currentTime < .5) return;
+    if (!isCurrentVideo() || activeCoffeeVideoKey !== key || !Number.isFinite(video.duration) || video.currentTime < .5) return;
     if (video.duration - video.currentTime <= .16) holdCoffeeFinalFrame(key);
   });
   video?.addEventListener("playing", () => {
-    if (activeCoffeeVideoKey === key) {
+    if (isCurrentVideo() && activeCoffeeVideoKey === key) {
       revealVideoFrame(video, () => scenes.coffee?.classList.add("coffee-playing"));
     }
     syncCoffeeVideoAudio();
   });
   video?.addEventListener("error", () => {
-    if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
+    if (isCurrentVideo() && activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
   });
   video?.addEventListener("emptied", () => {
-    if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
+    if (isCurrentVideo() && activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
   });
   ["loadeddata", "playing", "volumechange", "pause"].forEach(eventName => {
     video.addEventListener(eventName, () => AudioSys.publishState());
