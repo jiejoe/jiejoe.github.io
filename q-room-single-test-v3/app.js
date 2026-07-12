@@ -1817,6 +1817,7 @@ document.addEventListener("visibilitychange", () => {
     AudioSys.stopKeyboard();
     AudioSys.stopRoomDetails();
     AudioSys.pauseBackgroundMusic();
+    if (doorOpenVideo) doorOpenVideo.muted = true;
     if (roomLoopVideo) roomLoopVideo.muted = true;
     if (deskLoopVideo) deskLoopVideo.muted = true;
     Object.values(coffeeVideos).forEach(video => {
@@ -1838,7 +1839,19 @@ function setProgress(stepIndex) {
   progressLabels.forEach((el, i) => el?.classList.toggle("active", i === stepIndex));
 }
 
+let doorTransitionRunId = 0;
+let doorTransitionTimer = 0;
+
 function activate(name) {
+  if (name !== "door" && doorTransitionTimer) {
+    window.clearTimeout(doorTransitionTimer);
+    doorTransitionTimer = 0;
+    doorTransitionRunId += 1;
+    if (doorOpenVideo) {
+      doorOpenVideo.onended = null;
+      doorOpenVideo.onerror = null;
+    }
+  }
   if (name !== "chat" && scenes.chat.classList.contains("active")) {
     resetChatInteraction();
   }
@@ -1858,6 +1871,7 @@ function syncDoorSceneMedia(activeScene) {
   if (!doorIdleVideo || !doorOpenVideo) return;
   if (activeScene === "door") {
     scenes.door.classList.remove("opening", "opening-frame-ready");
+    delete doorOpenVideo.dataset.forceMuted;
     doorOpenVideo.pause();
     try {
       doorOpenVideo.currentTime = 0;
@@ -1875,11 +1889,9 @@ function syncDoorSceneMedia(activeScene) {
 function syncDoorVideoAudio() {
   if (!doorIdleVideo || !doorOpenVideo) return;
   doorIdleVideo.muted = true;
-  doorOpenVideo.volume = 0.58;
-  // The synthesized door sound carries the feedback. Keeping the transition
-  // video muted prevents mobile WebViews from rejecting playback after the
-  // asynchronous opening sequence starts.
-  doorOpenVideo.muted = true;
+  doorOpenVideo.volume = 0.72;
+  const opening = scenes.door.classList.contains("active") && scenes.door.classList.contains("opening");
+  doorOpenVideo.muted = AudioSys.muted || document.hidden || !opening || doorOpenVideo.dataset.forceMuted === "true";
 }
 
 function syncLoopSceneMedia(activeScene) {
@@ -2467,49 +2479,65 @@ if (contactVideo) {
   });
 }
 
-document.getElementById("door-trigger").addEventListener("click", async () => {
+document.getElementById("door-trigger").addEventListener("click", () => {
   if (AudioSys.muted && !AudioSys.soundChoiceMade) {
     AudioSys.ensureStarted().catch(() => {});
     AudioSys.setMuted(false);
   } else {
-    await primeAudio();
+    primeAudio();
   }
   AudioSys.click(0.65);
-  AudioSys.door(0.45);
   const doorScene = scenes.door;
   doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
+    AudioSys.door(0.75);
     activate("room");
     return;
   }
+  const runId = ++doorTransitionRunId;
+  window.clearTimeout(doorTransitionTimer);
   doorScene.classList.remove("opening-frame-ready");
   doorScene.classList.add("opening");
   if (doorOpenVideo.classList.contains("frame-ready")) doorScene.classList.add("opening-frame-ready");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
-  syncDoorVideoAudio();
+  delete doorOpenVideo.dataset.forceMuted;
   try {
     doorOpenVideo.currentTime = 0;
   } catch (error) {
     void error;
   }
-  await new Promise(resolve => {
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      doorOpenVideo.onended = null;
-      doorOpenVideo.onerror = null;
-      resolve();
-    };
-    doorOpenVideo.onended = finish;
-    doorOpenVideo.onerror = finish;
+  syncDoorVideoAudio();
+
+  const finish = () => {
+    if (runId !== doorTransitionRunId) return;
+    window.clearTimeout(doorTransitionTimer);
+    doorTransitionTimer = 0;
+    doorOpenVideo.onended = null;
+    doorOpenVideo.onerror = null;
+    activate("room");
+  };
+  doorOpenVideo.onended = finish;
+  doorOpenVideo.onerror = finish;
+  doorTransitionTimer = window.setTimeout(finish, 3400);
+
+  const started = doorOpenVideo.play();
+  if (!started) {
+    AudioSys.door(0.75);
+    window.setTimeout(finish, 500);
+    return;
+  }
+  started.then(() => {
+    revealVideoFrame(doorOpenVideo, () => doorScene.classList.add("opening-frame-ready"));
+  }).catch(() => {
+    if (runId !== doorTransitionRunId) return;
+    doorOpenVideo.dataset.forceMuted = "true";
+    doorOpenVideo.muted = true;
+    AudioSys.door(0.75);
     doorOpenVideo.play().then(() => {
       revealVideoFrame(doorOpenVideo, () => doorScene.classList.add("opening-frame-ready"));
-    }).catch(finish);
-    window.setTimeout(finish, 4200);
+    }).catch(() => {});
   });
-  activate("room");
 });
 
 function bindRoomAction(triggerId, labelId, action) {
