@@ -2323,6 +2323,7 @@ a.ring{display:block;text-decoration:none}
   isolation:isolate;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
+  touch-action:pan-y;
   font:inherit;
   backdrop-filter:blur(16px);
   transition:transform .35s ease, box-shadow .35s ease, border-color .25s ease;
@@ -3698,9 +3699,22 @@ a.ring{display:block;text-decoration:none}
   .topbar{top:14px;left:14px;right:14px}
   .brand{font-size:11px;letter-spacing:.16em}
   .progress{font-size:9px;gap:10px;letter-spacing:.08em}
-  #door-trigger{left:58% !important}
-  #door-trigger-label{left:58% !important}
+  #door-trigger{left:87% !important;top:39% !important}
+  #door-trigger-label{left:75% !important;top:31.5% !important}
+  #room-desk-trigger{left:14% !important;top:64% !important}
+  #room-desk-label{left:22% !important;top:57% !important}
+  #room-coffee-trigger{left:24% !important;top:40% !important}
+  #room-coffee-label{left:30% !important;top:33% !important}
+  #room-chat-trigger{left:89% !important;top:59% !important}
+  #room-chat-label{left:76% !important;top:52% !important}
+  #room-message-trigger{left:80% !important;top:36% !important}
+  #room-message-label{left:72% !important;top:30% !important}
   .sound-toggle{right:12px;bottom:12px;min-width:94px;height:38px}
+  body[data-scene="chat"] .sound-toggle{
+    opacity:0;
+    transform:translateY(8px);
+    pointer-events:none;
+  }
   .room-actions{top:70px;right:14px;gap:6px}
   .mood-trigger,.music-trigger,.room-exit-btn{height:34px;min-width:64px;padding:0 12px;font-size:10px}
   .mood-menu{min-width:106px}
@@ -3738,6 +3752,7 @@ a.ring{display:block;text-decoration:none}
     padding:16px 16px calc(22px + env(safe-area-inset-bottom));
     border-radius:22px;
     transform:none;
+    overscroll-behavior-y:contain;
   }
   .panel.open{transform:none}
   .panel-head{padding-right:126px}
@@ -3763,6 +3778,8 @@ a.ring{display:block;text-decoration:none}
   .worked-project-cover > div{padding:22px}
   .qstudio-gallery-card img{max-height:620px}
   .wall{grid-template-columns:1fr}
+  .browser-detail[data-mode="wall"],
+  .wall{touch-action:pan-y}
   .wall-item.span-half,
   .wall-item.span-third{grid-column:1;min-height:260px}
   .project-companion .overlap-preview .device.phone{width:88px}
@@ -3799,9 +3816,9 @@ a.ring{display:block;text-decoration:none}
     left:14px;
     right:14px;
     top:auto;
-    bottom:300px;
+    bottom:clamp(150px,19dvh,190px);
     width:auto;
-    max-height:230px;
+    max-height:min(34dvh,300px);
     overflow:auto;
     padding:4px;
     transform:none;
@@ -3811,8 +3828,18 @@ a.ring{display:block;text-decoration:none}
   #scene-chat > video{object-position:50% 50%}
   .q-stage-message{font-size:14px;line-height:1.6}
   #scene-chat .cue{
+    left:14px;
+    right:auto;
+    top:76px;
+    bottom:auto;
+    align-items:flex-start;
+  }
+  #scene-chat .cue .line{width:52px}
+  #scene-chat .cue .copy{padding:8px 10px;text-align:left}
+  #scene-chat .cue strong{font-size:10px;letter-spacing:.15em}
+  #scene-coffee #coffee-back-trigger{
     right:14px;
-    top:82px;
+    top:26%;
     bottom:auto;
   }
   .chat-shell{left:14px;right:14px;width:auto;transform:none}
@@ -3848,6 +3875,23 @@ a.ring{display:block;text-decoration:none}
   .coffee-result-controls{bottom:70px}
   .coffee-order-badge{top:75px;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .coffee-toast{top:132px;max-width:calc(100vw - 28px);border-radius:20px}
+}
+
+@media (hover:none), (pointer:coarse){
+  .wall-item:hover{
+    transform:none;
+    border-color:rgba(228,214,255,.24);
+    box-shadow:none;
+  }
+  .wall-item:hover::before{
+    transform:translate(-50%,-50%) rotate(12deg) scale(.72);
+    border-radius:30px;
+    opacity:.78;
+  }
+  .wall-item:hover::after{
+    transform:rotate(-8deg);
+    opacity:.24;
+  }
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -4173,6 +4217,6 @@ a.ring{display:block;text-decoration:none}
 
 <audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
 <audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-chat-exit-fix-v24"></script>
+<script src="./app.js?v=20260712-mobile-layout-v25"></script>
 </body>
 </html>
