@@ -71,7 +71,6 @@ const coffeeOrderBadge = document.getElementById("coffee-order-badge");
 const coffeeToast = document.getElementById("coffee-toast");
 const coffeeResultControls = document.getElementById("coffee-result-controls");
 const coffeeResultChat = document.getElementById("coffee-result-chat");
-const coffeeChatAssist = document.querySelector(".coffee-chat-assist");
 const coffeePourVideo = document.getElementById("coffee-pourover-video");
 const coffeeAmericanoVideo = document.getElementById("coffee-americano-video");
 const coffeeSectionButtons = Array.from(document.querySelectorAll("[data-coffee-section]"));
@@ -1191,15 +1190,14 @@ function resetCoffeeExperience() {
   coffeeRunId += 1;
   clearCoffeeCompletionTimer();
   scenes.coffee?.classList.remove("coffee-playing", "coffee-complete");
-  coffeeChatAssist?.classList.remove("is-visible");
+  activeCoffeeVideoKey = "";
+  activeCoffeeLabel = "";
   Object.values(coffeeVideos).forEach(video => {
     if (!video) return;
     resetSceneVideo(video);
     video.classList.remove("is-active");
     video.muted = true;
   });
-  activeCoffeeVideoKey = "";
-  activeCoffeeLabel = "";
   coffeeMenuCard?.classList.remove("is-minimized");
   coffeeOrderBadge?.classList.remove("is-visible");
   coffeeToast?.classList.remove("is-visible");
@@ -1215,48 +1213,50 @@ function syncCoffeeSceneMedia(activeScene) {
   syncCoffeeVideoAudio();
 }
 
-function playCoffeeVideo(videoKey, label) {
-  const nextVideo = coffeeVideos[videoKey];
-  if (!nextVideo) return;
+async function playCoffeeVideo(videoKey, label) {
+  if (!coffeeVideos[videoKey]) return;
   const runId = ++coffeeRunId;
   clearCoffeeCompletionTimer();
   AudioSys.ensureStarted().catch(() => {});
-  activeCoffeeVideoKey = videoKey;
-  activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
+  activeCoffeeVideoKey = "";
+  const nextLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
   scenes.coffee?.classList.remove("coffee-playing", "coffee-complete");
-  coffeeChatAssist?.classList.remove("is-visible");
+  const nextVideo = replaceCoffeeVideo(videoKey);
+  if (!nextVideo) return;
 
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
     video.pause();
     video.classList.toggle("is-active", key === videoKey);
-    try {
-      video.currentTime = 0;
-    } catch (error) {
-      void error;
-    }
+    if (key !== videoKey) resetSceneVideo(video);
   });
 
   coffeeMenuCard?.classList.add("is-minimized");
   coffeeOrderBadge?.classList.add("is-visible");
-  if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${activeCoffeeLabel}`;
+  if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${nextLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = true;
-  syncCoffeeVideoAudio();
-  nextVideo.muted = AudioSys.muted || window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
+  nextVideo.muted = true;
+  activeCoffeeVideoKey = videoKey;
+  activeCoffeeLabel = nextLabel;
 
-  nextVideo.play().then(() => {
+  try {
+    await nextVideo.play();
     syncCoffeeVideoAudio();
     scheduleCoffeeCompletion(videoKey, runId);
-  }).catch(() => {
+  } catch (error) {
+    void error;
     nextVideo.muted = true;
-    nextVideo.play().then(() => {
+    try {
+      await nextVideo.play();
       syncCoffeeVideoAudio();
       scheduleCoffeeCompletion(videoKey, runId);
-    }).catch(() => {
-        coffeeMenuCard?.classList.remove("is-minimized");
-        showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
-      });
-  });
+    } catch (mutedError) {
+      void mutedError;
+      activeCoffeeVideoKey = "";
+      coffeeMenuCard?.classList.remove("is-minimized");
+      showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
+    }
+  }
 }
 
 function holdCoffeeFinalFrame(videoKey) {
@@ -1275,10 +1275,10 @@ function holdCoffeeFinalFrame(videoKey) {
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Ready · ${activeCoffeeLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = false;
   scenes.coffee?.classList.add("coffee-complete");
-  coffeeChatAssist?.classList.add("is-visible");
 }
 
-Object.entries(coffeeVideos).forEach(([key, video]) => {
+function bindCoffeeVideoEvents(key, video) {
+  if (!video) return;
   video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
   video?.addEventListener("timeupdate", () => {
     if (activeCoffeeVideoKey !== key || !Number.isFinite(video.duration) || video.currentTime < .5) return;
@@ -1296,7 +1296,26 @@ Object.entries(coffeeVideos).forEach(([key, video]) => {
   video?.addEventListener("emptied", () => {
     if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
   });
-});
+  ["loadeddata", "playing", "volumechange", "pause"].forEach(eventName => {
+    video.addEventListener(eventName, () => AudioSys.publishState());
+  });
+}
+
+function replaceCoffeeVideo(videoKey) {
+  const currentVideo = coffeeVideos[videoKey];
+  if (!currentVideo) return null;
+  currentVideo.pause();
+  const freshVideo = currentVideo.cloneNode(true);
+  freshVideo.classList.remove("is-active", "frame-ready");
+  freshVideo.muted = true;
+  currentVideo.replaceWith(freshVideo);
+  coffeeVideos[videoKey] = freshVideo;
+  bindCoffeeVideoEvents(videoKey, freshVideo);
+  freshVideo.load();
+  return freshVideo;
+}
+
+Object.entries(coffeeVideos).forEach(([key, video]) => bindCoffeeVideoEvents(key, video));
 
 function setChatVisualState(nextState, { reset = true } = {}) {
   const nextVideo = chatStateVideos[nextState];
@@ -1584,8 +1603,8 @@ const AudioSys = {
       ["door", doorOpenVideo],
       ["room", roomLoopVideo],
       ["desk", deskLoopVideo],
-      ["coffee-pourover", coffeePourVideo],
-      ["coffee-americano", coffeeAmericanoVideo],
+      ["coffee-pourover", coffeeVideos.pourover],
+      ["coffee-americano", coffeeVideos.americano],
     ].filter(([, video]) => video && !video.paused && !video.muted).map(([name]) => name);
     document.body.dataset.audioMix = "click-video-music";
     document.body.dataset.audioMuted = String(this.muted);
@@ -2523,9 +2542,9 @@ document.getElementById("coffee-latte-option")?.addEventListener("click", async 
   AudioSys.shimmer(430, 0.014);
 });
 
-document.getElementById("coffee-choose-again")?.addEventListener("click", async () => {
-  await primeAudio();
+document.getElementById("coffee-choose-again")?.addEventListener("click", () => {
   resetCoffeeExperience();
+  primeAudio();
   AudioSys.shimmer(720, 0.016);
 });
 
@@ -2543,7 +2562,6 @@ async function openChatFromCoffee() {
   await openChatScene();
 }
 
-document.getElementById("coffee-chat-trigger")?.addEventListener("click", openChatFromCoffee);
 coffeeResultChat?.addEventListener("click", openChatFromCoffee);
 
 document.getElementById("room-exit-trigger").addEventListener("click", async () => {
