@@ -874,11 +874,15 @@ a.ring{display:block;text-decoration:none}
   position:absolute;
   z-index:27;
   right:clamp(22px,3vw,48px);
-  bottom:clamp(86px,13vh,132px);
+  bottom:clamp(132px,19vh,188px);
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:10px;
+  padding:0;
+  border:0;
+  background:none;
+  font:inherit;
   opacity:0;
   pointer-events:none;
   transform:translateY(8px);
@@ -3765,7 +3769,7 @@ a.ring{display:block;text-decoration:none}
   .coffee-menu-head h2{font-size:26px}
   .coffee-kind{min-height:116px;padding:13px}
   .coffee-kind-index{margin-bottom:14px}
-  .coffee-chat-assist{right:14px;bottom:auto;top:76px;gap:6px}
+  .coffee-chat-assist{right:14px;bottom:auto;top:34px;gap:6px}
   .coffee-chat-ring{width:40px;height:40px;font-size:16px}
   .coffee-chat-assist span{max-width:96px;font-size:8px}
   .coffee-back-btn{left:14px;bottom:18px;height:36px}
@@ -3962,10 +3966,10 @@ a.ring{display:block;text-decoration:none}
     </div>
 
     <button class="coffee-back-btn" id="coffee-back-trigger" type="button">Back to room</button>
-    <div class="coffee-chat-assist">
-      <button class="coffee-chat-ring" id="coffee-chat-trigger" type="button" aria-label="So, have a coffee chat?">?</button>
+    <button class="coffee-chat-assist" id="coffee-chat-trigger" type="button" aria-label="So, have a coffee chat?">
+      <span class="coffee-chat-ring" aria-hidden="true"></span>
       <span>So, have a coffee chat?</span>
-    </div>
+    </button>
   </section>
 
   <section class="scene" id="scene-desk">
@@ -4014,9 +4018,9 @@ a.ring{display:block;text-decoration:none}
       </div>
       <div class="me-echo" id="me-echo" hidden></div>
       <div class="chat-suggestions">
-        <button class="chat-chip" data-prompt="先简单介绍一下你自己吧，也说说你现在最想做好的事情。">介绍你自己</button>
-        <button class="chat-chip" data-prompt="你最近在做什么小项目？为什么会想做它？">最近做什么小项目？</button>
-        <button class="chat-chip" data-prompt="你最近在关注什么方向？尤其是人和 Agent 协作与学习这部分。">最近关注什么？</button>
+        <button class="chat-chip" data-prompt="简单介绍一下你自己，请简短回答。">介绍你自己</button>
+        <button class="chat-chip" data-prompt="你最近在做什么小项目？请简短回答。">最近做什么小项目？</button>
+        <button class="chat-chip" data-prompt="你最近在关注什么？请简短回答。">最近关注什么？</button>
       </div>
       <div class="composer">
         <input type="text" id="chat-input" placeholder="想先从哪里聊起？">
@@ -4081,6 +4085,6 @@ a.ring{display:block;text-decoration:none}
 </div>
 
 <audio id="background-music" src="./assets/cafe-music-pixabay-163375.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-cafe-music-v1"></script>
+<script src="./app.js?v=20260712-chat-state-v2"></script>
 </body>
 </html>

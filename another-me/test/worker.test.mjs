@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker from "../src/worker.js";
 
@@ -42,7 +43,7 @@ test("streams the primary model response", async () => {
   assert.match(response.headers.get("content-type"), /^text\/event-stream/);
   assert.deepEqual(models, ["@cf/moonshotai/kimi-k2.6"]);
   assert.deepEqual(inputs[0].chat_template_kwargs, { thinking: false });
-  assert.equal(inputs[0].max_completion_tokens, 400);
+  assert.equal(inputs[0].max_completion_tokens, 120);
   assert.equal("max_tokens" in inputs[0], false);
   assert.match(await response.text(), /你好/);
 });
@@ -80,4 +81,19 @@ test("rejects an oversized request before model inference", async () => {
     {},
   );
   assert.equal(response.status, 413);
+});
+
+test("keeps the Q room persona concise and non-resume-like", async () => {
+  const source = await readFile(new URL("../src/worker.js", import.meta.url), "utf8");
+  const prompt = source.slice(source.indexOf("const QROOM_SYSTEM"), source.indexOf("async function handleRoomChat"));
+
+  assert.match(prompt, /说短句/);
+  assert.match(prompt, /不超过 80 个汉字/);
+  assert.match(prompt, /五百万/);
+  assert.match(prompt, /十亿/);
+  assert.match(prompt, /个人知识库/);
+  assert.match(prompt, /GPT-5\.6/);
+  assert.match(prompt, /Grok 4\.5/);
+  assert.match(prompt, /ChatGPT 桌面端/);
+  assert.doesNotMatch(prompt, /淘宝|美间|Homestyler|萌伴|数字分身/);
 });

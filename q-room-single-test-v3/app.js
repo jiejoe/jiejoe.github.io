@@ -487,7 +487,7 @@ const WORKER = "https://another-me-q.jiejoe-eth.workers.dev";
 const MESSAGE_ENDPOINT = WORKER + "/qroom-messages";
 let chatBusy = false;
 let chatAnswering = false;
-let chatVisualState = "idle";
+let chatVisualState = "waiting";
 let convo = [
   {
     role: "system",
@@ -909,7 +909,7 @@ function playCoffeeVideo(videoKey, label) {
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
   scenes.coffee?.classList.remove("coffee-playing");
-  coffeeChatAssist?.classList.remove("is-visible");
+  coffeeChatAssist?.classList.add("is-visible");
 
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
@@ -995,8 +995,8 @@ function setChatVisualState(nextState, { reset = true } = {}) {
   });
 }
 
-function startChatIdle(preferredState = "idle") {
-  const state = preferredState === "relaxed" ? "relaxed" : "idle";
+function startChatRest(preferredState = "waiting") {
+  const state = preferredState === "relaxed" ? "relaxed" : "waiting";
   setChatVisualState(state, { reset: true });
 }
 
@@ -1010,12 +1010,12 @@ function setChatAnswering(nextAnswering) {
     setChatVisualState("waiting", { reset: true });
     return;
   }
-  startChatIdle("relaxed");
+  startChatRest("waiting");
 }
 
 function handleChatIdleEnded(state) {
   if (!scenes.chat.classList.contains("active") || chatBusy || chatAnswering || chatVisualState !== state) return;
-  startChatIdle("idle");
+  startChatRest("waiting");
 }
 
 chatRelaxedVideo?.addEventListener("ended", () => handleChatIdleEnded("relaxed"));
@@ -1024,8 +1024,8 @@ async function sendChatMessage(prefill) {
   const text = (prefill || chatInput.value).trim();
   if (!text || chatBusy) return;
   setChatBubbleVisible(true);
-  setChatAnswering(false);
   chatBusy = true;
+  chatAnswering = false;
   chatInput.value = "";
   meEcho.hidden = false;
   meEcho.textContent = text;
@@ -1094,7 +1094,7 @@ async function sendChatMessage(prefill) {
     chatBusy = false;
     chatAnswering = false;
     document.getElementById("send-btn").disabled = false;
-    if (scenes.chat.classList.contains("active")) startChatIdle("relaxed");
+    if (scenes.chat.classList.contains("active")) startChatRest("waiting");
   }
 }
 
@@ -1377,7 +1377,7 @@ function syncChatSceneMedia(activeScene) {
     setChatVisualState("waiting", { reset: true });
     return;
   }
-  startChatIdle(chatVisualState === "relaxed" ? "relaxed" : "idle");
+  startChatRest(chatVisualState === "relaxed" ? "relaxed" : "waiting");
 }
 
 function syncRoomVideoAudio() {
@@ -1819,6 +1819,7 @@ async function openCoffeeScene() {
   await primeAudio();
   resetCoffeeExperience();
   activate("coffee");
+  coffeeChatAssist?.classList.add("is-visible");
   AudioSys.click();
   AudioSys.transition();
   AudioSys.shimmer(760, 0.018);
@@ -1829,10 +1830,11 @@ async function openChatScene() {
   setChatBubbleVisible(false);
   setQSpeech("", false);
   if (meEcho) meEcho.hidden = true;
+  chatVisualState = "relaxed";
   activate("chat");
   AudioSys.click();
   AudioSys.transition();
-  setChatVisualState("relaxed", { reset: true });
+  startChatRest("relaxed");
 }
 
 async function openContactScene(returnScene) {
@@ -1965,7 +1967,7 @@ document.getElementById("coffee-latte-option")?.addEventListener("click", async 
 
 document.getElementById("coffee-choose-again")?.addEventListener("click", async () => {
   await primeAudio();
-  coffeeChatAssist?.classList.remove("is-visible");
+  coffeeChatAssist?.classList.add("is-visible");
   coffeeMenuCard?.classList.remove("is-minimized");
   coffeeOrderBadge?.classList.remove("is-visible");
   if (coffeeResultControls) coffeeResultControls.hidden = true;
