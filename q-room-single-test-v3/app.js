@@ -70,6 +70,7 @@ const coffeeMenuEspresso = document.getElementById("coffee-menu-espresso");
 const coffeeOrderBadge = document.getElementById("coffee-order-badge");
 const coffeeToast = document.getElementById("coffee-toast");
 const coffeeResultControls = document.getElementById("coffee-result-controls");
+const coffeeResultChat = document.getElementById("coffee-result-chat");
 const coffeeChatAssist = document.querySelector(".coffee-chat-assist");
 const coffeePourVideo = document.getElementById("coffee-pourover-video");
 const coffeeAmericanoVideo = document.getElementById("coffee-americano-video");
@@ -92,6 +93,21 @@ const coffeeVideos = {
 let activeCoffeeVideoKey = "";
 let activeCoffeeLabel = "";
 let coffeeToastTimer = 0;
+let coffeeCompletionTimer = 0;
+let coffeeRunId = 0;
+
+function revealVideoFrame(video, callback) {
+  if (!video) return;
+  const reveal = () => {
+    video.classList.add("frame-ready");
+    callback?.();
+  };
+  if (typeof video.requestVideoFrameCallback === "function") {
+    video.requestVideoFrameCallback(reveal);
+    return;
+  }
+  window.requestAnimationFrame(() => window.setTimeout(reveal, 32));
+}
 
 function setSceneFallbackReady(scene, video) {
   if (!scene || !video) return;
@@ -100,28 +116,30 @@ function setSceneFallbackReady(scene, video) {
 
 function bindPrimarySceneFallback(scene, video) {
   if (!scene || !video) return;
-  const showVideo = () => setSceneFallbackReady(scene, video);
-  const showFallback = () => scene.classList.remove("media-ready");
-  video.addEventListener("loadeddata", showVideo);
+  const showVideo = () => revealVideoFrame(video, () => scene.classList.add("media-ready"));
+  const showFallback = () => {
+    video.classList.remove("frame-ready");
+    scene.classList.remove("media-ready");
+  };
   video.addEventListener("playing", showVideo);
   video.addEventListener("error", showFallback);
   video.addEventListener("emptied", showFallback);
-  showVideo();
+  if (!video.paused && video.readyState >= 2) showVideo();
 }
 
 function bindChatSceneFallback(video) {
   if (!video || !scenes.chat) return;
   const syncSelectedVideo = () => {
-    if (video.classList.contains("is-active")) setSceneFallbackReady(scenes.chat, video);
+    if (!video.classList.contains("is-active")) return;
+    revealVideoFrame(video, () => scenes.chat.classList.add("media-ready"));
   };
   const showFallback = () => {
+    video.classList.remove("frame-ready");
     if (video.classList.contains("is-active")) scenes.chat.classList.remove("media-ready");
   };
-  video.addEventListener("loadeddata", syncSelectedVideo);
   video.addEventListener("playing", syncSelectedVideo);
   video.addEventListener("error", showFallback);
   video.addEventListener("emptied", showFallback);
-  syncSelectedVideo();
 }
 
 bindPrimarySceneFallback(scenes.door, doorIdleVideo);
@@ -134,9 +152,11 @@ function startSiteLoader() {
   const criticalMedia = [
     ...document.querySelectorAll(".scene > img"),
     doorIdleVideo,
+    doorOpenVideo,
     roomLoopVideo,
     deskLoopVideo,
-    chatIdleVideo
+    chatIdleVideo,
+    chatRelaxedVideo
   ].filter(Boolean);
   let settled = 0;
   const total = Math.max(1, criticalMedia.length);
@@ -151,7 +171,7 @@ function startSiteLoader() {
   };
   const waitForMedia = element => new Promise(resolve => {
     const isImage = element instanceof HTMLImageElement;
-    const ready = isImage ? element.complete && element.naturalWidth > 0 : element.readyState >= 2;
+    const ready = isImage ? element.complete && element.naturalWidth > 0 : element.readyState >= 3;
     let finished = false;
     const done = () => {
       if (finished) return;
@@ -164,15 +184,45 @@ function startSiteLoader() {
       done();
       return;
     }
-    const eventName = isImage ? "load" : "loadeddata";
+    const eventName = isImage ? "load" : "canplay";
     element.addEventListener(eventName, done, { once: true });
     element.addEventListener("error", done, { once: true });
   });
   update();
+  const warmVideo = async video => {
+    if (!video || video.error) return;
+    const previousTime = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+    video.muted = true;
+    try {
+      await video.play();
+      await new Promise(resolve => {
+        let settled = false;
+        const done = () => {
+          if (settled) return;
+          settled = true;
+          resolve();
+        };
+        revealVideoFrame(video, done);
+        window.setTimeout(done, 900);
+      });
+    } catch (error) {
+      void error;
+    }
+    video.pause();
+    try {
+      video.currentTime = previousTime > 0 ? previousTime : 0.001;
+    } catch (error) {
+      void error;
+    }
+  };
   const mediaReady = Promise.all(criticalMedia.map(waitForMedia));
-  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 8000));
+  const warmedMedia = mediaReady.then(() => Promise.all([
+    warmVideo(doorOpenVideo),
+    warmVideo(roomLoopVideo)
+  ]));
+  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 9000));
   const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 2300));
-  Promise.all([Promise.race([mediaReady, safetyReady]), minimumGlow]).then(() => {
+  Promise.all([Promise.race([warmedMedia, safetyReady]), minimumGlow]).then(() => {
     if (loaderStatus) loaderStatus.textContent = "The room is glowing.";
     window.setTimeout(() => {
       siteLoader.classList.add("is-complete");
@@ -930,12 +980,31 @@ function renderDetailMedia(media) {
   `;
 }
 
+function syncQBubbleEdges() {
+  if (!qStageBubble) return;
+  const maxScroll = Math.max(0, qStageBubble.scrollHeight - qStageBubble.clientHeight);
+  qStageBubble.classList.toggle("has-clipped-top", qStageBubble.scrollTop > 3);
+  qStageBubble.classList.toggle("has-clipped-bottom", qStageBubble.scrollTop < maxScroll - 3);
+}
+
+function fitMobileQMessages() {
+  if (!qStageBubble || !qStageText || !window.matchMedia("(max-width: 680px)").matches) return;
+  let messages = Array.from(qStageText.querySelectorAll(".q-stage-message:not(.is-typing)"));
+  while (qStageBubble.scrollHeight > qStageBubble.clientHeight + 2 && messages.length > 3) {
+    messages.shift()?.remove();
+  }
+}
+
 function scrollQMessagesToBottom() {
   if (!qStageBubble) return;
   window.requestAnimationFrame(() => {
-    qStageBubble.scrollTop = qStageBubble.scrollHeight;
+    fitMobileQMessages();
+    qStageBubble.scrollTop = window.matchMedia("(max-width: 680px)").matches ? 0 : qStageBubble.scrollHeight;
+    syncQBubbleEdges();
   });
 }
+
+qStageBubble?.addEventListener("scroll", syncQBubbleEdges, { passive: true });
 
 function removeQTypingBubble() {
   qStageText?.querySelector(".q-stage-message.is-typing")?.remove();
@@ -1043,6 +1112,9 @@ async function revealQSpeechBubbles(parts, runId) {
 
 function setChatBubbleVisible(visible) {
   qStageBubble?.classList.toggle("is-visible", Boolean(visible));
+  if (!visible) {
+    qStageBubble?.classList.remove("has-clipped-top", "has-clipped-bottom");
+  }
 }
 
 function resetVisibleChatTurn() {
@@ -1089,15 +1161,36 @@ function showCoffeeToast(title, detail) {
 
 function syncCoffeeVideoAudio() {
   const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
+  const keepMutedForTouch = window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
     video.volume = 0.3;
-    video.muted = AudioSys.muted || !coffeeActive || key !== activeCoffeeVideoKey;
+    video.muted = AudioSys.muted || keepMutedForTouch || !coffeeActive || key !== activeCoffeeVideoKey;
   });
 }
 
+function clearCoffeeCompletionTimer() {
+  window.clearTimeout(coffeeCompletionTimer);
+  coffeeCompletionTimer = 0;
+}
+
+function scheduleCoffeeCompletion(videoKey, runId) {
+  const video = coffeeVideos[videoKey];
+  if (!video) return;
+  clearCoffeeCompletionTimer();
+  const remaining = Number.isFinite(video.duration) && video.duration > 0
+    ? Math.max(800, (video.duration - video.currentTime) * 1000 + 420)
+    : 6200;
+  coffeeCompletionTimer = window.setTimeout(() => {
+    if (runId !== coffeeRunId || activeCoffeeVideoKey !== videoKey) return;
+    holdCoffeeFinalFrame(videoKey);
+  }, remaining);
+}
+
 function resetCoffeeExperience() {
-  scenes.coffee?.classList.remove("coffee-playing");
+  coffeeRunId += 1;
+  clearCoffeeCompletionTimer();
+  scenes.coffee?.classList.remove("coffee-playing", "coffee-complete");
   coffeeChatAssist?.classList.remove("is-visible");
   Object.values(coffeeVideos).forEach(video => {
     if (!video) return;
@@ -1125,10 +1218,12 @@ function syncCoffeeSceneMedia(activeScene) {
 function playCoffeeVideo(videoKey, label) {
   const nextVideo = coffeeVideos[videoKey];
   if (!nextVideo) return;
+  const runId = ++coffeeRunId;
+  clearCoffeeCompletionTimer();
   AudioSys.ensureStarted().catch(() => {});
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
-  scenes.coffee?.classList.remove("coffee-playing");
+  scenes.coffee?.classList.remove("coffee-playing", "coffee-complete");
   coffeeChatAssist?.classList.remove("is-visible");
 
   Object.entries(coffeeVideos).forEach(([key, video]) => {
@@ -1147,22 +1242,28 @@ function playCoffeeVideo(videoKey, label) {
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${activeCoffeeLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = true;
   syncCoffeeVideoAudio();
-  nextVideo.muted = AudioSys.muted;
+  nextVideo.muted = AudioSys.muted || window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
 
   nextVideo.play().then(() => {
     syncCoffeeVideoAudio();
+    scheduleCoffeeCompletion(videoKey, runId);
   }).catch(() => {
     nextVideo.muted = true;
-    nextVideo.play().catch(() => {
-      coffeeMenuCard?.classList.remove("is-minimized");
-      showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
-    });
+    nextVideo.play().then(() => {
+      syncCoffeeVideoAudio();
+      scheduleCoffeeCompletion(videoKey, runId);
+    }).catch(() => {
+        coffeeMenuCard?.classList.remove("is-minimized");
+        showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
+      });
   });
 }
 
 function holdCoffeeFinalFrame(videoKey) {
   const video = coffeeVideos[videoKey];
   if (!video || activeCoffeeVideoKey !== videoKey) return;
+  if (scenes.coffee?.classList.contains("coffee-complete")) return;
+  clearCoffeeCompletionTimer();
   video.pause();
   if (Number.isFinite(video.duration)) {
     try {
@@ -1173,13 +1274,20 @@ function holdCoffeeFinalFrame(videoKey) {
   }
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Ready · ${activeCoffeeLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = false;
+  scenes.coffee?.classList.add("coffee-complete");
   coffeeChatAssist?.classList.add("is-visible");
 }
 
 Object.entries(coffeeVideos).forEach(([key, video]) => {
   video?.addEventListener("ended", () => holdCoffeeFinalFrame(key));
+  video?.addEventListener("timeupdate", () => {
+    if (activeCoffeeVideoKey !== key || !Number.isFinite(video.duration) || video.currentTime < .5) return;
+    if (video.duration - video.currentTime <= .16) holdCoffeeFinalFrame(key);
+  });
   video?.addEventListener("playing", () => {
-    if (activeCoffeeVideoKey === key) scenes.coffee?.classList.add("coffee-playing");
+    if (activeCoffeeVideoKey === key) {
+      revealVideoFrame(video, () => scenes.coffee?.classList.add("coffee-playing"));
+    }
     syncCoffeeVideoAudio();
   });
   video?.addEventListener("error", () => {
@@ -1683,7 +1791,8 @@ uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
 soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
 AudioSys.publishState();
 
-document.addEventListener("pointerdown", () => {
+document.addEventListener("pointerdown", event => {
+  if (event.pointerType === "touch") return;
   if (!AudioSys.muted) AudioSys.ensureStarted().catch(() => {});
 }, { capture: true });
 
@@ -1710,7 +1819,7 @@ function activate(name) {
 function syncDoorSceneMedia(activeScene) {
   if (!doorIdleVideo || !doorOpenVideo) return;
   if (activeScene === "door") {
-    scenes.door.classList.remove("opening");
+    scenes.door.classList.remove("opening", "opening-frame-ready");
     doorOpenVideo.pause();
     try {
       doorOpenVideo.currentTime = 0;
@@ -1727,10 +1836,12 @@ function syncDoorSceneMedia(activeScene) {
 
 function syncDoorVideoAudio() {
   if (!doorIdleVideo || !doorOpenVideo) return;
-  const doorOpening = scenes.door.classList.contains("active") && scenes.door.classList.contains("opening");
   doorIdleVideo.muted = true;
   doorOpenVideo.volume = 0.58;
-  doorOpenVideo.muted = AudioSys.muted || !doorOpening;
+  // The synthesized door sound carries the feedback. Keeping the transition
+  // video muted prevents mobile WebViews from rejecting playback after the
+  // asynchronous opening sequence starts.
+  doorOpenVideo.muted = true;
 }
 
 function syncLoopSceneMedia(activeScene) {
@@ -1770,15 +1881,16 @@ function syncRoomVideoAudio() {
     roomLoopVideo.muted = true;
     return;
   }
+  const keepMutedForTouch = window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
   if (!roomLoopVideo.paused) {
-    roomLoopVideo.muted = AudioSys.muted;
+    roomLoopVideo.muted = AudioSys.muted || keepMutedForTouch;
     return;
   }
-  roomLoopVideo.muted = AudioSys.muted;
+  roomLoopVideo.muted = true;
   const started = roomLoopVideo.play();
   if (started) {
     started.then(() => {
-      roomLoopVideo.muted = AudioSys.muted || !scenes.room.classList.contains("active");
+      roomLoopVideo.muted = AudioSys.muted || keepMutedForTouch || !scenes.room.classList.contains("active");
     }).catch(() => {
       roomLoopVideo.muted = true;
       roomLoopVideo.play().catch(() => {});
@@ -1795,15 +1907,16 @@ function syncDeskVideoAudio() {
     resetSceneVideo(deskLoopVideo);
     return;
   }
+  const keepMutedForTouch = window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
   if (!deskLoopVideo.paused) {
-    deskLoopVideo.muted = AudioSys.muted;
+    deskLoopVideo.muted = AudioSys.muted || keepMutedForTouch;
     return;
   }
-  deskLoopVideo.muted = AudioSys.muted;
+  deskLoopVideo.muted = true;
   const started = deskLoopVideo.play();
   if (started) {
     started.then(() => {
-      deskLoopVideo.muted = AudioSys.muted || !scenes.desk.classList.contains("active");
+      deskLoopVideo.muted = AudioSys.muted || keepMutedForTouch || !scenes.desk.classList.contains("active");
     }).catch(() => {
       deskLoopVideo.muted = true;
       deskLoopVideo.play().catch(() => {});
@@ -1916,7 +2029,7 @@ function drawSketchCanvas() {
   ctx.strokeStyle = "rgba(255, 220, 238, .92)";
   ctx.lineWidth = Math.max(3, Math.min(width, height) * 0.028);
   ctx.shadowColor = "rgba(255, 126, 190, .38)";
-  ctx.shadowBlur = 8;
+  ctx.shadowBlur = window.matchMedia("(max-width: 680px)").matches ? 3 : 8;
   messageSketch.paths.forEach(path => {
     if (path.length < 2) return;
     ctx.beginPath();
@@ -1933,7 +2046,9 @@ function drawSketchCanvas() {
 function resizeSketchCanvas() {
   if (!messageDoodleCanvas) return;
   const rect = messageDoodleCanvas.getBoundingClientRect();
-  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  if (rect.width < 2 || rect.height < 2) return;
+  const ratioLimit = window.matchMedia("(max-width: 680px)").matches ? 1.5 : 2;
+  const ratio = Math.min(window.devicePixelRatio || 1, ratioLimit);
   const nextWidth = Math.max(1, Math.round(rect.width * ratio));
   const nextHeight = Math.max(1, Math.round(rect.height * ratio));
   if (messageDoodleCanvas.width !== nextWidth || messageDoodleCanvas.height !== nextHeight) {
@@ -1941,6 +2056,15 @@ function resizeSketchCanvas() {
     messageDoodleCanvas.height = nextHeight;
   }
   drawSketchCanvas();
+}
+
+function compactActiveSketchPath() {
+  const path = messageSketch.activePath;
+  if (!path || path.length < 96) return;
+  const compacted = path.filter((point, index) => index % 2 === 0 || index === path.length - 1);
+  const activeIndex = messageSketch.paths.indexOf(path);
+  if (activeIndex >= 0) messageSketch.paths[activeIndex] = compacted;
+  messageSketch.activePath = compacted;
 }
 
 function sketchPointFromEvent(event) {
@@ -1980,7 +2104,9 @@ function setupMessageSketch() {
   if (!messageDoodleCanvas) return;
   resizeSketchCanvas();
   messageDoodleCanvas.addEventListener("pointerdown", event => {
+    if (event.isPrimary === false || (event.pointerType === "mouse" && event.button !== 0)) return;
     event.preventDefault();
+    document.body.dataset.doodlePointer = `down:${event.pointerType || "unknown"}`;
     resizeSketchCanvas();
     messageDoodleCanvas.setPointerCapture?.(event.pointerId);
     const point = sketchPointFromEvent(event);
@@ -1989,13 +2115,16 @@ function setupMessageSketch() {
     messageSketch.paths = messageSketch.paths.slice(-8);
     messageSketch.drawing = true;
     drawSketchCanvas();
-  });
+  }, { passive: false });
   messageDoodleCanvas.addEventListener("pointermove", event => {
     if (!messageSketch.drawing || !messageSketch.activePath) return;
     event.preventDefault();
-    const samples = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [event];
+    document.body.dataset.doodlePointer = `move:${event.pointerType || "unknown"}`;
+    const coalesced = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [];
+    const samples = coalesced.length ? coalesced : [event];
     samples.forEach(sample => {
-      if (!messageSketch.activePath || messageSketch.activePath.length >= 96) return;
+      if (!messageSketch.activePath) return;
+      compactActiveSketchPath();
       const point = sketchPointFromEvent(sample);
       const last = messageSketch.activePath[messageSketch.activePath.length - 1];
       const distance = Math.abs(point[0] - last[0]) + Math.abs(point[1] - last[1]);
@@ -2003,7 +2132,8 @@ function setupMessageSketch() {
       messageSketch.activePath.push(point);
       drawSketchSegment(last, point);
     });
-  });
+    document.body.dataset.doodlePoints = String(messageSketch.activePath?.length || 0);
+  }, { passive: false });
   ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => {
     messageDoodleCanvas.addEventListener(type, event => {
       if (!messageSketch.drawing) return;
@@ -2015,8 +2145,14 @@ function setupMessageSketch() {
       messageSketch.activePath = null;
       messageSketch.paths = messageSketch.paths.filter(path => path.length > 1);
       drawSketchCanvas();
-    });
+      document.body.dataset.doodlePointer = `end:${event.pointerType || "unknown"}`;
+      document.body.dataset.doodlePoints = String(messageSketch.paths.at(-1)?.length || 0);
+    }, { passive: false });
   });
+  if (typeof ResizeObserver === "function") {
+    const observer = new ResizeObserver(() => resizeSketchCanvas());
+    observer.observe(messageDoodleCanvas);
+  }
   window.addEventListener("resize", resizeSketchCanvas);
 }
 
@@ -2141,7 +2277,8 @@ async function openMessageBoard() {
     try { messageName.value = localStorage.getItem("qroom-message-name") || ""; } catch (error) { void error; }
   }
   if (messageStatus) messageStatus.textContent = "你只能删除这台设备上由自己留下的留言。";
-  requestAnimationFrame(resizeSketchCanvas);
+  requestAnimationFrame(() => requestAnimationFrame(resizeSketchCanvas));
+  window.setTimeout(resizeSketchCanvas, 180);
   void loadMessageWall();
   AudioSys.click();
   AudioSys.shimmer(700, 0.018);
@@ -2210,7 +2347,10 @@ async function openCoffeeScene() {
 
 async function openChatScene() {
   await primeAudio();
+  const startingNewVisit = !scenes.chat.classList.contains("active");
   resetChatInteraction();
+  if (startingNewVisit) visitedChatKeys.clear();
+  if (chatInput) chatInput.placeholder = "想先从哪里聊起…";
   renderChatSuggestions("initial");
   if (meEcho) meEcho.hidden = true;
   chatVisualState = "relaxed";
@@ -2306,7 +2446,9 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
     activate("room");
     return;
   }
+  doorScene.classList.remove("opening-frame-ready");
   doorScene.classList.add("opening");
+  if (doorOpenVideo.classList.contains("frame-ready")) doorScene.classList.add("opening-frame-ready");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
   syncDoorVideoAudio();
@@ -2326,8 +2468,10 @@ document.getElementById("door-trigger").addEventListener("click", async () => {
     };
     doorOpenVideo.onended = finish;
     doorOpenVideo.onerror = finish;
-    doorOpenVideo.play().catch(finish);
-    window.setTimeout(finish, 2600);
+    doorOpenVideo.play().then(() => {
+      revealVideoFrame(doorOpenVideo, () => doorScene.classList.add("opening-frame-ready"));
+    }).catch(finish);
+    window.setTimeout(finish, 4200);
   });
   activate("room");
 });
@@ -2381,11 +2525,7 @@ document.getElementById("coffee-latte-option")?.addEventListener("click", async 
 
 document.getElementById("coffee-choose-again")?.addEventListener("click", async () => {
   await primeAudio();
-  coffeeChatAssist?.classList.remove("is-visible");
-  coffeeMenuCard?.classList.remove("is-minimized");
-  coffeeOrderBadge?.classList.remove("is-visible");
-  if (coffeeResultControls) coffeeResultControls.hidden = true;
-  setCoffeeMenuStep("root");
+  resetCoffeeExperience();
   AudioSys.shimmer(720, 0.016);
 });
 
@@ -2396,11 +2536,15 @@ document.getElementById("coffee-back-trigger")?.addEventListener("click", async 
   AudioSys.transition();
 });
 
-document.getElementById("coffee-chat-trigger")?.addEventListener("click", async () => {
+async function openChatFromCoffee() {
   await primeAudio();
+  clearCoffeeCompletionTimer();
   Object.values(coffeeVideos).forEach(video => video?.pause());
   await openChatScene();
-});
+}
+
+document.getElementById("coffee-chat-trigger")?.addEventListener("click", openChatFromCoffee);
+coffeeResultChat?.addEventListener("click", openChatFromCoffee);
 
 document.getElementById("room-exit-trigger").addEventListener("click", async () => {
   await primeAudio();
@@ -2549,17 +2693,49 @@ document.addEventListener("click", async event => {
   AudioSys.click(0.92);
 });
 
+let pendingTouchFeedback = null;
+
+function playInteractiveFeedback(interactive) {
+  const played = AudioSys.click(1, true);
+  if (played) {
+    document.body.dataset.uiClickTarget = interactive.getAttribute("aria-label") || interactive.textContent.trim().slice(0, 48);
+  }
+  AudioSys.ensureStarted().catch(() => {});
+}
+
 document.addEventListener("pointerdown", event => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const interactive = target.closest("button, a[href], .ring, .back-cue, .hotspot, .chat-chip");
   if (!interactive) return;
   if (interactive.closest("#sound-toggle")) return;
-  const played = AudioSys.click(1, true);
-  if (played) {
-    document.body.dataset.uiClickTarget = interactive.getAttribute("aria-label") || interactive.textContent.trim().slice(0, 48);
+  if (event.pointerType === "touch") {
+    pendingTouchFeedback = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      interactive
+    };
+    return;
   }
-  AudioSys.ensureStarted().catch(() => {});
+  playInteractiveFeedback(interactive);
+}, { capture: true });
+
+document.addEventListener("pointermove", event => {
+  if (!pendingTouchFeedback || pendingTouchFeedback.pointerId !== event.pointerId) return;
+  const distance = Math.abs(event.clientX - pendingTouchFeedback.x) + Math.abs(event.clientY - pendingTouchFeedback.y);
+  if (distance > 12) pendingTouchFeedback = null;
+}, { capture: true, passive: true });
+
+document.addEventListener("pointerup", event => {
+  if (!pendingTouchFeedback || pendingTouchFeedback.pointerId !== event.pointerId) return;
+  const { interactive } = pendingTouchFeedback;
+  pendingTouchFeedback = null;
+  playInteractiveFeedback(interactive);
+}, { capture: true });
+
+document.addEventListener("pointercancel", event => {
+  if (pendingTouchFeedback?.pointerId === event.pointerId) pendingTouchFeedback = null;
 }, { capture: true });
 
 document.addEventListener("keydown", async event => {
@@ -2609,6 +2785,8 @@ function applyDebugRoute() {
     messageModal?.setAttribute("aria-hidden", "false");
     syncLayerChrome();
     if (messageStatus) messageStatus.textContent = "你只能删除这台设备上由自己留下的留言。";
+    requestAnimationFrame(() => requestAnimationFrame(resizeSketchCanvas));
+    window.setTimeout(resizeSketchCanvas, 180);
     void loadMessageWall();
   }
 }
