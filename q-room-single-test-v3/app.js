@@ -1500,7 +1500,7 @@ window.sendChatMessage = sendChatMessage;
 
 // Keep one continuous background track. Scene videos stay visual-only, while
 // coffee media and short UI effects remain intentional foreground sounds.
-const AUDIO_MIX_VERSION = "single-background-v3";
+const AUDIO_MIX_VERSION = "single-bgm-full-sfx-v4";
 const BGM_VOLUME = 0.22;
 const UI_CLICK_VOLUME = 0.14;
 const UI_CLICK_MAX_VOLUME = 0.18;
@@ -1754,6 +1754,7 @@ const AudioSys = {
     syncCoffeeVideoAudio();
     if (this.muted) return;
     this.startBackgroundMusic();
+    if (scenes.room.classList.contains("active")) this.startRoomDetails();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
@@ -1913,12 +1914,21 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.volume = 0;
+  roomLoopVideo.volume = 1;
+  if (!sceneActive) {
+    roomLoopVideo.muted = true;
+    return;
+  }
+  if (!roomLoopVideo.paused) {
+    roomLoopVideo.muted = AudioSys.muted || document.hidden;
+    return;
+  }
   roomLoopVideo.muted = true;
-  if (!sceneActive || !roomLoopVideo.paused) return;
   const started = roomLoopVideo.play();
   if (started) {
-    started.catch(() => {
+    started.then(() => {
+      roomLoopVideo.muted = AudioSys.muted || document.hidden || !scenes.room.classList.contains("active");
+    }).catch(() => {
       roomLoopVideo.muted = true;
       roomLoopVideo.play().catch(() => {});
     });
@@ -1928,16 +1938,22 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  deskLoopVideo.volume = 0;
-  deskLoopVideo.muted = true;
+  deskLoopVideo.volume = 0.45;
   if (!sceneActive) {
+    deskLoopVideo.muted = true;
     resetSceneVideo(deskLoopVideo);
     return;
   }
-  if (!deskLoopVideo.paused) return;
+  if (!deskLoopVideo.paused) {
+    deskLoopVideo.muted = AudioSys.muted || document.hidden;
+    return;
+  }
+  deskLoopVideo.muted = true;
   const started = deskLoopVideo.play();
   if (started) {
-    started.catch(() => {
+    started.then(() => {
+      deskLoopVideo.muted = AudioSys.muted || document.hidden || !scenes.desk.classList.contains("active");
+    }).catch(() => {
       deskLoopVideo.muted = true;
       deskLoopVideo.play().catch(() => {});
     });
