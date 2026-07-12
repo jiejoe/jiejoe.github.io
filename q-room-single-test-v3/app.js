@@ -32,6 +32,7 @@ const chatSendButton = document.getElementById("send-btn");
 const soundToggle = document.getElementById("sound-toggle");
 const backgroundMusic = document.getElementById("background-music");
 const uiClickAudio = document.getElementById("ui-click-audio");
+const doorOpenAudio = document.getElementById("door-open-audio");
 const messageModal = document.getElementById("message-modal");
 const messageWall = document.getElementById("message-wall");
 const messageForm = document.getElementById("message-form");
@@ -1586,6 +1587,10 @@ const AudioSys = {
     if (this.muted) {
       this.stopKeyboard();
       this.stopRoomDetails();
+      if (doorOpenAudio) {
+        doorOpenAudio.muted = true;
+        doorOpenAudio.pause();
+      }
       this.pauseBackgroundMusic();
     } else {
       this.shimmer(720, 0.036);
@@ -1610,6 +1615,7 @@ const AudioSys = {
     document.body.dataset.audioMix = "click-video-music";
     document.body.dataset.audioMuted = String(this.muted);
     document.body.dataset.audioClick = uiClickAudio?.error ? "error" : uiClickAudio?.readyState >= 2 ? "ready" : "loading";
+    document.body.dataset.audioDoor = doorOpenAudio?.error ? "error" : doorOpenAudio && !doorOpenAudio.paused && !doorOpenAudio.muted ? "playing" : "ready";
     document.body.dataset.audioVideo = videoTracks.join(",") || "stopped";
     document.body.dataset.audioBackground = musicPlaying ? "playing-cafe-music" : "stopped";
     document.body.dataset.audioBackgroundVolume = backgroundMusic ? String(backgroundMusic.volume) : "0";
@@ -1798,10 +1804,20 @@ backgroundMusic?.addEventListener("pause", () => AudioSys.publishState());
 backgroundMusic?.addEventListener("error", () => AudioSys.publishState());
 uiClickAudio?.addEventListener("playing", () => AudioSys.publishState());
 uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
-[backgroundMusic, uiClickAudio].forEach(audio => {
+[backgroundMusic, uiClickAudio, doorOpenAudio].forEach(audio => {
   audio?.addEventListener("loadeddata", () => AudioSys.publishState());
   audio?.addEventListener("canplay", () => AudioSys.publishState());
 });
+doorOpenAudio?.addEventListener("playing", () => {
+  if (backgroundMusic && !AudioSys.muted) backgroundMusic.volume = 0.1;
+  AudioSys.publishState();
+});
+const restoreDoorAudioMix = () => {
+  if (backgroundMusic) backgroundMusic.volume = BGM_VOLUME;
+  AudioSys.publishState();
+};
+doorOpenAudio?.addEventListener("ended", restoreDoorAudioMix);
+doorOpenAudio?.addEventListener("error", restoreDoorAudioMix);
 [doorOpenVideo, roomLoopVideo, deskLoopVideo, coffeePourVideo, coffeeAmericanoVideo].forEach(video => {
   video?.addEventListener("loadeddata", () => AudioSys.publishState());
   video?.addEventListener("playing", () => AudioSys.publishState());
@@ -1817,6 +1833,10 @@ document.addEventListener("visibilitychange", () => {
     AudioSys.stopKeyboard();
     AudioSys.stopRoomDetails();
     AudioSys.pauseBackgroundMusic();
+    if (doorOpenAudio) {
+      doorOpenAudio.muted = true;
+      doorOpenAudio.pause();
+    }
     if (doorOpenVideo) doorOpenVideo.muted = true;
     if (roomLoopVideo) roomLoopVideo.muted = true;
     if (deskLoopVideo) deskLoopVideo.muted = true;
@@ -1871,6 +1891,15 @@ function syncDoorSceneMedia(activeScene) {
   if (!doorIdleVideo || !doorOpenVideo) return;
   if (activeScene === "door") {
     scenes.door.classList.remove("opening", "opening-frame-ready");
+    if (doorOpenAudio) {
+      doorOpenAudio.pause();
+      doorOpenAudio.muted = true;
+      try {
+        doorOpenAudio.currentTime = 0;
+      } catch (error) {
+        void error;
+      }
+    }
     delete doorOpenVideo.dataset.forceMuted;
     doorOpenVideo.pause();
     try {
@@ -1889,9 +1918,33 @@ function syncDoorSceneMedia(activeScene) {
 function syncDoorVideoAudio() {
   if (!doorIdleVideo || !doorOpenVideo) return;
   doorIdleVideo.muted = true;
-  doorOpenVideo.volume = 0.72;
-  const opening = scenes.door.classList.contains("active") && scenes.door.classList.contains("opening");
-  doorOpenVideo.muted = AudioSys.muted || document.hidden || !opening || doorOpenVideo.dataset.forceMuted === "true";
+  // Door sound is played by a dedicated audio element. Keeping the video
+  // silent avoids desktop/WebView differences and prevents double playback.
+  doorOpenVideo.muted = true;
+}
+
+function playDoorOpeningSound(audioReady) {
+  if (AudioSys.muted) return;
+  // Keep a short Web Audio thud as a safety layer. It starts after the audio
+  // context has resumed, so the door is still audible if HTMLAudio is denied.
+  Promise.resolve(audioReady).finally(() => {
+    if (!AudioSys.muted) AudioSys.door(0.9);
+  });
+  if (!doorOpenAudio) return;
+  doorOpenAudio.pause();
+  doorOpenAudio.muted = false;
+  doorOpenAudio.volume = 1;
+  try {
+    doorOpenAudio.currentTime = 0;
+  } catch (error) {
+    void error;
+  }
+  document.body.dataset.audioDoorAttempt = String(Date.now());
+  const started = doorOpenAudio.play();
+  if (!started) return;
+  started.catch(() => {
+    document.body.dataset.audioDoor = "fallback";
+  });
 }
 
 function syncLoopSceneMedia(activeScene) {
@@ -2480,17 +2533,15 @@ if (contactVideo) {
 }
 
 document.getElementById("door-trigger").addEventListener("click", () => {
+  const doorAudioReady = AudioSys.ensureStarted().catch(() => {});
   if (AudioSys.muted && !AudioSys.soundChoiceMade) {
-    AudioSys.ensureStarted().catch(() => {});
     AudioSys.setMuted(false);
-  } else {
-    primeAudio();
   }
   AudioSys.click(0.65);
+  playDoorOpeningSound(doorAudioReady);
   const doorScene = scenes.door;
   doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
-    AudioSys.door(0.75);
     activate("room");
     return;
   }
@@ -2523,7 +2574,6 @@ document.getElementById("door-trigger").addEventListener("click", () => {
 
   const started = doorOpenVideo.play();
   if (!started) {
-    AudioSys.door(0.75);
     window.setTimeout(finish, 500);
     return;
   }
@@ -2533,7 +2583,6 @@ document.getElementById("door-trigger").addEventListener("click", () => {
     if (runId !== doorTransitionRunId) return;
     doorOpenVideo.dataset.forceMuted = "true";
     doorOpenVideo.muted = true;
-    AudioSys.door(0.75);
     doorOpenVideo.play().then(() => {
       revealVideoFrame(doorOpenVideo, () => doorScene.classList.add("opening-frame-ready"));
     }).catch(() => {});
