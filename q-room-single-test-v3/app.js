@@ -1501,10 +1501,10 @@ window.sendChatMessage = sendChatMessage;
 // This version explicitly preserves the three independent tracks: UI click,
 // active video audio, and background music. Reset stale mute preferences once
 // when upgrading from the older audio implementation.
-const AUDIO_MIX_VERSION = "three-track-v1";
-const BGM_VOLUME = 0.1;
-const UI_CLICK_VOLUME = 0.28;
-const UI_CLICK_MAX_VOLUME = 0.38;
+const AUDIO_MIX_VERSION = "balanced-room-v2";
+const BGM_VOLUME = 0.22;
+const UI_CLICK_VOLUME = 0.14;
+const UI_CLICK_MAX_VOLUME = 0.18;
 if (localStorage.getItem("qroom-audio-mix-version") !== AUDIO_MIX_VERSION) {
   localStorage.setItem("qroom-muted", "0");
   localStorage.setItem("qroom-audio-mix-version", AUDIO_MIX_VERSION);
@@ -1755,6 +1755,7 @@ const AudioSys = {
     syncCoffeeVideoAudio();
     if (this.muted) return;
     this.startBackgroundMusic();
+    if (scenes.room.classList.contains("active")) this.startRoomDetails();
     if (scenes.desk.classList.contains("active")) this.startKeyboard();
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
@@ -1812,8 +1813,7 @@ uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
 soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
 AudioSys.publishState();
 
-document.addEventListener("pointerdown", event => {
-  if (event.pointerType === "touch") return;
+document.addEventListener("pointerdown", () => {
   if (!AudioSys.muted) AudioSys.ensureStarted().catch(() => {});
 }, { capture: true });
 
@@ -1897,21 +1897,20 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.volume = 0.24;
+  roomLoopVideo.volume = 1;
   if (!sceneActive) {
     roomLoopVideo.muted = true;
     return;
   }
-  const keepMutedForTouch = window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
   if (!roomLoopVideo.paused) {
-    roomLoopVideo.muted = AudioSys.muted || keepMutedForTouch;
+    roomLoopVideo.muted = AudioSys.muted;
     return;
   }
   roomLoopVideo.muted = true;
   const started = roomLoopVideo.play();
   if (started) {
     started.then(() => {
-      roomLoopVideo.muted = AudioSys.muted || keepMutedForTouch || !scenes.room.classList.contains("active");
+      roomLoopVideo.muted = AudioSys.muted || !scenes.room.classList.contains("active");
     }).catch(() => {
       roomLoopVideo.muted = true;
       roomLoopVideo.play().catch(() => {});
@@ -1922,22 +1921,21 @@ function syncRoomVideoAudio() {
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  deskLoopVideo.volume = 0.24;
+  deskLoopVideo.volume = 0.45;
   if (!sceneActive) {
     deskLoopVideo.muted = true;
     resetSceneVideo(deskLoopVideo);
     return;
   }
-  const keepMutedForTouch = window.matchMedia("(pointer: coarse), (max-width: 680px)").matches;
   if (!deskLoopVideo.paused) {
-    deskLoopVideo.muted = AudioSys.muted || keepMutedForTouch;
+    deskLoopVideo.muted = AudioSys.muted;
     return;
   }
   deskLoopVideo.muted = true;
   const started = deskLoopVideo.play();
   if (started) {
     started.then(() => {
-      deskLoopVideo.muted = AudioSys.muted || keepMutedForTouch || !scenes.desk.classList.contains("active");
+      deskLoopVideo.muted = AudioSys.muted || !scenes.desk.classList.contains("active");
     }).catch(() => {
       deskLoopVideo.muted = true;
       deskLoopVideo.play().catch(() => {});
@@ -2716,11 +2714,11 @@ document.addEventListener("click", async event => {
 let pendingTouchFeedback = null;
 
 function playInteractiveFeedback(interactive) {
+  AudioSys.ensureStarted().catch(() => {});
   const played = AudioSys.click(1, true);
   if (played) {
     document.body.dataset.uiClickTarget = interactive.getAttribute("aria-label") || interactive.textContent.trim().slice(0, 48);
   }
-  AudioSys.ensureStarted().catch(() => {});
 }
 
 document.addEventListener("pointerdown", event => {
