@@ -1,4 +1,5 @@
 document.body.setAttribute("data-script-ready", "yes");
+document.body.dataset.scene = "door";
 
 const scenes = {
   door: document.getElementById("scene-door"),
@@ -621,18 +622,21 @@ function renderWorkBrowser() {
       </div>
     `;
 
+    const supportsWallHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     Array.from(browserDetail.querySelectorAll("[data-work-id]")).forEach(button => {
-      button.addEventListener("pointermove", event => {
-        const rect = button.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 100;
-        const y = ((event.clientY - rect.top) / rect.height) * 100;
-        button.style.setProperty("--mx", `${Math.max(12, Math.min(88, x))}%`);
-        button.style.setProperty("--my", `${Math.max(16, Math.min(84, y))}%`);
-      });
-      button.addEventListener("pointerleave", () => {
-        button.style.removeProperty("--mx");
-        button.style.removeProperty("--my");
-      });
+      if (supportsWallHover) {
+        button.addEventListener("pointermove", event => {
+          const rect = button.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 100;
+          const y = ((event.clientY - rect.top) / rect.height) * 100;
+          button.style.setProperty("--mx", `${Math.max(12, Math.min(88, x))}%`);
+          button.style.setProperty("--my", `${Math.max(16, Math.min(84, y))}%`);
+        });
+        button.addEventListener("pointerleave", () => {
+          button.style.removeProperty("--mx");
+          button.style.removeProperty("--my");
+        });
+      }
       button.addEventListener("click", async () => {
         activeWorkDetailId = button.dataset.workId;
         renderWorkBrowser();
@@ -1686,6 +1690,7 @@ function activate(name) {
   if (name !== "chat" && scenes.chat.classList.contains("active")) {
     resetChatInteraction();
   }
+  document.body.dataset.scene = name;
   Object.entries(scenes).forEach(([key, scene]) => {
     scene.classList.toggle("active", key === name);
   });
