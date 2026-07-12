@@ -1373,6 +1373,9 @@ window.sendChatMessage = sendChatMessage;
 // active video audio, and background music. Reset stale mute preferences once
 // when upgrading from the older audio implementation.
 const AUDIO_MIX_VERSION = "three-track-v1";
+const BGM_VOLUME = 0.1;
+const UI_CLICK_VOLUME = 0.28;
+const UI_CLICK_MAX_VOLUME = 0.38;
 if (localStorage.getItem("qroom-audio-mix-version") !== AUDIO_MIX_VERSION) {
   localStorage.setItem("qroom-muted", "0");
   localStorage.setItem("qroom-audio-mix-version", AUDIO_MIX_VERSION);
@@ -1423,7 +1426,7 @@ const AudioSys = {
   },
   startBackgroundMusic() {
     if (!backgroundMusic || this.muted) return;
-    backgroundMusic.volume = 0.075;
+    backgroundMusic.volume = BGM_VOLUME;
     backgroundMusic.muted = false;
     document.body.dataset.audioBackgroundAttempt = String(Date.now());
     backgroundMusic.play().then(() => this.publishState()).catch(() => this.publishState());
@@ -1532,15 +1535,17 @@ const AudioSys = {
     this.lastClickAt = now;
     const playSynthFallback = () => {
       if (this.ctx?.state !== "running") return false;
-      this.noise(0.045, 0.09 * scale, 4600, 1500);
-      this.tone(620, 0.06, 0.098 * scale, "triangle");
-      setTimeout(() => this.tone(1080, 0.07, 0.052 * scale, "sine"), 28);
+      this.noise(0.045, 0.044 * scale, 4600, 1500);
+      this.tone(620, 0.06, 0.048 * scale, "triangle");
+      setTimeout(() => this.tone(1080, 0.07, 0.026 * scale, "sine"), 28);
       return true;
     };
     if (uiClickAudio) {
       uiClickAudio.pause();
       uiClickAudio.currentTime = 0;
-      uiClickAudio.volume = Math.min(0.78, 0.62 * scale);
+      const clickVolume = Math.min(UI_CLICK_MAX_VOLUME, UI_CLICK_VOLUME * scale);
+      uiClickAudio.volume = clickVolume;
+      document.body.dataset.audioClickVolume = String(clickVolume);
       const started = uiClickAudio.play();
       if (started) {
         started.catch(() => {
@@ -1641,7 +1646,7 @@ function applyMusicTrack(trackId, options = {}) {
   backgroundMusic.pause();
   backgroundMusic.src = src;
   backgroundMusic.load();
-  backgroundMusic.volume = 0.075;
+  backgroundMusic.volume = BGM_VOLUME;
   syncMusicControls(trackId, label);
   document.body.dataset.audioMusicTrack = trackId;
   if (options.persist !== false && preset) {
@@ -2550,7 +2555,7 @@ document.addEventListener("pointerdown", event => {
   const interactive = target.closest("button, a[href], .ring, .back-cue, .hotspot, .chat-chip");
   if (!interactive) return;
   if (interactive.closest("#sound-toggle")) return;
-  const played = AudioSys.click(1.05, true);
+  const played = AudioSys.click(1, true);
   if (played) {
     document.body.dataset.uiClickTarget = interactive.getAttribute("aria-label") || interactive.textContent.trim().slice(0, 48);
   }
