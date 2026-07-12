@@ -13,14 +13,7 @@ const progressLabels = [
   document.getElementById("p1"),
   document.getElementById("p2"),
   document.getElementById("p3"),
-  document.getElementById("p4"),
-  document.getElementById("p5")
-];
-const progressDots = [
-  document.getElementById("d1"),
-  document.getElementById("d2"),
-  document.getElementById("d3"),
-  document.getElementById("d4")
+  document.getElementById("p4")
 ];
 
 const workPanel = document.getElementById("work-panel");
@@ -33,9 +26,11 @@ const qStageBubble = document.getElementById("q-stage-bubble");
 const qStageText = document.getElementById("q-stage-text");
 const meEcho = document.getElementById("me-echo");
 const chatInput = document.getElementById("chat-input");
-const chatChips = Array.from(document.querySelectorAll(".chat-chip"));
+const chatSuggestions = document.getElementById("chat-suggestions");
+const chatSendButton = document.getElementById("send-btn");
 const soundToggle = document.getElementById("sound-toggle");
 const backgroundMusic = document.getElementById("background-music");
+const uiClickAudio = document.getElementById("ui-click-audio");
 const messageModal = document.getElementById("message-modal");
 const messageWall = document.getElementById("message-wall");
 const messageForm = document.getElementById("message-form");
@@ -50,6 +45,12 @@ const loaderStatus = document.getElementById("loader-status");
 const moodTrigger = document.getElementById("mood-trigger");
 const moodMenu = document.getElementById("mood-menu");
 const moodButtons = Array.from(document.querySelectorAll("[data-mood]"));
+const musicTrigger = document.getElementById("music-trigger");
+const musicMenu = document.getElementById("music-menu");
+const musicButtons = Array.from(document.querySelectorAll("[data-music]"));
+const musicUploadTrigger = document.getElementById("music-upload-trigger");
+const musicFileInput = document.getElementById("music-file-input");
+const musicNow = document.getElementById("music-now");
 const doorIdleVideo = document.getElementById("door-idle-video");
 const doorOpenVideo = document.getElementById("door-open-video");
 const roomLoopVideo = document.getElementById("room-loop-video");
@@ -187,16 +188,32 @@ function setRoomMood(nextMood) {
   moodButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mood === mood)));
 }
 
+const MUSIC_TRACKS = {
+  serene: { label: "Serene Piano", src: "./assets/music-serene-piano.mp3?v=20260712" },
+  ambient: { label: "Calm Ambient", src: "./assets/music-calm-ambient.mp3?v=20260712" },
+  piano: { label: "Calm Piano", src: "./assets/music-calm-piano.mp3?v=20260712" },
+};
+let customMusicUrl = "";
+
+function syncMusicControls(trackId, label) {
+  musicButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.music === trackId)));
+  if (musicNow) musicNow.textContent = `Now playing · ${label}`;
+  if (backgroundMusic) {
+    backgroundMusic.dataset.musicId = trackId;
+    backgroundMusic.dataset.musicLabel = label;
+  }
+}
+
 startSiteLoader();
 setRoomMood("glow");
 
 const sceneProgress = {
-  door: 0,
-  room: 1,
-  coffee: 1,
-  desk: 2,
-  chat: 3,
-  contact: 4
+  door: -1,
+  room: 0,
+  coffee: 0,
+  desk: 1,
+  chat: 2,
+  contact: 3
 };
 const workedOnItems = [
   {
@@ -488,13 +505,101 @@ const MESSAGE_ENDPOINT = WORKER + "/qroom-messages";
 let chatBusy = false;
 let chatAnswering = false;
 let chatVisualState = "waiting";
+let chatRunId = 0;
+let activeChatController = null;
 let convo = [
   {
     role: "system",
     content:
-      "You are Q, an AI Native product manager and builder. Speak warmly, naturally, and specifically in first person. Keep each answer to two or three TTS-friendly sentences, without Markdown lists. You have eight or nine years of product experience across Taobao AI shopping, Meijian, and Homestyler. Recently you are building 拾谱, an iOS and iPad personal guitar score library, while researching Music Agent and how agents can help people learn. You care about the personalized pain points in learning: different blockers, pacing, prior knowledge, and feedback styles. You also study how people collaborate with one or multiple agents in ways that genuinely improve productivity. If asked to introduce yourself, connect your product background, current small projects, and this direction. Stay grounded and do not mention hackathons unless the visitor brings them up."
+      "You are Q, an AI product manager and builder. Speak warmly, naturally, and specifically in first person. Keep each thought short and conversational. You have many years of product experience and now spend most of your time building AI tools. You are currently building Q Studio, an interactive 2.5D personal space combining cinematic images and game interaction. You are interested in Personal Agents, human-agent collaboration, and how AI changes the value created by knowledge workers."
   }
 ];
+
+const QUICK_CHAT_RESPONSES = {
+  intro: [
+    "Hey, I’m Q 👋",
+    { html: "我做了很多年产品。你可能没听过我的名字，但<strong>大概率用过我的产品</strong>。" },
+    "现在大部分时间都在做 AI 工具，也会用自己的生活做各种小实验。",
+    { html: "我非常喜欢创造。一个原本不存在的东西慢慢有了形状、可以被人体验，<strong>这件事本身就很迷人</strong>。" }
+  ],
+  project: [
+    { html: "最近投入最多的，就是 <strong>Q Studio</strong>——你现在正在玩的这个空间。" },
+    "最开始我想把它做成一个像 3D 游戏一样、可以走进去的个人空间。后来发现，用影像可以更快进入沉浸感，它就慢慢变成了影视画面与游戏交互结合的 2.5D 空间。",
+    "我用 Codex 写交互、用 Seedance 做影像，也接触了不少 Agent 和 Infra 产品。",
+    { html: "产品经理 × 游戏策划 × 电影导演 × 交互设计 × Builder", tone: "quote" },
+    { html: "这个角色 Mix 的体验很爽。这也许就是 AI 时代一个<strong>超级知识工作者</strong>的写照：一个人带着一组 AI，在多个专业角色之间快速移动。" }
+  ],
+  "product-value": [
+    { html: "我曾经是一个很沉迷 <em>DAU</em> 的产品经理。" },
+    "创业时做过上百万用户的产品，后来在大厂服务过数十亿用户。",
+    { html: "但 AI 模型应用不是这样。<strong>DAU 也许不是衡量它价值最重要的标准。</strong>" },
+    { html: "它的价值，更多来自用户使用 Token 创造了什么。可能是一段代码、一个决定、一份工作，也可能是给用户提供的<strong>情绪价值</strong>。" }
+  ],
+  agent: [
+    { html: "<strong>Personal Agent</strong> 是一个让我很感兴趣的 AI 领域。它离用户很近，也会构建出新的人机关系。" },
+    "它会出现在陪伴、工作、创作、硬件和软件里，也会面对完全不同的人群和生活场景。",
+    { html: "我最近也在持续观察和体验 <em>Bloome、Matrix、Cofounder</em> 这一系列 Agent 产品。" },
+    "人总会借用熟悉的东西去理解新事物。Agent 把抽象的智能变成一个可以交付任务、沟通和协作的代理，所以它是一种很自然的 AI 产品形态。",
+    { html: "人和 Agent 的协作，会停在“把一个人的效率推到极致”吗？<br>还是会继续放大一群人的生产力？", tone: "quote" }
+  ],
+  models: [
+    "这个问题的答案会一直变化。",
+    { html: "最近我又开始用 <strong>Codex</strong>。" },
+    { html: "模型主要用 <em>GPT-5.6</em> 和 <em>Grok 4.5</em>。便宜又快，推荐。" }
+  ]
+};
+
+const CHAT_QUESTIONS = {
+  intro: { label: "先认识一下 Q", prompt: "介绍一下你自己" },
+  project: { label: "最近在做什么", prompt: "聊聊你最近在做什么" },
+  "product-value": { label: "新的产品判断", prompt: "聊聊你最近新的产品判断" },
+  agent: { label: "最近关心的方向", prompt: "聊聊你最近关心的方向" },
+  models: { label: "常用的 AI 产品", prompt: "推荐一下你常用的 AI 产品和模型" },
+  share: { label: "说说我的项目", action: "share" }
+};
+
+const CHAT_FOLLOW_UPS = {
+  initial: ["intro", "project", "agent"],
+  intro: ["project", "agent", "product-value"],
+  project: ["agent", "product-value", "models"],
+  "product-value": ["agent", "models", "project"],
+  agent: ["models", "product-value", "share"],
+  models: ["project", "agent", "share"]
+};
+
+const CHAT_TOPIC_ORDER = ["intro", "project", "agent", "product-value", "models"];
+const visitedChatKeys = new Set();
+
+function renderChatSuggestions(context = "initial") {
+  if (!chatSuggestions) return;
+  const preferred = CHAT_FOLLOW_UPS[context] || CHAT_FOLLOW_UPS.initial;
+  const keys = preferred.filter(key => key === "share" || !visitedChatKeys.has(key));
+  for (const key of CHAT_TOPIC_ORDER) {
+    if (keys.length >= 3) break;
+    if (!visitedChatKeys.has(key) && !keys.includes(key)) keys.push(key);
+  }
+  if (!keys.length || (keys.length < 3 && visitedChatKeys.size >= CHAT_TOPIC_ORDER.length)) {
+    if (!keys.includes("share")) keys.push("share");
+  }
+  chatSuggestions.replaceChildren(...keys.map(key => {
+    const question = CHAT_QUESTIONS[key];
+    const button = document.createElement("button");
+    button.className = "chat-chip";
+    button.type = "button";
+    button.textContent = question.label;
+    if (question.prompt) button.dataset.prompt = question.prompt;
+    if (question.action) button.dataset.action = question.action;
+    if (QUICK_CHAT_RESPONSES[key]) button.dataset.chatKey = key;
+    return button;
+  }));
+}
+
+function setChatSuggestionsBusy(busy) {
+  chatSuggestions?.classList.toggle("is-busy", Boolean(busy));
+  chatSuggestions?.querySelectorAll("button").forEach(button => {
+    button.disabled = Boolean(busy);
+  });
+}
 
 function renderWorkBrowser() {
   if (!browserDetail) return;
@@ -821,13 +926,125 @@ function renderDetailMedia(media) {
   `;
 }
 
+function scrollQMessagesToBottom() {
+  if (!qStageBubble) return;
+  window.requestAnimationFrame(() => {
+    qStageBubble.scrollTop = qStageBubble.scrollHeight;
+  });
+}
+
+function removeQTypingBubble() {
+  qStageText?.querySelector(".q-stage-message.is-typing")?.remove();
+}
+
+function trimQMessages() {
+  if (!qStageText) return;
+  const messages = Array.from(qStageText.querySelectorAll(".q-stage-message:not(.is-typing)"));
+  while (messages.length > 8) messages.shift()?.remove();
+}
+
+function getQBubblePlainText(content) {
+  if (typeof content === "string") return content;
+  if (!content) return "";
+  if (content.text) return content.text;
+  return String(content.html || "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&[^;]+;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function appendQSpeechBubble(content) {
+  if (!qStageText || !content) return null;
+  removeQTypingBubble();
+  const bubble = document.createElement("div");
+  bubble.className = "q-stage-message";
+  if (typeof content === "object" && content.html) {
+    bubble.innerHTML = content.html;
+    if (content.tone === "quote") bubble.classList.add("is-quote");
+  } else {
+    bubble.textContent = getQBubblePlainText(content);
+  }
+  qStageText.appendChild(bubble);
+  trimQMessages();
+  setChatBubbleVisible(true);
+  scrollQMessagesToBottom();
+  return bubble;
+}
+
+function showQTypingBubble() {
+  if (!qStageText) return;
+  removeQTypingBubble();
+  const bubble = document.createElement("div");
+  bubble.className = "q-stage-message is-typing";
+  bubble.setAttribute("aria-label", "Q is typing");
+  for (let i = 0; i < 3; i += 1) bubble.appendChild(document.createElement("i"));
+  qStageText.appendChild(bubble);
+  setChatBubbleVisible(true);
+  scrollQMessagesToBottom();
+}
+
 function setQSpeech(text, typing) {
-  qStageText.textContent = text;
-  qStageText.classList.toggle("typing", Boolean(typing));
+  if (!qStageText) return;
+  if (!text && !typing) {
+    qStageText.replaceChildren();
+    return;
+  }
+  if (typing) {
+    showQTypingBubble();
+    return;
+  }
+  appendQSpeechBubble(text);
+}
+
+function splitChatAnswer(text) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return [];
+  const sentences = clean.match(/[^。！？!?]+[。！？!?]?/g) || [clean];
+  const bubbles = [];
+  for (const sentence of sentences) {
+    const part = sentence.trim();
+    if (!part) continue;
+    const previous = bubbles[bubbles.length - 1];
+    if (previous && previous.length + part.length < 58) bubbles[bubbles.length - 1] += part;
+    else bubbles.push(part);
+  }
+  return bubbles.slice(0, 6);
+}
+
+function isChatRunActive(runId) {
+  return runId === chatRunId && scenes.chat.classList.contains("active");
+}
+
+async function revealQSpeechBubbles(parts, runId) {
+  if (!isChatRunActive(runId)) return false;
+  removeQTypingBubble();
+  const bubbles = parts.filter(Boolean);
+  for (let index = 0; index < bubbles.length; index += 1) {
+    if (!isChatRunActive(runId)) return false;
+    appendQSpeechBubble(bubbles[index]);
+    if (index < bubbles.length - 1) {
+      const bubbleLength = getQBubblePlainText(bubbles[index]).length;
+      await new Promise(resolve => window.setTimeout(resolve, Math.min(1050, 420 + bubbleLength * 13)));
+      if (!isChatRunActive(runId)) return false;
+      showQTypingBubble();
+      await new Promise(resolve => window.setTimeout(resolve, 260));
+      if (!isChatRunActive(runId)) return false;
+      removeQTypingBubble();
+    }
+  }
+  return true;
 }
 
 function setChatBubbleVisible(visible) {
   qStageBubble?.classList.toggle("is-visible", Boolean(visible));
+}
+
+function resetVisibleChatTurn() {
+  qStageText?.replaceChildren();
+  if (qStageBubble) qStageBubble.scrollTop = 0;
+  setChatBubbleVisible(false);
 }
 
 function resetSceneVideo(video) {
@@ -870,7 +1087,6 @@ function syncCoffeeVideoAudio() {
   const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
-    // Keep the brew sound present without masking the separate music track.
     video.volume = 0.3;
     video.muted = AudioSys.muted || !coffeeActive || key !== activeCoffeeVideoKey;
   });
@@ -909,7 +1125,7 @@ function playCoffeeVideo(videoKey, label) {
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = label || (videoKey === "pourover" ? "Pour Over" : "Iced Americano");
   scenes.coffee?.classList.remove("coffee-playing");
-  coffeeChatAssist?.classList.add("is-visible");
+  coffeeChatAssist?.classList.remove("is-visible");
 
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
@@ -927,7 +1143,7 @@ function playCoffeeVideo(videoKey, label) {
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${activeCoffeeLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = true;
   syncCoffeeVideoAudio();
-  nextVideo.muted = true;
+  nextVideo.muted = AudioSys.muted;
 
   nextVideo.play().then(() => {
     syncCoffeeVideoAudio();
@@ -961,10 +1177,6 @@ Object.entries(coffeeVideos).forEach(([key, video]) => {
   video?.addEventListener("playing", () => {
     if (activeCoffeeVideoKey === key) scenes.coffee?.classList.add("coffee-playing");
     syncCoffeeVideoAudio();
-  });
-  video?.addEventListener("timeupdate", () => {
-    if (activeCoffeeVideoKey !== key || !video.duration) return;
-    if (video.currentTime >= video.duration * 0.8) coffeeChatAssist?.classList.add("is-visible");
   });
   video?.addEventListener("error", () => {
     if (activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
@@ -1028,29 +1240,61 @@ function handleChatIdleEnded(state) {
 
 chatRelaxedVideo?.addEventListener("ended", () => handleChatIdleEnded("relaxed"));
 
-async function sendChatMessage(prefill) {
+function resetChatInteraction({ clearTurn = true } = {}) {
+  chatRunId += 1;
+  activeChatController?.abort();
+  activeChatController = null;
+  chatBusy = false;
+  chatAnswering = false;
+  setChatSuggestionsBusy(false);
+  if (chatSendButton) chatSendButton.disabled = false;
+  removeQTypingBubble();
+  if (clearTurn) resetVisibleChatTurn();
+}
+
+async function sendChatMessage(prefill, scriptedKey = "") {
   const text = (prefill || chatInput.value).trim();
   if (!text || chatBusy) return;
+  const runId = ++chatRunId;
+  const controller = new AbortController();
+  activeChatController = controller;
+  resetVisibleChatTurn();
   setChatBubbleVisible(true);
   chatBusy = true;
   chatAnswering = false;
+  setChatSuggestionsBusy(true);
   chatInput.value = "";
-  meEcho.hidden = false;
-  meEcho.textContent = text;
+  const showUserEcho = !scriptedKey;
+  meEcho.hidden = !showUserEcho;
+  if (showUserEcho) meEcho.textContent = text;
   setQSpeech("让我想一下…", true);
   setChatVisualState("waiting", { reset: true });
-  convo.push({ role: "user", content: text });
   AudioSys.click();
   AudioSys.shimmer(820, 0.018);
-  document.getElementById("send-btn").disabled = true;
+  if (chatSendButton) chatSendButton.disabled = true;
   let answerStartedAt = 0;
 
   try {
+    const scriptedBubbles = QUICK_CHAT_RESPONSES[scriptedKey];
+    if (scriptedBubbles) {
+      await new Promise(resolve => window.setTimeout(resolve, 520));
+      if (!isChatRunActive(runId)) return;
+      answerStartedAt = Date.now();
+      setChatAnswering(true);
+      const revealed = await revealQSpeechBubbles(scriptedBubbles, runId);
+      if (!revealed) return;
+      convo.push({ role: "user", content: text });
+      convo.push({ role: "assistant", content: scriptedBubbles.map(getQBubblePlainText).join(" ") });
+      return;
+    }
+
     const resp = await fetch(WORKER + "/qroom-chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: convo })
+      body: JSON.stringify({ messages: [...convo, { role: "user", content: text }] }),
+      signal: controller.signal
     });
+    if (!isChatRunActive(runId)) return;
     if (!resp.ok || !resp.body) throw new Error("chat unavailable");
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
@@ -1060,6 +1304,7 @@ async function sendChatMessage(prefill) {
 
     while (true) {
       const part = await reader.read();
+      if (!isChatRunActive(runId)) return;
       if (part.done) break;
       buf += decoder.decode(part.value, { stream: true });
       const lines = buf.split("\n");
@@ -1080,7 +1325,6 @@ async function sendChatMessage(prefill) {
             setChatAnswering(true);
           }
           acc += delta;
-          setQSpeech(acc, true);
         } catch (error) {
           void error;
         }
@@ -1090,23 +1334,45 @@ async function sendChatMessage(prefill) {
     if (!acc) {
       acc = "I didn't catch that cleanly. Ask me again, or we can come at it from another angle.";
     }
-    setQSpeech(acc, false);
+    if (!receivedAnswer) {
+      answerStartedAt = Date.now();
+      setChatAnswering(true);
+    }
+    const revealed = await revealQSpeechBubbles(splitChatAnswer(acc), runId);
+    if (!revealed) return;
+    convo.push({ role: "user", content: text });
     convo.push({ role: "assistant", content: acc });
   } catch (error) {
-    setQSpeech("刚才连接走神了一下，可以再问我一次。", false);
+    if (error?.name === "AbortError" || !isChatRunActive(runId)) return;
+    removeQTypingBubble();
+    appendQSpeechBubble("刚才连接走神了一下，可以再问我一次。");
   } finally {
+    if (runId !== chatRunId) return;
     if (answerStartedAt) {
       const remainingTalkTime = Math.max(0, 1400 - (Date.now() - answerStartedAt));
       if (remainingTalkTime) await new Promise(resolve => window.setTimeout(resolve, remainingTalkTime));
     }
+    if (runId !== chatRunId) return;
+    activeChatController = null;
     chatBusy = false;
     chatAnswering = false;
-    document.getElementById("send-btn").disabled = false;
+    renderChatSuggestions(scriptedKey || "initial");
+    setChatSuggestionsBusy(false);
+    if (chatSendButton) chatSendButton.disabled = false;
     if (scenes.chat.classList.contains("active")) startChatRest("waiting");
   }
 }
 
 window.sendChatMessage = sendChatMessage;
+
+// This version explicitly preserves the three independent tracks: UI click,
+// active video audio, and background music. Reset stale mute preferences once
+// when upgrading from the older audio implementation.
+const AUDIO_MIX_VERSION = "three-track-v1";
+if (localStorage.getItem("qroom-audio-mix-version") !== AUDIO_MIX_VERSION) {
+  localStorage.setItem("qroom-muted", "0");
+  localStorage.setItem("qroom-audio-mix-version", AUDIO_MIX_VERSION);
+}
 
 const AudioSys = {
   ctx: null,
@@ -1117,7 +1383,18 @@ const AudioSys = {
   roomTimer: null,
   soundChoiceMade: localStorage.getItem("qroom-muted") !== null,
   lastClickAt: 0,
+  armMediaTracks() {
+    if (this.muted) return;
+    this.startBackgroundMusic();
+    syncDoorVideoAudio();
+    syncRoomVideoAudio();
+    syncDeskVideoAudio();
+    syncCoffeeVideoAudio();
+  },
   async ensureStarted() {
+    // Arm HTML media while the pointer gesture is still active. Waiting for
+    // AudioContext.resume() first can move playback outside the gesture window.
+    this.armMediaTracks();
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
@@ -1126,18 +1403,25 @@ const AudioSys = {
       this.effectsBus.gain.value = 0.82;
       this.effectsBus.connect(this.master);
       this.master.connect(this.ctx.destination);
+      this.ctx.addEventListener("statechange", () => this.publishState());
     }
     if (this.ctx.state === "suspended") {
-      // Some browsers keep resume() pending; never let it block the UI gesture.
-      this.ctx.resume().catch(() => {});
+      // Resume inside the user gesture, then briefly wait so the first click
+      // is not scheduled against a suspended audio context.
+      const resumed = this.ctx.resume().catch(() => {});
+      await Promise.race([
+        resumed,
+        new Promise(resolve => window.setTimeout(resolve, 180)),
+      ]);
     }
-    if (!this.muted) this.startBackgroundMusic();
+    this.armMediaTracks();
     this.publishState();
   },
   startBackgroundMusic() {
     if (!backgroundMusic || this.muted) return;
-    backgroundMusic.volume = 0.16;
+    backgroundMusic.volume = 0.075;
     backgroundMusic.muted = false;
+    document.body.dataset.audioBackgroundAttempt = String(Date.now());
     backgroundMusic.play().then(() => this.publishState()).catch(() => this.publishState());
   },
   pauseBackgroundMusic() {
@@ -1181,10 +1465,21 @@ const AudioSys = {
   },
   publishState() {
     const musicPlaying = Boolean(backgroundMusic && !backgroundMusic.paused && !backgroundMusic.muted);
-    document.body.dataset.audioMix = "music-effects-video";
+    const videoTracks = [
+      ["door", doorOpenVideo],
+      ["room", roomLoopVideo],
+      ["desk", deskLoopVideo],
+      ["coffee-pourover", coffeePourVideo],
+      ["coffee-americano", coffeeAmericanoVideo],
+    ].filter(([, video]) => video && !video.paused && !video.muted).map(([name]) => name);
+    document.body.dataset.audioMix = "click-video-music";
     document.body.dataset.audioMuted = String(this.muted);
+    document.body.dataset.audioClick = uiClickAudio?.error ? "error" : uiClickAudio?.readyState >= 2 ? "ready" : "loading";
+    document.body.dataset.audioVideo = videoTracks.join(",") || "stopped";
     document.body.dataset.audioBackground = musicPlaying ? "playing-cafe-music" : "stopped";
+    document.body.dataset.audioBackgroundVolume = backgroundMusic ? String(backgroundMusic.volume) : "0";
     document.body.dataset.audioBuses = this.effectsBus ? "ready" : "pending";
+    document.body.dataset.audioContext = this.ctx?.state || "not-created";
   },
   tone(freq, dur, vol, type) {
     if (!this.ctx || this.muted) return;
@@ -1224,14 +1519,37 @@ const AudioSys = {
     src.start(now);
     src.stop(now + dur);
   },
-  click(scale = 1) {
+  click(scale = 1, force = false) {
+    if (this.muted) return false;
     const now = Date.now();
-    // Pointer and click handlers can both fire for one control; keep one clean sound.
-    if (now - this.lastClickAt < 180) return;
+    // A real pointer press is forced so rapid clicks never get swallowed.
+    // Follow-up calls from that same control are still deduplicated.
+    if (!force && now - this.lastClickAt < 420) return false;
     this.lastClickAt = now;
-    this.noise(0.045, 0.09 * scale, 4600, 1500);
-    this.tone(620, 0.06, 0.098 * scale, "triangle");
-    setTimeout(() => this.tone(1080, 0.07, 0.052 * scale, "sine"), 28);
+    const playSynthFallback = () => {
+      if (this.ctx?.state !== "running") return false;
+      this.noise(0.045, 0.09 * scale, 4600, 1500);
+      this.tone(620, 0.06, 0.098 * scale, "triangle");
+      setTimeout(() => this.tone(1080, 0.07, 0.052 * scale, "sine"), 28);
+      return true;
+    };
+    if (uiClickAudio) {
+      uiClickAudio.pause();
+      uiClickAudio.currentTime = 0;
+      uiClickAudio.volume = Math.min(0.78, 0.62 * scale);
+      const started = uiClickAudio.play();
+      if (started) {
+        started.catch(() => {
+          document.body.dataset.uiClickFallback = String(Date.now());
+          playSynthFallback();
+        });
+      } else {
+        playSynthFallback();
+      }
+      document.body.dataset.uiClickPlayed = String(now);
+      return true;
+    }
+    return playSynthFallback();
   },
   door(scale = 1) {
     this.noise(0.18, 0.028 * scale, 420, 90);
@@ -1306,22 +1624,68 @@ const AudioSys = {
   }
 };
 
+function applyMusicTrack(trackId, options = {}) {
+  if (!backgroundMusic) return;
+  const preset = MUSIC_TRACKS[trackId];
+  const src = options.src || preset?.src;
+  const label = options.label || preset?.label || "My Music";
+  if (!src) return;
+  if (trackId !== "custom" && customMusicUrl) {
+    URL.revokeObjectURL(customMusicUrl);
+    customMusicUrl = "";
+  }
+  backgroundMusic.pause();
+  backgroundMusic.src = src;
+  backgroundMusic.load();
+  backgroundMusic.volume = 0.075;
+  syncMusicControls(trackId, label);
+  document.body.dataset.audioMusicTrack = trackId;
+  if (options.persist !== false && preset) {
+    try { localStorage.setItem("qroom-music-track", trackId); } catch (error) { void error; }
+  }
+  if (options.play !== false && !AudioSys.muted) AudioSys.startBackgroundMusic();
+}
+
+let savedMusicId = "serene";
+try {
+  const storedMusicId = localStorage.getItem("qroom-music-track");
+  if (storedMusicId && MUSIC_TRACKS[storedMusicId]) savedMusicId = storedMusicId;
+} catch (error) {
+  void error;
+}
+applyMusicTrack(savedMusicId, { persist: false, play: false });
+
 backgroundMusic?.addEventListener("play", () => AudioSys.publishState());
 backgroundMusic?.addEventListener("pause", () => AudioSys.publishState());
 backgroundMusic?.addEventListener("error", () => AudioSys.publishState());
+uiClickAudio?.addEventListener("playing", () => AudioSys.publishState());
+uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
+[backgroundMusic, uiClickAudio].forEach(audio => {
+  audio?.addEventListener("loadeddata", () => AudioSys.publishState());
+  audio?.addEventListener("canplay", () => AudioSys.publishState());
+});
+[doorOpenVideo, roomLoopVideo, deskLoopVideo, coffeePourVideo, coffeeAmericanoVideo].forEach(video => {
+  video?.addEventListener("loadeddata", () => AudioSys.publishState());
+  video?.addEventListener("playing", () => AudioSys.publishState());
+  video?.addEventListener("volumechange", () => AudioSys.publishState());
+  video?.addEventListener("pause", () => AudioSys.publishState());
+});
 
 soundToggle.innerHTML = `<strong>${AudioSys.muted ? "Sound Off" : "Sound On"}</strong>`;
+AudioSys.publishState();
 
 document.addEventListener("pointerdown", () => {
   if (!AudioSys.muted) AudioSys.ensureStarted().catch(() => {});
 }, { capture: true });
 
 function setProgress(stepIndex) {
-  progressLabels.forEach((el, i) => el.classList.toggle("active", i === stepIndex));
-  progressDots.forEach((el, i) => el.classList.toggle("active", i < stepIndex));
+  progressLabels.forEach((el, i) => el?.classList.toggle("active", i === stepIndex));
 }
 
 function activate(name) {
+  if (name !== "chat" && scenes.chat.classList.contains("active")) {
+    resetChatInteraction();
+  }
   Object.entries(scenes).forEach(([key, scene]) => {
     scene.classList.toggle("active", key === name);
   });
@@ -1400,7 +1764,7 @@ function syncRoomVideoAudio() {
     roomLoopVideo.muted = AudioSys.muted;
     return;
   }
-  roomLoopVideo.muted = true;
+  roomLoopVideo.muted = AudioSys.muted;
   const started = roomLoopVideo.play();
   if (started) {
     started.then(() => {
@@ -1425,7 +1789,7 @@ function syncDeskVideoAudio() {
     deskLoopVideo.muted = AudioSys.muted;
     return;
   }
-  deskLoopVideo.muted = true;
+  deskLoopVideo.muted = AudioSys.muted;
   const started = deskLoopVideo.play();
   if (started) {
     started.then(() => {
@@ -1804,8 +2168,10 @@ async function closePanel() {
   syncDeskVideoAudio();
 }
 
-async function primeAudio() {
-  await AudioSys.ensureStarted().catch(() => {});
+function primeAudio() {
+  // Do not await AudioContext here. Callers must continue within the same
+  // trusted click so HTML audio and video tracks retain playback permission.
+  AudioSys.ensureStarted().catch(() => {});
 }
 
 async function openDeskScene(openWorkPanel) {
@@ -1827,7 +2193,6 @@ async function openCoffeeScene() {
   await primeAudio();
   resetCoffeeExperience();
   activate("coffee");
-  coffeeChatAssist?.classList.add("is-visible");
   AudioSys.click();
   AudioSys.transition();
   AudioSys.shimmer(760, 0.018);
@@ -1835,8 +2200,8 @@ async function openCoffeeScene() {
 
 async function openChatScene() {
   await primeAudio();
-  setChatBubbleVisible(false);
-  setQSpeech("", false);
+  resetChatInteraction();
+  renderChatSuggestions("initial");
   if (meEcho) meEcho.hidden = true;
   chatVisualState = "relaxed";
   activate("chat");
@@ -1855,11 +2220,32 @@ async function openContactScene(returnScene) {
   AudioSys.transition();
 }
 
-chatChips.forEach(chip => {
-  chip.addEventListener("click", async () => {
+async function openOfficeScene() {
+  await primeAudio();
+  workPanel.classList.remove("open");
+  messageModal?.classList.remove("open");
+  messageModal?.setAttribute("aria-hidden", "true");
+  resetCoffeeExperience();
+  syncLayerChrome();
+  activate("room");
+  AudioSys.click();
+  AudioSys.transition();
+}
+
+chatSuggestions?.addEventListener("click", async event => {
+  const chip = event.target.closest(".chat-chip");
+  if (!chip || chip.disabled) return;
+  if (chip.dataset.action === "share") {
+    chatInput.placeholder = "和我说说你最近在做什么…";
+    chatInput.focus();
     await primeAudio();
-    sendChatMessage(chip.dataset.prompt || "");
-  });
+    AudioSys.click();
+    return;
+  }
+  await primeAudio();
+  const chatKey = chip.dataset.chatKey || "";
+  if (chatKey) visitedChatKeys.add(chatKey);
+  sendChatMessage(chip.dataset.prompt || "", chatKey);
 });
 
 workTabs.forEach(button => {
@@ -1947,6 +2333,16 @@ bindRoomAction("room-coffee-trigger", "room-coffee-label", () => openCoffeeScene
 bindRoomAction("room-chat-trigger", "room-chat-label", () => openChatScene());
 bindRoomAction("room-message-trigger", "room-message-label", () => openMessageBoard());
 
+progressLabels.forEach(button => {
+  button?.addEventListener("click", () => {
+    const targetScene = button.dataset.studioScene;
+    if (targetScene === "desk") return openDeskScene(false);
+    if (targetScene === "room") return openOfficeScene();
+    if (targetScene === "chat") return openChatScene();
+    if (targetScene === "contact") return openContactScene("room");
+  });
+});
+
 coffeeSectionButtons.forEach(button => {
   button.addEventListener("click", async () => {
     await primeAudio();
@@ -1975,7 +2371,7 @@ document.getElementById("coffee-latte-option")?.addEventListener("click", async 
 
 document.getElementById("coffee-choose-again")?.addEventListener("click", async () => {
   await primeAudio();
-  coffeeChatAssist?.classList.add("is-visible");
+  coffeeChatAssist?.classList.remove("is-visible");
   coffeeMenuCard?.classList.remove("is-minimized");
   coffeeOrderBadge?.classList.remove("is-visible");
   if (coffeeResultControls) coffeeResultControls.hidden = true;
@@ -2062,14 +2458,19 @@ chatInput.addEventListener("keydown", async event => {
 });
 
 soundToggle.addEventListener("click", () => {
-  if (!AudioSys.ctx) {
+  const nextMuted = !AudioSys.muted;
+  AudioSys.soundChoiceMade = true;
+  if (nextMuted) AudioSys.click(0.9, true);
+  AudioSys.setMuted(nextMuted);
+  if (!nextMuted) {
+    AudioSys.click(0.9, true);
     AudioSys.ensureStarted().catch(() => {});
   }
-  AudioSys.soundChoiceMade = true;
-  AudioSys.setMuted(!AudioSys.muted);
 });
 
 moodTrigger?.addEventListener("click", async () => {
+  musicMenu?.classList.remove("open");
+  musicTrigger?.setAttribute("aria-expanded", "false");
   const isOpen = moodMenu?.classList.toggle("open") || false;
   moodTrigger.setAttribute("aria-expanded", String(isOpen));
   await primeAudio();
@@ -2086,6 +2487,49 @@ moodButtons.forEach(button => {
   });
 });
 
+musicTrigger?.addEventListener("click", async () => {
+  moodMenu?.classList.remove("open");
+  moodTrigger?.setAttribute("aria-expanded", "false");
+  const isOpen = musicMenu?.classList.toggle("open") || false;
+  musicTrigger.setAttribute("aria-expanded", String(isOpen));
+  await primeAudio();
+});
+
+musicButtons.forEach(button => {
+  button.addEventListener("click", async () => {
+    applyMusicTrack(button.dataset.music || "serene");
+    musicMenu?.classList.remove("open");
+    musicTrigger?.setAttribute("aria-expanded", "false");
+    await primeAudio();
+  });
+});
+
+musicUploadTrigger?.addEventListener("click", () => musicFileInput?.click());
+
+musicFileInput?.addEventListener("change", () => {
+  const file = musicFileInput.files?.[0];
+  if (!file) return;
+  if (customMusicUrl) URL.revokeObjectURL(customMusicUrl);
+  customMusicUrl = URL.createObjectURL(file);
+  applyMusicTrack("custom", { src: customMusicUrl, label: file.name, persist: false });
+  musicMenu?.classList.remove("open");
+  musicTrigger?.setAttribute("aria-expanded", "false");
+  musicFileInput.value = "";
+});
+
+document.addEventListener("click", event => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (!target.closest(".mood-dock")) {
+    moodMenu?.classList.remove("open");
+    moodTrigger?.setAttribute("aria-expanded", "false");
+  }
+  if (!target.closest(".music-dock")) {
+    musicMenu?.classList.remove("open");
+    musicTrigger?.setAttribute("aria-expanded", "false");
+  }
+});
+
 document.addEventListener("click", async event => {
   const target = event.target;
   if (!(target instanceof Element)) return;
@@ -2095,14 +2539,17 @@ document.addEventListener("click", async event => {
   AudioSys.click(0.92);
 });
 
-document.addEventListener("pointerdown", async event => {
+document.addEventListener("pointerdown", event => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const interactive = target.closest("button, a[href], .ring, .back-cue, .hotspot, .chat-chip");
   if (!interactive) return;
-  if (interactive.closest("#door-trigger, #sound-toggle")) return;
-  await primeAudio();
-  AudioSys.click(1.05);
+  if (interactive.closest("#sound-toggle")) return;
+  const played = AudioSys.click(1.05, true);
+  if (played) {
+    document.body.dataset.uiClickTarget = interactive.getAttribute("aria-label") || interactive.textContent.trim().slice(0, 48);
+  }
+  AudioSys.ensureStarted().catch(() => {});
 }, { capture: true });
 
 document.addEventListener("keydown", async event => {

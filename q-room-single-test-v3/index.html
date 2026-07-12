@@ -342,17 +342,27 @@ body{
   letter-spacing:.12em;
   text-transform:uppercase;
 }
-.progress span.active{color:#fff}
-.progress i{
-  width:5px;
-  height:5px;
-  border-radius:50%;
-  background:rgba(255,255,255,.14);
-  box-shadow:0 0 0 1px rgba(255,255,255,.08);
+.progress button{
+  appearance:none;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  letter-spacing:inherit;
+  text-transform:inherit;
+  cursor:pointer;
+  transition:color .18s ease,text-shadow .18s ease;
 }
-.progress i.active{
-  background:var(--purple);
-  box-shadow:0 0 12px rgba(189,150,255,.74);
+.progress button:hover,
+.progress button:focus-visible,
+.progress button.active{
+  color:#fff;
+  text-shadow:0 0 14px rgba(189,150,255,.5);
+}
+.progress button:focus-visible{
+  outline:1px solid rgba(227,214,255,.72);
+  outline-offset:5px;
 }
 
 .sound-toggle{
@@ -374,9 +384,11 @@ body{
 }
 .sound-toggle strong{font-size:11px;text-transform:uppercase;font-weight:560}
 .sound-toggle,
-.mood-dock{transition:opacity .2s ease, transform .2s ease}
+.mood-dock,
+.music-dock{transition:opacity .2s ease, transform .2s ease}
 body.ui-layer-open .sound-toggle,
-body.ui-layer-open .mood-dock{
+body.ui-layer-open .mood-dock,
+body.ui-layer-open .music-dock{
   opacity:0;
   transform:translateY(8px);
   pointer-events:none;
@@ -391,8 +403,10 @@ body.ui-layer-open .mood-dock{
   align-items:center;
   gap:8px;
 }
-.mood-dock{position:relative}
+.mood-dock,
+.music-dock{position:relative}
 .mood-trigger,
+.music-trigger,
 .mood-menu button{
   border:none;
   border-radius:999px;
@@ -402,7 +416,8 @@ body.ui-layer-open .mood-dock{
   backdrop-filter:blur(14px);
   cursor:pointer;
 }
-.mood-trigger{
+.mood-trigger,
+.music-trigger{
   height:38px;
   min-width:76px;
   padding:0 14px;
@@ -440,6 +455,62 @@ body.ui-layer-open .mood-dock{
   color:#fff;
   background:rgba(139,93,227,.56);
   box-shadow:inset 0 0 0 1px rgba(241,230,255,.22),0 0 18px rgba(161,111,255,.28);
+}
+.music-menu{
+  position:absolute;
+  right:0;
+  top:calc(100% + 8px);
+  width:232px;
+  padding:9px;
+  display:grid;
+  gap:7px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;
+  background:rgba(12,8,18,.9);
+  box-shadow:0 22px 50px rgba(0,0,0,.34),0 0 30px rgba(150,101,235,.12);
+  backdrop-filter:blur(18px);
+  opacity:0;
+  transform:translateY(-6px) scale(.97);
+  transform-origin:top right;
+  pointer-events:none;
+  transition:opacity .2s ease,transform .24s ease;
+}
+.music-menu.open{opacity:1;transform:none;pointer-events:auto}
+.music-option,
+.music-upload-trigger{
+  width:100%;
+  border:0;
+  border-radius:13px;
+  padding:10px 11px;
+  background:rgba(255,255,255,.045);
+  color:rgba(247,242,255,.82);
+  text-align:left;
+  cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.065);
+}
+.music-option strong,
+.music-option span{display:block}
+.music-option strong{font-size:11px;font-weight:570;letter-spacing:.04em}
+.music-option span{margin-top:3px;color:rgba(247,242,255,.46);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.music-option[aria-pressed="true"]{
+  background:rgba(139,93,227,.5);
+  color:#fff;
+  box-shadow:inset 0 0 0 1px rgba(241,230,255,.2),0 0 18px rgba(161,111,255,.2);
+}
+.music-upload-trigger{
+  min-height:34px;
+  color:rgba(241,227,255,.74);
+  font-size:10px;
+  letter-spacing:.08em;
+  text-align:center;
+}
+.music-now{
+  margin:1px 3px 0;
+  color:rgba(247,242,255,.4);
+  font-size:8px;
+  line-height:1.4;
+  letter-spacing:.09em;
+  text-transform:uppercase;
 }
 body.mood-lights-out .scene.active > img,
 body.mood-lights-out .scene.active > video{
@@ -573,29 +644,16 @@ body.mood-disco .scene.active > video{
   cursor:pointer;
   transition:transform .22s ease, box-shadow .22s ease, background .22s ease;
 }
-.ring::before{
-  content:"";
-  position:absolute;
-  inset:-8px;
-  border-radius:50%;
-  border:1px solid rgba(227,214,255,.14);
-  opacity:0;
-  transition:opacity .22s ease;
-}
 .ring:hover{
   transform:translate(-50%,-50%) scale(1.08);
   background:rgba(255,255,255,.03);
   box-shadow:inset 0 0 0 1.4px rgba(248,242,255,.92),0 0 30px rgba(189,150,255,.38);
 }
-.ring:hover::before{opacity:1}
 a.ring{display:block;text-decoration:none}
 .ring.depth-near{width:60px;height:60px;box-shadow:inset 0 0 0 1.45px var(--line),0 0 32px rgba(189,150,255,.38)}
 .ring.depth-mid{width:48px;height:48px}
 .ring.depth-far{width:30px;height:30px;box-shadow:inset 0 0 0 1px rgba(227,214,255,.6),0 0 14px rgba(189,150,255,.18)}
-.ring.depth-far::before{inset:-5px}
 .ring.coffee-entry-ring{width:38px;height:38px}
-.room-map .ring::before{inset:-18px}
-.room-map .ring.depth-far::before{inset:-14px}
 .room-map .ring,
 .room-action-label{touch-action:manipulation}
 
@@ -843,8 +901,7 @@ a.ring{display:block;text-decoration:none}
   gap:8px;
   transform:translateX(-50%);
 }
-.coffee-result-controls button,
-.coffee-back-btn{
+.coffee-result-controls button{
   border:1px solid rgba(222,205,255,.22);
   border-radius:999px;
   background:rgba(15,10,24,.7);
@@ -861,20 +918,12 @@ a.ring{display:block;text-decoration:none}
   background:linear-gradient(135deg,rgba(129,81,205,.82),rgba(179,126,255,.76));
   color:#fff;
 }
-.coffee-back-btn{
-  position:absolute;
-  z-index:27;
-  left:clamp(18px,2vw,28px);
-  bottom:clamp(20px,4vh,38px);
-  height:38px;
-  padding:0 15px;
-  font-size:9px;
-}
 .coffee-chat-assist{
   position:absolute;
-  z-index:27;
+  z-index:35;
   right:clamp(22px,3vw,48px);
-  bottom:clamp(132px,19vh,188px);
+  top:clamp(150px,24vh,240px);
+  bottom:auto;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -906,17 +955,7 @@ a.ring{display:block;text-decoration:none}
   cursor:pointer;
   transition:transform .22s ease,box-shadow .22s ease;
 }
-.coffee-chat-ring::before{
-  content:"";
-  position:absolute;
-  inset:-8px;
-  border:1px solid rgba(227,214,255,.14);
-  border-radius:50%;
-  opacity:0;
-  transition:opacity .22s ease;
-}
 .coffee-chat-ring:hover{transform:scale(1.08);box-shadow:inset 0 0 0 1.4px rgba(248,242,255,.92),0 0 30px rgba(189,150,255,.38)}
-.coffee-chat-ring:hover::before{opacity:1}
 .coffee-chat-assist span{
   max-width:120px;
   color:rgba(250,245,255,.76);
@@ -3428,20 +3467,19 @@ a.ring{display:block;text-decoration:none}
   position:absolute;
   left:50%;
   top:auto;
-  bottom:clamp(230px,25vh,300px);
+  bottom:clamp(290px,34vh,380px);
   z-index:25;
   width:min(680px,68vw);
-  padding:18px 20px;
-  border-radius:24px 24px 24px 8px;
-  background:rgba(14,10,22,.76);
-  border:1px solid rgba(255,255,255,.1);
-  box-shadow:0 18px 40px rgba(0,0,0,.26), 0 0 26px rgba(189,150,255,.12);
-  backdrop-filter:blur(18px);
+  max-height:min(36vh,280px);
+  overflow-y:auto;
+  padding:4px;
   opacity:0;
   pointer-events:none;
   transform:translate(-50%,10px);
   transition:opacity .24s ease,transform .28s ease;
+  scrollbar-width:none;
 }
+.q-stage-bubble::-webkit-scrollbar{display:none}
 .q-stage-bubble.is-visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 #scene-chat .cue{
   right:26px;
@@ -3451,37 +3489,64 @@ a.ring{display:block;text-decoration:none}
 #scene-chat .cue .line{
   width:min(10vw,110px);
 }
-.q-stage-bubble::after{
-  content:"";
-  position:absolute;
-  left:50%;
-  bottom:-12px;
-  border:12px solid transparent;
-  border-top-color:rgba(14,10,22,.76);
-  border-left-color:rgba(14,10,22,.76);
-  transform:translateX(-50%);
-}
 .q-stage-text{
-  min-height:48px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+  min-height:0;
+}
+.q-stage-message{
+  width:fit-content;
+  max-width:100%;
+  padding:11px 15px;
+  border-radius:18px 18px 18px 6px;
+  background:rgba(14,10,22,.82);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 14px 30px rgba(0,0,0,.22),0 0 22px rgba(189,150,255,.1);
+  backdrop-filter:blur(18px);
   font-size:15px;
   line-height:1.72;
   color:#fbf7ff;
+  opacity:0;
+  transform:translateY(9px);
+  animation:qBubbleIn .34s cubic-bezier(.16,1,.3,1) forwards;
 }
-.q-stage-text.typing{
-  color:rgba(247,242,255,.76);
+.q-stage-message strong{color:#fff;font-weight:650}
+.q-stage-message em{color:#d8c2ff;font-style:normal;font-weight:560}
+.q-stage-message.is-quote{
+  border-left:3px solid rgba(189,150,255,.92);
+  border-radius:6px 18px 18px 6px;
+  background:rgba(26,16,42,.88);
+  color:#f7f0ff;
 }
-.q-stage-text.typing::after{
-  content:"";
-  display:inline-block;
-  width:1ch;
-  animation:blink 1s steps(1) infinite;
+.q-stage-message.is-typing{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:54px;
+  min-height:40px;
 }
+.q-stage-message.is-typing i{
+  width:6px;
+  height:6px;
+  display:block;
+  border-radius:50%;
+  background:rgba(247,242,255,.58);
+  animation:qTypingDot 1.15s ease-in-out infinite;
+}
+.q-stage-message.is-typing i:nth-child(2){animation-delay:.14s}
+.q-stage-message.is-typing i:nth-child(3){animation-delay:.28s}
+@keyframes qBubbleIn{to{opacity:1;transform:none}}
+@keyframes qTypingDot{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
 .chat-suggestions{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
   justify-content:center;
+  transition:opacity .2s ease,transform .24s ease;
 }
+.chat-suggestions.is-busy{opacity:0;transform:translateY(7px);pointer-events:none}
 .chat-chip{
   border:none;
   padding:9px 12px;
@@ -3632,11 +3697,14 @@ a.ring{display:block;text-decoration:none}
   .site-loader__q{width:178px}
   .topbar{top:14px;left:14px;right:14px}
   .brand{font-size:11px;letter-spacing:.16em}
-  .progress{font-size:9px;gap:8px;letter-spacing:.08em}
+  .progress{font-size:9px;gap:10px;letter-spacing:.08em}
+  #door-trigger{left:58% !important}
+  #door-trigger-label{left:58% !important}
   .sound-toggle{right:12px;bottom:12px;min-width:94px;height:38px}
   .room-actions{top:70px;right:14px;gap:6px}
-  .mood-trigger,.room-exit-btn{height:34px;min-width:64px;padding:0 12px;font-size:10px}
+  .mood-trigger,.music-trigger,.room-exit-btn{height:34px;min-width:64px;padding:0 12px;font-size:10px}
   .mood-menu{min-width:106px}
+  .music-menu{width:min(220px,calc(100vw - 28px))}
   .copy{max-width:min(84vw,360px)}
   .copy h1{font-size:34px}
   .tag{font-size:10px;letter-spacing:.12em}
@@ -3733,15 +3801,15 @@ a.ring{display:block;text-decoration:none}
     top:auto;
     bottom:300px;
     width:auto;
-    max-height:150px;
+    max-height:230px;
     overflow:auto;
-    padding:14px 16px;
+    padding:4px;
     transform:none;
   }
   .q-stage-bubble.is-visible{transform:none}
   #scene-chat > img,
   #scene-chat > video{object-position:50% 50%}
-  .q-stage-text{font-size:14px;line-height:1.6}
+  .q-stage-message{font-size:14px;line-height:1.6}
   #scene-chat .cue{
     right:14px;
     top:82px;
@@ -3769,10 +3837,14 @@ a.ring{display:block;text-decoration:none}
   .coffee-menu-head h2{font-size:26px}
   .coffee-kind{min-height:116px;padding:13px}
   .coffee-kind-index{margin-bottom:14px}
-  .coffee-chat-assist{right:14px;bottom:auto;top:34px;gap:6px}
+  .coffee-chat-assist{
+    right:max(14px,env(safe-area-inset-right));
+    top:calc(env(safe-area-inset-top) + 118px);
+    bottom:auto;
+    gap:6px;
+  }
   .coffee-chat-ring{width:40px;height:40px;font-size:16px}
   .coffee-chat-assist span{max-width:96px;font-size:8px}
-  .coffee-back-btn{left:14px;bottom:18px;height:36px}
   .coffee-result-controls{bottom:70px}
   .coffee-order-badge{top:75px;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .coffee-toast{top:132px;max-width:calc(100vw - 28px);border-radius:20px}
@@ -3837,15 +3909,14 @@ a.ring{display:block;text-decoration:none}
   </div>
   <div class="topbar">
     <div class="brand">Q Studio</div>
-    <div class="progress">
-      <span id="p1" class="active">Enter</span><i id="d1" class="active"></i>
-      <span id="p2">Explore</span><i id="d2"></i>
-      <span id="p3">Work Desk</span><i id="d3"></i>
-      <span id="p4">Coffee Chat</span><i id="d4"></i>
-      <span id="p5">Contact</span>
-    </div>
+    <nav class="progress" aria-label="Studio navigation">
+      <button id="p1" type="button" data-studio-scene="room">Room</button>
+      <button id="p2" type="button" data-studio-scene="desk">Desk</button>
+      <button id="p3" type="button" data-studio-scene="chat">Chat</button>
+      <button id="p4" type="button" data-studio-scene="contact">Contact</button>
+    </nav>
   </div>
-  <button class="sound-toggle" id="sound-toggle" aria-label="Toggle room sound"><strong>Sound Off</strong></button>
+  <button class="sound-toggle" id="sound-toggle" aria-label="Toggle room sound"><strong>Sound On</strong></button>
 
   <section class="scene active" id="scene-door">
     <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/poster-door-idle.jpg" muted playsinline loop preload="auto"></video>
@@ -3861,8 +3932,8 @@ a.ring{display:block;text-decoration:none}
         <span>Come back anytime · Q Studio © 2026</span>
       </span>
     </div>
-    <button class="ring" id="door-trigger" style="left:17%;top:35%;" aria-label="Open door"></button>
-    <div class="tag" style="left:17%;top:29%;">Knock Knock</div>
+    <button class="ring" id="door-trigger" style="left:66%;top:35%;" aria-label="Open door"></button>
+    <div class="tag" id="door-trigger-label" style="left:66%;top:29%;">Knock Knock</div>
   </section>
 
   <section class="scene" id="scene-room">
@@ -3871,12 +3942,12 @@ a.ring{display:block;text-decoration:none}
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <button class="tag depth-near room-action-label" id="room-desk-label" type="button" style="left:26.6%;top:54.8%;">See My Work</button>
-      <button class="ring depth-mid coffee-entry-ring" id="room-coffee-trigger" style="left:43.4%;top:36.8%;" aria-label="Make coffee"></button>
-      <button class="tag depth-mid room-action-label" id="room-coffee-label" type="button" style="left:43.4%;top:30.5%;">Make Coffee</button>
+      <button class="ring depth-mid coffee-entry-ring" id="room-coffee-trigger" style="left:37.8%;top:36.8%;" aria-label="Make coffee"></button>
+      <button class="tag depth-mid room-action-label" id="room-coffee-label" type="button" style="left:37.8%;top:30.5%;">Make Coffee</button>
       <button class="ring depth-mid" id="room-chat-trigger" style="left:72.6%;top:54.3%;" aria-label="Open coffee chat"></button>
       <button class="tag depth-mid room-action-label" id="room-chat-label" type="button" style="left:72.6%;top:48.1%;">Coffee Chat</button>
-      <button class="ring depth-far" id="room-message-trigger" style="left:67.8%;top:28.4%;" aria-label="Leave a message"></button>
-      <button class="tag depth-far room-action-label" id="room-message-label" type="button" style="left:67.8%;top:24.2%;">Leave A Message</button>
+      <button class="ring depth-far" id="room-message-trigger" style="left:63.8%;top:31.6%;" aria-label="Leave a message"></button>
+      <button class="tag depth-far room-action-label" id="room-message-label" type="button" style="left:63.8%;top:27.4%;">Leave A Message</button>
     </div>
     <div class="copy room-hint">
       <p>AI room map · choose an action</p>
@@ -3889,6 +3960,23 @@ a.ring{display:block;text-decoration:none}
           <button type="button" data-mood="glow" aria-pressed="true">Glow</button>
           <button type="button" data-mood="lights-out" aria-pressed="false">Lights Out</button>
           <button type="button" data-mood="disco" aria-pressed="false">Disco</button>
+        </div>
+      </div>
+      <div class="music-dock">
+        <button class="music-trigger" id="music-trigger" type="button" aria-expanded="false" aria-controls="music-menu">Music</button>
+        <div class="music-menu" id="music-menu" aria-label="Music choices">
+          <button class="music-option" type="button" data-music="serene" aria-pressed="true">
+            <strong>Serene Piano</strong><span>Soft · calm · 1:19</span>
+          </button>
+          <button class="music-option" type="button" data-music="ambient" aria-pressed="false">
+            <strong>Calm Ambient</strong><span>Airy · quiet · 2:00</span>
+          </button>
+          <button class="music-option" type="button" data-music="piano" aria-pressed="false">
+            <strong>Calm Piano</strong><span>Warm · slow · 3:46</span>
+          </button>
+          <button class="music-upload-trigger" id="music-upload-trigger" type="button">Choose my music</button>
+          <input id="music-file-input" type="file" accept="audio/*" hidden>
+          <p class="music-now" id="music-now">Now playing · Serene Piano</p>
         </div>
       </div>
       <button class="room-exit-btn" id="room-exit-trigger" aria-label="Exit Q Studio">Exit</button>
@@ -3965,7 +4053,10 @@ a.ring{display:block;text-decoration:none}
       <button class="primary" type="button" id="coffee-choose-again">Choose another</button>
     </div>
 
-    <button class="coffee-back-btn" id="coffee-back-trigger" type="button">Back to room</button>
+    <button class="cue visible" id="coffee-back-trigger" type="button" aria-label="Back to room from coffee">
+      <span class="line"></span>
+      <span class="copy"><strong>Back To Room</strong></span>
+    </button>
     <button class="coffee-chat-assist" id="coffee-chat-trigger" type="button" aria-label="So, have a coffee chat?">
       <span class="coffee-chat-ring" aria-hidden="true"></span>
       <span>So, have a coffee chat?</span>
@@ -4010,20 +4101,14 @@ a.ring{display:block;text-decoration:none}
       <div class="q-stage-text" id="q-stage-text"></div>
     </div>
     <div class="chat-shell">
-      <div class="chat-meta">
-        <div class="chat-meta-copy">
-          <strong>Coffee Chat</strong>
-          <span>想从哪里认识我？选一个问题，或者直接聊聊你正在做的事。</span>
-        </div>
-      </div>
       <div class="me-echo" id="me-echo" hidden></div>
-      <div class="chat-suggestions">
-        <button class="chat-chip" data-prompt="简单介绍一下你自己，请简短回答。">介绍你自己</button>
-        <button class="chat-chip" data-prompt="你最近在做什么小项目？请简短回答。">最近做什么小项目？</button>
-        <button class="chat-chip" data-prompt="你最近在关注什么？请简短回答。">最近关注什么？</button>
+      <div class="chat-suggestions" id="chat-suggestions">
+        <button class="chat-chip" data-chat-key="intro" data-prompt="介绍一下你自己">先认识一下 Q</button>
+        <button class="chat-chip" data-chat-key="project" data-prompt="聊聊你最近在做什么">最近在做什么</button>
+        <button class="chat-chip" data-chat-key="agent" data-prompt="聊聊你最近关心的方向">最近关心的方向</button>
       </div>
       <div class="composer">
-        <input type="text" id="chat-input" placeholder="想先从哪里聊起？">
+        <input type="text" id="chat-input" placeholder="想先从哪里聊起…">
         <button id="send-btn" aria-label="Send">➜</button>
       </div>
     </div>
@@ -4041,6 +4126,8 @@ a.ring{display:block;text-decoration:none}
     <div class="tag" style="left:29.2%;top:61.9%;">Check My Email</div>
     <button class="ring" id="contact-message-trigger" style="left:47%;top:34%;" aria-label="Leave a message"></button>
     <div class="tag" style="left:47%;top:27.5%;">Leave Message</div>
+    <a class="ring depth-far" id="contact-x-trigger" href="https://x.com/BabyLadyQ" target="_blank" rel="noopener noreferrer" style="left:66%;top:52%;" aria-label="Link to X"></a>
+    <div class="tag" style="left:66%;top:47%;">Link To X</div>
     <button class="ring" id="back-room-trigger" style="left:86%;top:70%;" aria-label="Back to desk"></button>
     <div class="tag" id="contact-back-tag" style="left:86%;top:63.5%;">Back To Desk</div>
   </section>
@@ -4084,7 +4171,8 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<audio id="background-music" src="./assets/cafe-music-pixabay-163375.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-chat-state-v2"></script>
+<audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
+<audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
+<script src="./app.js?v=20260712-chat-exit-fix-v24"></script>
 </body>
 </html>
