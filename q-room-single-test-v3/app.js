@@ -984,10 +984,18 @@ function setChatVisualState(nextState, { reset = true } = {}) {
   Object.entries(chatStateVideos).forEach(([state, video]) => {
     if (!video) return;
     const selected = state === nextState;
+    const wasSelected = video.classList.contains("is-active");
     video.classList.toggle("is-active", selected);
     video.muted = true;
     if (!selected || !chatActive) {
-      resetSceneVideo(video);
+      video.pause();
+      if (wasSelected && chatActive) {
+        window.setTimeout(() => {
+          if (!video.classList.contains("is-active")) resetSceneVideo(video);
+        }, 380);
+      } else {
+        resetSceneVideo(video);
+      }
       return;
     }
     if (reset) resetSceneVideo(video);

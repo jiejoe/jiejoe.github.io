@@ -298,13 +298,13 @@ body{
 #scene-desk > img,
 #scene-desk > video{object-position:50% 50%}
 #scene-chat > img,
-#scene-chat > video{object-position:38% 50%}
+#scene-chat > video{object-position:50% 50%}
 #scene-chat > img{z-index:0}
 #scene-chat > video.chat-state-video{
   z-index:1;
   opacity:0;
   pointer-events:none;
-  transition:opacity .18s ease;
+  transition:opacity .36s ease;
 }
 #scene-chat > video.chat-state-video.is-active{opacity:1}
 #scene-contact > img{object-position:50% 50%}
@@ -3740,7 +3740,7 @@ a.ring{display:block;text-decoration:none}
   }
   .q-stage-bubble.is-visible{transform:none}
   #scene-chat > img,
-  #scene-chat > video{object-position:55% 50%}
+  #scene-chat > video{object-position:50% 50%}
   .q-stage-text{font-size:14px;line-height:1.6}
   #scene-chat .cue{
     right:14px;
@@ -4001,11 +4001,11 @@ a.ring{display:block;text-decoration:none}
   </section>
 
   <section class="scene scene-chat" id="scene-chat">
-    <img src="./assets/poster-chat-idle.jpg" alt="Q coffee chat scene">
-    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat_idle.mp4" poster="./assets/poster-chat-idle.jpg" muted playsinline preload="auto"></video>
-    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat_relaxed.mp4" poster="./assets/poster-chat-relaxed.jpg" muted playsinline preload="auto"></video>
-    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat_waiting.mp4" poster="./assets/poster-chat-waiting.jpg" muted playsinline loop preload="auto"></video>
-    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat_talk.mp4" poster="./assets/poster-chat-talk.jpg" muted playsinline loop preload="auto"></video>
+    <img src="./assets/chat-v2/poster-chat-neutral.jpg" alt="Q coffee chat scene">
+    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat-v2/chat-wait-loop.mp4" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
+    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat-v2/chat-sit-coffee.mp4" poster="./assets/chat-v2/poster-chat-sit.jpg" muted playsinline preload="auto"></video>
+    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat-v2/chat-wait-loop.mp4" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
+    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat-v2/chat-talk-loop.mp4" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <div class="q-stage-text" id="q-stage-text"></div>
     </div>
