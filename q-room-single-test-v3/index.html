@@ -187,6 +187,24 @@ body{
   letter-spacing:.04em;
   transition:opacity .3s ease;
 }
+.site-loader__progress{
+  width:min(250px,68vw);
+  height:2px;
+  margin-top:14px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,225,242,.09);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+}
+.site-loader__progress i{
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,rgba(255,104,184,.72),#ffd6ed);
+  box-shadow:0 0 13px rgba(255,110,188,.6);
+  transition:width .32s cubic-bezier(.2,.75,.2,1);
+}
 @keyframes qWrite{
   to{stroke-dashoffset:0}
 }
@@ -3911,6 +3929,7 @@ a.ring{display:block;text-decoration:none}
       <div class="site-loader__copy">
         <strong>Q Studio</strong>
         <span id="loader-status">A little light is waking up…</span>
+        <div class="site-loader__progress" aria-hidden="true"><i id="loader-progress-bar"></i></div>
       </div>
     </div>
   </div>
@@ -3945,7 +3964,7 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene" id="scene-room">
     <img src="./assets/poster-room.jpg" alt="Q studio room overview">
-    <video id="room-loop-video" src="./assets/room.mp4?v=coffee-pour-only-loop-v2" muted playsinline loop preload="auto" poster="./assets/poster-room.jpg"></video>
+    <video id="room-loop-video" src="./assets/room-loop-smooth-15s.mp4?v=20260712-smooth-v1" muted playsinline loop preload="auto" poster="./assets/poster-room.jpg"></video>
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <button class="tag depth-near room-action-label" id="room-desk-label" type="button" style="left:26.6%;top:54.8%;">See My Work</button>
@@ -3992,8 +4011,8 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene scene-coffee" id="scene-coffee">
     <img src="./assets/poster-coffee-americano.jpg" alt="First-person view facing the Q Studio coffee bar">
-    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/vid-coffee-pourover-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-pourover.jpg" muted playsinline preload="auto"></video>
-    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/vid-coffee-iced-americano-seedance2mini-720-5s-v1.mp4" poster="./assets/poster-coffee-americano.jpg" muted playsinline preload="auto"></video>
+    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/coffee-pourover-visual.mp4?v=20260712" poster="./assets/poster-coffee-pourover.jpg" muted playsinline preload="auto"></video>
+    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/coffee-americano-visual.mp4?v=20260712" poster="./assets/poster-coffee-americano.jpg" muted playsinline preload="auto"></video>
 
     <div class="coffee-order-badge" id="coffee-order-badge" aria-live="polite">Preparing your coffee</div>
     <div class="coffee-toast" id="coffee-toast" role="status" aria-live="polite">
@@ -4177,6 +4196,9 @@ a.ring{display:block;text-decoration:none}
 
 <audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
 <audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-chat-bubble-prune-v41"></script>
+<audio id="door-open-audio" src="./assets/door-open-sfx.wav?v=20260712-v2" preload="auto" aria-hidden="true"></audio>
+<audio id="coffee-pourover-audio" src="./assets/coffee-pourover-sfx.m4a?v=20260712" preload="auto" aria-hidden="true"></audio>
+<audio id="coffee-americano-audio" src="./assets/coffee-americano-sfx.m4a?v=20260712" preload="auto" aria-hidden="true"></audio>
+<script src="./app.js?v=20260712-loader-audio-smooth-v46"></script>
 </body>
 </html>

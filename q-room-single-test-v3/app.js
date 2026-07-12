@@ -32,6 +32,9 @@ const chatSendButton = document.getElementById("send-btn");
 const soundToggle = document.getElementById("sound-toggle");
 const backgroundMusic = document.getElementById("background-music");
 const uiClickAudio = document.getElementById("ui-click-audio");
+const doorOpenAudio = document.getElementById("door-open-audio");
+const coffeePourAudio = document.getElementById("coffee-pourover-audio");
+const coffeeAmericanoAudio = document.getElementById("coffee-americano-audio");
 const messageModal = document.getElementById("message-modal");
 const messageWall = document.getElementById("message-wall");
 const messageForm = document.getElementById("message-form");
@@ -43,6 +46,7 @@ const messageDoodleCanvas = document.getElementById("message-doodle-canvas");
 const messageDoodleClear = document.getElementById("message-doodle-clear");
 const siteLoader = document.getElementById("site-loader");
 const loaderStatus = document.getElementById("loader-status");
+const loaderProgressBar = document.getElementById("loader-progress-bar");
 const moodTrigger = document.getElementById("mood-trigger");
 const moodMenu = document.getElementById("mood-menu");
 const moodButtons = Array.from(document.querySelectorAll("[data-mood]"));
@@ -88,6 +92,10 @@ const chatStateVideos = {
 const coffeeVideos = {
   pourover: coffeePourVideo,
   americano: coffeeAmericanoVideo
+};
+const coffeeAudios = {
+  pourover: coffeePourAudio,
+  americano: coffeeAmericanoAudio
 };
 let activeCoffeeVideoKey = "";
 let activeCoffeeLabel = "";
@@ -148,44 +156,78 @@ Object.values(chatStateVideos).forEach(bindChatSceneFallback);
 
 function startSiteLoader() {
   if (!siteLoader) return;
-  const criticalMedia = [
+  const criticalMedia = Array.from(new Set([
     ...document.querySelectorAll(".scene > img"),
     doorIdleVideo,
     doorOpenVideo,
     roomLoopVideo,
     deskLoopVideo,
-    chatIdleVideo,
-    chatRelaxedVideo
-  ].filter(Boolean);
+    ...Object.values(chatStateVideos),
+    ...Object.values(coffeeVideos),
+    ...Object.values(coffeeAudios),
+    backgroundMusic,
+    uiClickAudio,
+    doorOpenAudio
+  ].filter(Boolean)));
   let settled = 0;
+  let failed = 0;
+  const failedMedia = [];
   const total = Math.max(1, criticalMedia.length);
   const update = () => {
-    if (!loaderStatus) return;
     const progress = settled / total;
-    loaderStatus.textContent = settled >= total
-      ? "The room is glowing."
-      : progress < .5
-        ? "Tracing a little light…"
-        : "Letting the glass catch the glow…";
+    if (loaderProgressBar) loaderProgressBar.style.width = `${Math.round(progress * 100)}%`;
+    document.body.dataset.loaderProgress = String(Math.round(progress * 100));
+    document.body.dataset.loaderFailed = String(failed);
+    if (loaderStatus) {
+      loaderStatus.textContent = settled >= total
+        ? "Sound, light, and coffee are ready."
+        : progress < .34
+          ? "Tracing a little light…"
+          : progress < .72
+            ? "Tuning the room and its sound…"
+            : "Warming the coffee bar…";
+    }
   };
   const waitForMedia = element => new Promise(resolve => {
     const isImage = element instanceof HTMLImageElement;
-    const ready = isImage ? element.complete && element.naturalWidth > 0 : element.readyState >= 3;
+    const isMedia = element instanceof HTMLMediaElement;
+    const ready = isImage
+      ? element.complete && element.naturalWidth > 0
+      : isMedia && element.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
     let finished = false;
-    const done = () => {
+    const done = status => {
       if (finished) return;
       finished = true;
+      window.clearTimeout(timeoutId);
+      window.clearInterval(pollId);
+      element.removeEventListener(isImage ? "load" : "canplay", onReady);
+      element.removeEventListener("error", onError);
+      if (status !== "ready") {
+        failed += 1;
+        failedMedia.push(element.currentSrc || element.src || element.alt || element.id || "unknown");
+      }
       settled += 1;
       update();
+      document.body.dataset.loaderFailedMedia = failedMedia.map(src => src.split("/").pop()).join(",");
       resolve();
     };
+    const onReady = () => done("ready");
+    const onError = () => done("error");
+    const isReadyNow = () => isImage
+      ? element.complete && element.naturalWidth > 0
+      : isMedia && element.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
+    let pollId = 0;
+    const timeoutId = window.setTimeout(() => done(isReadyNow() ? "ready" : "timeout"), 15000);
     if (ready) {
-      done();
+      done("ready");
       return;
     }
-    const eventName = isImage ? "load" : "canplay";
-    element.addEventListener(eventName, done, { once: true });
-    element.addEventListener("error", done, { once: true });
+    element.addEventListener(isImage ? "load" : "canplay", onReady, { once: true });
+    element.addEventListener("error", onError, { once: true });
+    pollId = window.setInterval(() => {
+      if (isReadyNow()) done("ready");
+    }, 140);
+    if (isMedia && element.readyState < HTMLMediaElement.HAVE_METADATA) element.load();
   });
   update();
   const warmVideo = async video => {
@@ -215,18 +257,29 @@ function startSiteLoader() {
     }
   };
   const mediaReady = Promise.all(criticalMedia.map(waitForMedia));
-  const warmedMedia = mediaReady.then(() => Promise.all([
-    warmVideo(doorOpenVideo),
-    warmVideo(roomLoopVideo)
-  ]));
-  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 9000));
-  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 2300));
+  const warmedMedia = mediaReady.then(async () => {
+    const warmQueue = [
+      doorOpenVideo,
+      roomLoopVideo,
+      deskLoopVideo,
+      ...Object.values(coffeeVideos),
+      chatRelaxedVideo,
+      chatTalkVideo
+    ].filter(Boolean);
+    for (const video of warmQueue) await warmVideo(video);
+  });
+  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 18000));
+  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 3200));
   Promise.all([Promise.race([warmedMedia, safetyReady]), minimumGlow]).then(() => {
-    if (loaderStatus) loaderStatus.textContent = "The room is glowing.";
+    if (loaderProgressBar) loaderProgressBar.style.width = "100%";
+    if (loaderStatus) loaderStatus.textContent = failed
+      ? "The room is ready. A quiet fallback is standing by."
+      : "Sound, light, and coffee are ready.";
     window.setTimeout(() => {
       siteLoader.classList.add("is-complete");
       document.body.classList.remove("site-loading");
-    }, 320);
+      document.body.dataset.loaderComplete = "true";
+    }, 480);
   });
 }
 
@@ -1152,9 +1205,27 @@ function syncCoffeeVideoAudio() {
   const coffeeActive = Boolean(scenes.coffee?.classList.contains("active"));
   Object.entries(coffeeVideos).forEach(([key, video]) => {
     if (!video) return;
-    video.volume = 0.3;
-    video.muted = AudioSys.muted || !coffeeActive || key !== activeCoffeeVideoKey;
+    // Visual playback stays muted so autoplay policy can never freeze the brew.
+    video.defaultMuted = true;
+    video.muted = true;
+    video.setAttribute("muted", "");
+    const audio = coffeeAudios[key];
+    if (!audio) return;
+    audio.volume = 0.86;
+    const selected = coffeeActive && key === activeCoffeeVideoKey;
+    audio.muted = AudioSys.muted || !selected;
+    if (!selected) {
+      audio.pause();
+      return;
+    }
+    if (!AudioSys.muted && !video.paused && audio.paused) {
+      try { audio.currentTime = video.currentTime; } catch (error) { void error; }
+      audio.play().catch(() => {
+        document.body.dataset.audioCoffee = "blocked";
+      });
+    }
   });
+  syncBackgroundAudioMix(420);
 }
 
 function clearCoffeeCompletionTimer() {
@@ -1187,16 +1258,25 @@ function resetCoffeeExperience() {
     video.classList.remove("is-active");
     video.muted = true;
   });
+  Object.values(coffeeAudios).forEach(audio => {
+    if (!audio) return;
+    audio.pause();
+    audio.muted = true;
+    try { audio.currentTime = 0; } catch (error) { void error; }
+  });
   coffeeMenuCard?.classList.remove("is-minimized");
   coffeeOrderBadge?.classList.remove("is-visible");
   coffeeToast?.classList.remove("is-visible");
   if (coffeeResultControls) coffeeResultControls.hidden = true;
   setCoffeeMenuStep("root");
+  syncBackgroundAudioMix(720);
 }
 
 function syncCoffeeSceneMedia(activeScene) {
   if (activeScene !== "coffee") {
     Object.values(coffeeVideos).forEach(video => video?.pause());
+    Object.values(coffeeAudios).forEach(audio => audio?.pause());
+    syncBackgroundAudioMix(720);
     return;
   }
   syncCoffeeVideoAudio();
@@ -1224,9 +1304,30 @@ async function playCoffeeVideo(videoKey, label) {
   coffeeOrderBadge?.classList.add("is-visible");
   if (coffeeOrderBadge) coffeeOrderBadge.textContent = `Brewing · ${nextLabel}`;
   if (coffeeResultControls) coffeeResultControls.hidden = true;
-  nextVideo.muted = AudioSys.muted;
   activeCoffeeVideoKey = videoKey;
   activeCoffeeLabel = nextLabel;
+  nextVideo.defaultMuted = true;
+  nextVideo.muted = true;
+  nextVideo.setAttribute("muted", "");
+  const nextAudio = coffeeAudios[videoKey];
+  Object.entries(coffeeAudios).forEach(([key, audio]) => {
+    if (!audio) return;
+    audio.pause();
+    audio.muted = AudioSys.muted || key !== videoKey;
+    audio.volume = 0.86;
+    try { audio.currentTime = 0; } catch (error) { void error; }
+  });
+  if (nextAudio && !AudioSys.muted) {
+    document.body.dataset.audioCoffee = "starting";
+    nextAudio.play().then(() => {
+      document.body.dataset.audioCoffee = "playing";
+      syncBackgroundAudioMix(220);
+      AudioSys.publishState();
+    }).catch(() => {
+      document.body.dataset.audioCoffee = "blocked";
+      AudioSys.publishState();
+    });
+  }
 
   try {
     await nextVideo.play();
@@ -1234,17 +1335,10 @@ async function playCoffeeVideo(videoKey, label) {
     scheduleCoffeeCompletion(videoKey, runId);
   } catch (error) {
     void error;
-    nextVideo.muted = true;
-    try {
-      await nextVideo.play();
-      syncCoffeeVideoAudio();
-      scheduleCoffeeCompletion(videoKey, runId);
-    } catch (mutedError) {
-      void mutedError;
-      activeCoffeeVideoKey = "";
-      coffeeMenuCard?.classList.remove("is-minimized");
-      showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
-    }
+    nextAudio?.pause();
+    activeCoffeeVideoKey = "";
+    coffeeMenuCard?.classList.remove("is-minimized");
+    showCoffeeToast("Tap to start the brew.", "Your browser paused autoplay.");
   }
 }
 
@@ -1254,6 +1348,8 @@ function holdCoffeeFinalFrame(videoKey) {
   if (scenes.coffee?.classList.contains("coffee-complete")) return;
   clearCoffeeCompletionTimer();
   video.pause();
+  coffeeAudios[videoKey]?.pause();
+  syncBackgroundAudioMix(760);
   if (Number.isFinite(video.duration)) {
     try {
       video.currentTime = Math.max(0, video.duration - 0.045);
@@ -1289,22 +1385,25 @@ function bindCoffeeVideoEvents(key, video) {
     if (isCurrentVideo() && activeCoffeeVideoKey === key) scenes.coffee?.classList.remove("coffee-playing");
   });
   ["loadeddata", "playing", "volumechange", "pause"].forEach(eventName => {
-    video.addEventListener(eventName, () => AudioSys.publishState());
+    video.addEventListener(eventName, () => {
+      syncBackgroundAudioMix(eventName === "playing" ? 220 : 620);
+      AudioSys.publishState();
+    });
   });
 }
 
 function replaceCoffeeVideo(videoKey) {
   const currentVideo = coffeeVideos[videoKey];
   if (!currentVideo) return null;
+  // Reuse the preloaded media element. Replacing it here used to throw away
+  // the buffer prepared by the loader and caused a visible/audio hitch on brew.
   currentVideo.pause();
-  const freshVideo = currentVideo.cloneNode(true);
-  freshVideo.classList.remove("is-active", "frame-ready");
-  freshVideo.muted = true;
-  currentVideo.replaceWith(freshVideo);
-  coffeeVideos[videoKey] = freshVideo;
-  bindCoffeeVideoEvents(videoKey, freshVideo);
-  freshVideo.load();
-  return freshVideo;
+  currentVideo.classList.remove("is-active", "frame-ready");
+  currentVideo.defaultMuted = true;
+  currentVideo.muted = true;
+  currentVideo.setAttribute("muted", "");
+  resetSceneVideo(currentVideo);
+  return currentVideo;
 }
 
 Object.entries(coffeeVideos).forEach(([key, video]) => bindCoffeeVideoEvents(key, video));
@@ -1528,12 +1627,44 @@ async function sendChatMessage(prefill, scriptedKey = "") {
 
 window.sendChatMessage = sendChatMessage;
 
-// Keep one continuous background track. Scene videos stay visual-only, while
-// coffee media and short UI effects remain intentional foreground sounds.
-const AUDIO_MIX_VERSION = "single-bgm-full-sfx-v4";
+// Keep one continuous background track while preserving intentional scene and
+// foreground effects such as the door, Room, keyboard, and coffee sounds.
+const AUDIO_MIX_VERSION = "single-bgm-full-sfx-v5";
 const BGM_VOLUME = 0.22;
 const UI_CLICK_VOLUME = 0.14;
 const UI_CLICK_MAX_VOLUME = 0.18;
+let backgroundVolumeAnimation = 0;
+
+function getBackgroundMusicTargetVolume() {
+  const doorPlaying = Boolean(doorOpenAudio && !doorOpenAudio.paused && !doorOpenAudio.muted);
+  if (doorPlaying) return 0.07;
+  const coffeePlaying = Boolean(
+    scenes.coffee?.classList.contains("active")
+    && activeCoffeeVideoKey
+    && coffeeAudios[activeCoffeeVideoKey]
+    && !coffeeAudios[activeCoffeeVideoKey].paused
+    && !coffeeAudios[activeCoffeeVideoKey].muted
+  );
+  if (coffeePlaying) return 0.09;
+  return BGM_VOLUME;
+}
+
+function syncBackgroundAudioMix(duration = 480) {
+  if (!backgroundMusic) return;
+  window.cancelAnimationFrame(backgroundVolumeAnimation);
+  const from = backgroundMusic.volume;
+  const target = getBackgroundMusicTargetVolume();
+  const startedAt = performance.now();
+  const tick = now => {
+    const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
+    const eased = 1 - Math.pow(1 - progress, 3);
+    backgroundMusic.volume = from + (target - from) * eased;
+    if (progress < 1) backgroundVolumeAnimation = window.requestAnimationFrame(tick);
+    else AudioSys.publishState();
+  };
+  backgroundVolumeAnimation = window.requestAnimationFrame(tick);
+}
+
 if (localStorage.getItem("qroom-audio-mix-version") !== AUDIO_MIX_VERSION) {
   localStorage.setItem("qroom-muted", "0");
   localStorage.setItem("qroom-audio-mix-version", AUDIO_MIX_VERSION);
@@ -1584,10 +1715,13 @@ const AudioSys = {
   },
   startBackgroundMusic() {
     if (!backgroundMusic || this.muted || document.hidden) return;
-    backgroundMusic.volume = BGM_VOLUME;
+    backgroundMusic.volume = getBackgroundMusicTargetVolume();
     backgroundMusic.muted = false;
     document.body.dataset.audioBackgroundAttempt = String(Date.now());
-    backgroundMusic.play().then(() => this.publishState()).catch(() => this.publishState());
+    backgroundMusic.play().then(() => {
+      syncBackgroundAudioMix(260);
+      this.publishState();
+    }).catch(() => this.publishState());
   },
   pauseBackgroundMusic() {
     if (!backgroundMusic) return;
@@ -1616,6 +1750,10 @@ const AudioSys = {
     if (this.muted) {
       this.stopKeyboard();
       this.stopRoomDetails();
+      if (doorOpenAudio) {
+        doorOpenAudio.muted = true;
+        doorOpenAudio.pause();
+      }
       this.pauseBackgroundMusic();
     } else {
       this.shimmer(720, 0.036);
@@ -1634,13 +1772,16 @@ const AudioSys = {
       ["door", doorOpenVideo],
       ["room", roomLoopVideo],
       ["desk", deskLoopVideo],
-      ["coffee-pourover", coffeeVideos.pourover],
-      ["coffee-americano", coffeeVideos.americano],
     ].filter(([, video]) => video && !video.paused && !video.muted).map(([name]) => name);
+    const coffeeTracks = Object.entries(coffeeAudios)
+      .filter(([, audio]) => audio && !audio.paused && !audio.muted)
+      .map(([name]) => name);
     document.body.dataset.audioMix = "click-video-music";
     document.body.dataset.audioMuted = String(this.muted);
     document.body.dataset.audioClick = uiClickAudio?.error ? "error" : uiClickAudio?.readyState >= 2 ? "ready" : "loading";
+    document.body.dataset.audioDoor = doorOpenAudio?.error ? "error" : doorOpenAudio && !doorOpenAudio.paused && !doorOpenAudio.muted ? "playing" : "ready";
     document.body.dataset.audioVideo = videoTracks.join(",") || "stopped";
+    document.body.dataset.audioCoffee = coffeeTracks.join(",") || document.body.dataset.audioCoffee || "ready";
     document.body.dataset.audioBackground = musicPlaying ? "playing-cafe-music" : "stopped";
     document.body.dataset.audioBackgroundVolume = backgroundMusic ? String(backgroundMusic.volume) : "0";
     document.body.dataset.audioBuses = this.effectsBus ? "ready" : "pending";
@@ -1828,9 +1969,29 @@ backgroundMusic?.addEventListener("pause", () => AudioSys.publishState());
 backgroundMusic?.addEventListener("error", () => AudioSys.publishState());
 uiClickAudio?.addEventListener("playing", () => AudioSys.publishState());
 uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
-[backgroundMusic, uiClickAudio].forEach(audio => {
+[backgroundMusic, uiClickAudio, doorOpenAudio, ...Object.values(coffeeAudios)].forEach(audio => {
   audio?.addEventListener("loadeddata", () => AudioSys.publishState());
   audio?.addEventListener("canplay", () => AudioSys.publishState());
+});
+doorOpenAudio?.addEventListener("playing", () => {
+  syncBackgroundAudioMix(180);
+  AudioSys.publishState();
+});
+const restoreDoorAudioMix = () => {
+  syncBackgroundAudioMix(900);
+  AudioSys.publishState();
+};
+doorOpenAudio?.addEventListener("ended", restoreDoorAudioMix);
+doorOpenAudio?.addEventListener("error", restoreDoorAudioMix);
+doorOpenAudio?.addEventListener("pause", restoreDoorAudioMix);
+[...Object.values(coffeeAudios)].forEach(audio => {
+  if (!audio) return;
+  ["playing", "pause", "ended", "error", "volumechange"].forEach(eventName => {
+    audio.addEventListener(eventName, () => {
+      syncBackgroundAudioMix(eventName === "playing" ? 220 : 720);
+      AudioSys.publishState();
+    });
+  });
 });
 [doorOpenVideo, roomLoopVideo, deskLoopVideo, coffeePourVideo, coffeeAmericanoVideo].forEach(video => {
   video?.addEventListener("loadeddata", () => AudioSys.publishState());
@@ -1847,10 +2008,20 @@ document.addEventListener("visibilitychange", () => {
     AudioSys.stopKeyboard();
     AudioSys.stopRoomDetails();
     AudioSys.pauseBackgroundMusic();
+    if (doorOpenAudio) {
+      doorOpenAudio.muted = true;
+      doorOpenAudio.pause();
+    }
+    if (doorOpenVideo) doorOpenVideo.muted = true;
     if (roomLoopVideo) roomLoopVideo.muted = true;
     if (deskLoopVideo) deskLoopVideo.muted = true;
     Object.values(coffeeVideos).forEach(video => {
       if (video) video.muted = true;
+    });
+    Object.values(coffeeAudios).forEach(audio => {
+      if (!audio) return;
+      audio.muted = true;
+      audio.pause();
     });
     AudioSys.publishState();
     return;
@@ -1868,7 +2039,19 @@ function setProgress(stepIndex) {
   progressLabels.forEach((el, i) => el?.classList.toggle("active", i === stepIndex));
 }
 
+let doorTransitionRunId = 0;
+let doorTransitionTimer = 0;
+
 function activate(name) {
+  if (name !== "door" && doorTransitionTimer) {
+    window.clearTimeout(doorTransitionTimer);
+    doorTransitionTimer = 0;
+    doorTransitionRunId += 1;
+    if (doorOpenVideo) {
+      doorOpenVideo.onended = null;
+      doorOpenVideo.onerror = null;
+    }
+  }
   if (name !== "chat" && scenes.chat.classList.contains("active")) {
     resetChatInteraction();
   }
@@ -1888,6 +2071,16 @@ function syncDoorSceneMedia(activeScene) {
   if (!doorIdleVideo || !doorOpenVideo) return;
   if (activeScene === "door") {
     scenes.door.classList.remove("opening", "opening-frame-ready");
+    if (doorOpenAudio) {
+      doorOpenAudio.pause();
+      doorOpenAudio.muted = true;
+      try {
+        doorOpenAudio.currentTime = 0;
+      } catch (error) {
+        void error;
+      }
+    }
+    delete doorOpenVideo.dataset.forceMuted;
     doorOpenVideo.pause();
     try {
       doorOpenVideo.currentTime = 0;
@@ -1905,11 +2098,37 @@ function syncDoorSceneMedia(activeScene) {
 function syncDoorVideoAudio() {
   if (!doorIdleVideo || !doorOpenVideo) return;
   doorIdleVideo.muted = true;
-  doorOpenVideo.volume = 0.58;
-  // The synthesized door sound carries the feedback. Keeping the transition
-  // video muted prevents mobile WebViews from rejecting playback after the
-  // asynchronous opening sequence starts.
+  // Door sound is played by a dedicated audio element. Keeping the video
+  // silent avoids desktop/WebView differences and prevents double playback.
   doorOpenVideo.muted = true;
+}
+
+function playDoorOpeningSound(audioReady) {
+  if (AudioSys.muted) return;
+  // Keep a short Web Audio thud as a safety layer. It starts after the audio
+  // context has resumed, so the door is still audible if HTMLAudio is denied.
+  Promise.resolve(audioReady).finally(() => {
+    if (!AudioSys.muted) AudioSys.door(0.9);
+  });
+  if (!doorOpenAudio) {
+    return;
+  }
+  doorOpenAudio.pause();
+  doorOpenAudio.muted = false;
+  doorOpenAudio.volume = 1;
+  try {
+    doorOpenAudio.currentTime = 0;
+  } catch (error) {
+    void error;
+  }
+  document.body.dataset.audioDoorAttempt = String(Date.now());
+  const started = doorOpenAudio.play();
+  if (!started) {
+    return;
+  }
+  started.catch(() => {
+    document.body.dataset.audioDoor = "fallback";
+  });
 }
 
 function syncLoopSceneMedia(activeScene) {
@@ -1944,21 +2163,19 @@ function syncChatSceneMedia(activeScene) {
 function syncRoomVideoAudio() {
   if (!roomLoopVideo) return;
   const sceneActive = scenes.room.classList.contains("active");
-  roomLoopVideo.volume = 1;
+  // The Room loop is a visual ambience layer. It intentionally contains no
+  // audio, so keep it muted at all times; unmuting a looping video can make
+  // browsers pause it under autoplay rules and was the source of the stutter.
+  roomLoopVideo.muted = true;
   if (!sceneActive) {
-    roomLoopVideo.muted = true;
     return;
   }
   if (!roomLoopVideo.paused) {
-    roomLoopVideo.muted = AudioSys.muted || document.hidden;
     return;
   }
-  roomLoopVideo.muted = true;
   const started = roomLoopVideo.play();
   if (started) {
-    started.then(() => {
-      roomLoopVideo.muted = AudioSys.muted || document.hidden || !scenes.room.classList.contains("active");
-    }).catch(() => {
+    started.catch(() => {
       roomLoopVideo.muted = true;
       roomLoopVideo.play().catch(() => {});
     });
@@ -2497,49 +2714,72 @@ if (contactVideo) {
   });
 }
 
-document.getElementById("door-trigger").addEventListener("click", async () => {
+const doorTriggerButton = document.getElementById("door-trigger");
+let lastDoorSoundGestureAt = 0;
+
+doorTriggerButton?.addEventListener("pointerdown", () => {
+  const doorAudioReady = AudioSys.ensureStarted().catch(() => {});
+  lastDoorSoundGestureAt = Date.now();
+  playDoorOpeningSound(doorAudioReady);
+});
+
+doorTriggerButton?.addEventListener("click", () => {
+  const doorAudioReady = AudioSys.ensureStarted().catch(() => {});
   if (AudioSys.muted && !AudioSys.soundChoiceMade) {
-    AudioSys.ensureStarted().catch(() => {});
     AudioSys.setMuted(false);
-  } else {
-    await primeAudio();
   }
   AudioSys.click(0.65);
-  AudioSys.door(0.45);
+  // Keyboard activation has no pointerdown, so retain a click fallback without
+  // replaying the sound for ordinary mouse/touch gestures.
+  if (Date.now() - lastDoorSoundGestureAt > 650) playDoorOpeningSound(doorAudioReady);
   const doorScene = scenes.door;
   doorScene.classList.remove("farewell");
   if (!doorOpenVideo) {
     activate("room");
     return;
   }
+  const runId = ++doorTransitionRunId;
+  window.clearTimeout(doorTransitionTimer);
   doorScene.classList.remove("opening-frame-ready");
   doorScene.classList.add("opening");
   if (doorOpenVideo.classList.contains("frame-ready")) doorScene.classList.add("opening-frame-ready");
   doorIdleVideo?.pause();
   doorOpenVideo.pause();
-  syncDoorVideoAudio();
+  delete doorOpenVideo.dataset.forceMuted;
   try {
     doorOpenVideo.currentTime = 0;
   } catch (error) {
     void error;
   }
-  await new Promise(resolve => {
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      doorOpenVideo.onended = null;
-      doorOpenVideo.onerror = null;
-      resolve();
-    };
-    doorOpenVideo.onended = finish;
-    doorOpenVideo.onerror = finish;
+  syncDoorVideoAudio();
+
+  const finish = () => {
+    if (runId !== doorTransitionRunId) return;
+    window.clearTimeout(doorTransitionTimer);
+    doorTransitionTimer = 0;
+    doorOpenVideo.onended = null;
+    doorOpenVideo.onerror = null;
+    activate("room");
+  };
+  doorOpenVideo.onended = finish;
+  doorOpenVideo.onerror = finish;
+  doorTransitionTimer = window.setTimeout(finish, 3400);
+
+  const started = doorOpenVideo.play();
+  if (!started) {
+    window.setTimeout(finish, 500);
+    return;
+  }
+  started.then(() => {
+    revealVideoFrame(doorOpenVideo, () => doorScene.classList.add("opening-frame-ready"));
+  }).catch(() => {
+    if (runId !== doorTransitionRunId) return;
+    doorOpenVideo.dataset.forceMuted = "true";
+    doorOpenVideo.muted = true;
     doorOpenVideo.play().then(() => {
       revealVideoFrame(doorOpenVideo, () => doorScene.classList.add("opening-frame-ready"));
-    }).catch(finish);
-    window.setTimeout(finish, 4200);
+    }).catch(() => {});
   });
-  activate("room");
 });
 
 function bindRoomAction(triggerId, labelId, action) {
