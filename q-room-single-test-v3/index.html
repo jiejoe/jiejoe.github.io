@@ -912,6 +912,8 @@ a.ring{display:block;text-decoration:none}
   box-shadow:0 14px 34px rgba(0,0,0,.2);
   backdrop-filter:blur(12px);
   cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
   text-transform:uppercase;
   letter-spacing:.12em;
 }
@@ -921,55 +923,6 @@ a.ring{display:block;text-decoration:none}
   background:linear-gradient(135deg,rgba(129,81,205,.82),rgba(179,126,255,.76));
   color:#fff;
 }
-.coffee-chat-assist{
-  position:absolute;
-  z-index:35;
-  right:clamp(22px,3vw,48px);
-  top:clamp(150px,24vh,240px);
-  bottom:auto;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-  padding:0;
-  border:0;
-  background:none;
-  font:inherit;
-  opacity:0;
-  pointer-events:none;
-  transform:translateY(8px);
-  transition:opacity .28s ease,transform .28s ease;
-}
-.coffee-chat-assist.is-visible{opacity:1;pointer-events:auto;transform:translateY(0)}
-.coffee-chat-ring{
-  position:relative;
-  display:grid;
-  place-items:center;
-  width:44px;
-  height:44px;
-  border:none;
-  border-radius:50%;
-  background:rgba(255,255,255,.014);
-  color:#f8f0ff;
-  font-family:Georgia,"Times New Roman",serif;
-  font-size:17px;
-  box-shadow:inset 0 0 0 1.25px var(--line),0 0 22px var(--purple-soft);
-  backdrop-filter:blur(10px);
-  cursor:pointer;
-  transition:transform .22s ease,box-shadow .22s ease;
-}
-.coffee-chat-ring:hover{transform:scale(1.08);box-shadow:inset 0 0 0 1.4px rgba(248,242,255,.92),0 0 30px rgba(189,150,255,.38)}
-.coffee-chat-assist span{
-  max-width:120px;
-  color:rgba(250,245,255,.76);
-  font-size:9px;
-  line-height:1.45;
-  letter-spacing:.12em;
-  text-align:center;
-  text-transform:uppercase;
-  text-shadow:0 0 16px rgba(189,150,255,.38);
-}
-
 .tag{
   position:absolute;
   z-index:23;
@@ -3882,14 +3835,6 @@ a.ring{display:block;text-decoration:none}
   .coffee-menu-head h2{font-size:26px}
   .coffee-kind{min-height:116px;padding:13px}
   .coffee-kind-index{margin-bottom:14px}
-  .coffee-chat-assist{
-    right:max(14px,env(safe-area-inset-right));
-    top:calc(env(safe-area-inset-top) + 118px);
-    bottom:auto;
-    gap:6px;
-  }
-  .coffee-chat-ring{width:40px;height:40px;font-size:16px}
-  .coffee-chat-assist span{max-width:96px;font-size:8px}
   .coffee-result-controls{
     z-index:42;
     left:14px;
@@ -3901,7 +3846,6 @@ a.ring{display:block;text-decoration:none}
   }
   .coffee-result-controls:not([hidden]){display:grid}
   .coffee-result-controls button{height:46px;padding:0 12px;font-size:9px}
-  .coffee-chat-assist{display:none}
   .coffee-order-badge{top:75px;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .coffee-toast{top:132px;max-width:calc(100vw - 28px);border-radius:20px}
 }
@@ -4131,10 +4075,6 @@ a.ring{display:block;text-decoration:none}
       <span class="line"></span>
       <span class="copy"><strong>Back To Room</strong></span>
     </button>
-    <button class="coffee-chat-assist" id="coffee-chat-trigger" type="button" aria-label="So, have a coffee chat?">
-      <span class="coffee-chat-ring" aria-hidden="true"></span>
-      <span>So, have a coffee chat?</span>
-    </button>
   </section>
 
   <section class="scene" id="scene-desk">
@@ -4247,6 +4187,6 @@ a.ring{display:block;text-decoration:none}
 
 <audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
 <audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-mobile-stability-v31"></script>
+<script src="./app.js?v=20260712-coffee-repeat-v32"></script>
 </body>
 </html>
