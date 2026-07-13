@@ -25,12 +25,14 @@ const deskBackCue = document.getElementById("desk-back-cue");
 const chatBackCue = document.getElementById("chat-back-cue");
 const qStageBubble = document.getElementById("q-stage-bubble");
 const qStageText = document.getElementById("q-stage-text");
+const chatTransitionAnchor = document.getElementById("chat-transition-anchor");
 const meEcho = document.getElementById("me-echo");
 const chatInput = document.getElementById("chat-input");
 const chatSuggestions = document.getElementById("chat-suggestions");
 const chatSendButton = document.getElementById("send-btn");
 const soundToggle = document.getElementById("sound-toggle");
 const backgroundMusic = document.getElementById("background-music");
+const roomAmbienceAudio = document.getElementById("room-ambience-audio");
 const uiClickAudio = document.getElementById("ui-click-audio");
 const doorOpenAudio = document.getElementById("door-open-audio");
 const coffeePourAudio = document.getElementById("coffee-pourover-audio");
@@ -156,8 +158,26 @@ Object.values(chatStateVideos).forEach(bindChatSceneFallback);
 
 function startSiteLoader() {
   if (!siteLoader) return;
+  // The wall is rendered only after the visitor opens the desk. Preload its
+  // first-screen art now so mobile scrolling does not decode several large
+  // images during the first swipe.
+  const wallPreviewImages = [
+    "./assets/shipu-library.png",
+    "./assets/shipu-ipad-user.png",
+    "./assets/companion-app.png",
+    "./assets/companion-call.png",
+    "./assets/qstudio-homepage.png",
+    "./assets/work-project-reference.png",
+    "./assets/chat-v4/chat-transition-neutral.jpg"
+  ].map(src => {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = src;
+    return image;
+  });
   const criticalMedia = Array.from(new Set([
     ...document.querySelectorAll(".scene > img"),
+    ...wallPreviewImages,
     doorIdleVideo,
     doorOpenVideo,
     roomLoopVideo,
@@ -166,12 +186,14 @@ function startSiteLoader() {
     ...Object.values(coffeeVideos),
     ...Object.values(coffeeAudios),
     backgroundMusic,
+    roomAmbienceAudio,
     uiClickAudio,
     doorOpenAudio
   ].filter(Boolean)));
   let settled = 0;
   let failed = 0;
   const failedMedia = [];
+  const deferredMedia = [];
   const total = Math.max(1, criticalMedia.length);
   const update = () => {
     const progress = settled / total;
@@ -188,6 +210,38 @@ function startSiteLoader() {
             : "Warming the coffee bar…";
     }
   };
+  const pinnedObjectUrls = [];
+  const fullyBufferMedia = async element => {
+    if (!element) return;
+    const src = element.src || element.currentSrc;
+    if (!src || src.startsWith("blob:")) return;
+    const response = await fetch(src, { cache: "force-cache" });
+    if (!response.ok) throw new Error(`Unable to buffer ${src}`);
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    pinnedObjectUrls.push(objectUrl);
+    element.pause();
+    element.src = objectUrl;
+    element.load();
+    element.dataset.preloadedBytes = String(blob.size);
+    await new Promise(resolve => {
+      let complete = false;
+      const done = () => {
+        if (complete) return;
+        complete = true;
+        window.clearTimeout(timer);
+        element.removeEventListener("canplaythrough", done);
+        element.removeEventListener("canplay", done);
+        element.removeEventListener("error", done);
+        resolve();
+      };
+      const timer = window.setTimeout(done, 9000);
+      element.addEventListener("canplaythrough", done, { once: true });
+      element.addEventListener("canplay", done, { once: true });
+      element.addEventListener("error", done, { once: true });
+      if (element.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) done();
+    });
+  };
   const waitForMedia = element => new Promise(resolve => {
     const isImage = element instanceof HTMLImageElement;
     const isMedia = element instanceof HTMLMediaElement;
@@ -202,13 +256,10 @@ function startSiteLoader() {
       window.clearInterval(pollId);
       element.removeEventListener(isImage ? "load" : "canplay", onReady);
       element.removeEventListener("error", onError);
-      if (status !== "ready") {
-        failed += 1;
-        failedMedia.push(element.currentSrc || element.src || element.alt || element.id || "unknown");
-      }
+      if (status !== "ready") deferredMedia.push(element.currentSrc || element.src || element.alt || element.id || "unknown");
       settled += 1;
       update();
-      document.body.dataset.loaderFailedMedia = failedMedia.map(src => src.split("/").pop()).join(",");
+      document.body.dataset.loaderDeferredMedia = deferredMedia.map(src => src.split("/").pop()).join(",");
       resolve();
     };
     const onReady = () => done("ready");
@@ -257,7 +308,52 @@ function startSiteLoader() {
     }
   };
   const mediaReady = Promise.all(criticalMedia.map(waitForMedia));
-  const warmedMedia = mediaReady.then(async () => {
+  // Wait until the browser has accepted every original URL before replacing
+  // priority media with fully buffered Blob URLs. Running both phases at once
+  // aborts the original requests and makes healthy media look like failures.
+  const fullyBufferedMedia = mediaReady.then(async () => {
+    const priorityMedia = [
+      doorOpenVideo,
+      roomLoopVideo,
+      roomAmbienceAudio,
+      backgroundMusic,
+      doorOpenAudio,
+      uiClickAudio
+    ].filter(Boolean);
+    const secondaryMedia = criticalMedia.filter(element => (
+      element instanceof HTMLMediaElement && !priorityMedia.includes(element)
+    ));
+    const images = criticalMedia.filter(element => element instanceof HTMLImageElement);
+    const verifyImage = async image => {
+      const src = image.currentSrc || image.src;
+      if (!src || src.startsWith("blob:")) return;
+      const response = await fetch(src, { cache: "force-cache" });
+      if (!response.ok) throw new Error(`Unable to preload ${src}`);
+      await response.blob();
+    };
+    const registerFailures = (elements, results) => {
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") return;
+        failed += 1;
+        const element = elements[index];
+        failedMedia.push(element?.currentSrc || element?.src || element?.alt || element?.id || "unknown");
+      });
+      document.body.dataset.loaderFailed = String(failed);
+      document.body.dataset.loaderFailedMedia = failedMedia.map(src => src.split("/").pop()).join(",");
+    };
+    const priorityResults = await Promise.allSettled(priorityMedia.map(fullyBufferMedia));
+    registerFailures(priorityMedia, priorityResults);
+    document.body.dataset.loaderPinnedPriority = String(priorityResults.filter(result => result.status === "fulfilled").length);
+    const secondaryResults = await Promise.allSettled(secondaryMedia.map(fullyBufferMedia));
+    registerFailures(secondaryMedia, secondaryResults);
+    document.body.dataset.loaderPinnedSecondary = String(secondaryResults.filter(result => result.status === "fulfilled").length);
+    const imageResults = await Promise.allSettled(images.map(verifyImage));
+    registerFailures(images, imageResults);
+    document.body.dataset.loaderPinnedBytes = String(
+      [...priorityMedia, ...secondaryMedia].reduce((sum, media) => sum + Number(media.dataset.preloadedBytes || 0), 0)
+    );
+  });
+  const warmedMedia = fullyBufferedMedia.then(async () => {
     const warmQueue = [
       doorOpenVideo,
       roomLoopVideo,
@@ -268,8 +364,8 @@ function startSiteLoader() {
     ].filter(Boolean);
     for (const video of warmQueue) await warmVideo(video);
   });
-  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 18000));
-  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 3200));
+  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 32000));
+  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 4200));
   Promise.all([Promise.race([warmedMedia, safetyReady]), minimumGlow]).then(() => {
     if (loaderProgressBar) loaderProgressBar.style.width = "100%";
     if (loaderStatus) loaderStatus.textContent = failed
@@ -1462,17 +1558,55 @@ function setChatVisualState(nextState, { reset = true } = {}) {
   nextVideo.play().then(() => {
     revealVideoFrame(nextVideo, () => {
       if (transitionId !== chatVisualTransitionId) return;
-      nextVideo.classList.add("is-active", "frame-ready");
+      nextVideo.pause();
+      nextVideo.classList.add("frame-ready");
       scenes.chat.classList.add("media-ready");
-      currentVideo?.classList.remove("is-active");
+      document.body.dataset.chatTransition = `${currentVideo?.id || "poster"}->${nextVideo.id}:next-frame-ready`;
 
-      if (!currentVideo) return;
-      window.setTimeout(() => {
-        if (transitionId !== chatVisualTransitionId || currentVideo.classList.contains("is-active")) return;
-        currentVideo.pause();
+      if (!currentVideo) {
+        nextVideo.classList.add("is-active");
+        nextVideo.play().catch(() => {});
+        document.body.dataset.chatTransition = `${nextVideo.id}:settled`;
+        return;
+      }
+
+      // The generated clips have tiny pose/texture differences. Directly
+      // blending them creates a one-frame double image. Fade through one exact
+      // neutral Waiting frame, swap the videos while it is opaque, then reveal
+      // the incoming clip. No two generated poses are visible at the same time.
+      currentVideo.pause();
+      if (!chatTransitionAnchor) {
+        currentVideo.classList.remove("is-active");
+        nextVideo.classList.add("is-active");
+        nextVideo.play().catch(() => {});
         currentVideo.classList.remove("frame-ready");
         resetSceneVideo(currentVideo);
-      }, 420);
+        document.body.dataset.chatTransition = `${nextVideo.id}:settled`;
+        return;
+      }
+
+      chatTransitionAnchor.classList.add("is-visible");
+      document.body.dataset.chatTransition = `${currentVideo.id}->anchor:covering`;
+      window.setTimeout(() => {
+        if (transitionId !== chatVisualTransitionId) return;
+        currentVideo.classList.remove("is-active");
+        nextVideo.classList.add("is-active");
+        nextVideo.play().catch(() => {});
+        document.body.dataset.chatTransition = `anchor->${nextVideo.id}:swapped`;
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            if (transitionId !== chatVisualTransitionId) return;
+            chatTransitionAnchor.classList.remove("is-visible");
+            document.body.dataset.chatTransition = `anchor->${nextVideo.id}:revealing`;
+            window.setTimeout(() => {
+              if (transitionId !== chatVisualTransitionId || currentVideo.classList.contains("is-active")) return;
+              currentVideo.classList.remove("frame-ready");
+              resetSceneVideo(currentVideo);
+              document.body.dataset.chatTransition = `${nextVideo.id}:settled`;
+            }, 240);
+          });
+        });
+      }, 190);
     });
   }).catch(() => {});
 }
@@ -1503,6 +1637,9 @@ function handleChatIdleEnded(state) {
 chatRelaxedVideo?.addEventListener("ended", () => handleChatIdleEnded("relaxed"));
 
 function resetChatInteraction({ clearTurn = true } = {}) {
+  chatVisualTransitionId += 1;
+  chatTransitionAnchor?.classList.remove("is-visible");
+  document.body.dataset.chatTransition = "reset";
   chatRunId += 1;
   activeChatController?.abort();
   activeChatController = null;
@@ -1627,42 +1764,24 @@ async function sendChatMessage(prefill, scriptedKey = "") {
 
 window.sendChatMessage = sendChatMessage;
 
-// Keep one continuous background track while preserving intentional scene and
-// foreground effects such as the door, Room, keyboard, and coffee sounds.
-const AUDIO_MIX_VERSION = "single-bgm-full-sfx-v5";
+// Keep one continuous background track after the first Room entry. Scene
+// ambience and UI effects live on independent tracks and never duck the music.
+const AUDIO_MIX_VERSION = "continuous-clean-room-pour-v12";
 const BGM_VOLUME = 0.22;
+const ROOM_AMBIENCE_VOLUME = 0.84;
+const DOOR_OPEN_VOLUME = 0.86;
 const UI_CLICK_VOLUME = 0.14;
 const UI_CLICK_MAX_VOLUME = 0.18;
-let backgroundVolumeAnimation = 0;
 
 function getBackgroundMusicTargetVolume() {
-  const doorPlaying = Boolean(doorOpenAudio && !doorOpenAudio.paused && !doorOpenAudio.muted);
-  if (doorPlaying) return 0.07;
-  const coffeePlaying = Boolean(
-    scenes.coffee?.classList.contains("active")
-    && activeCoffeeVideoKey
-    && coffeeAudios[activeCoffeeVideoKey]
-    && !coffeeAudios[activeCoffeeVideoKey].paused
-    && !coffeeAudios[activeCoffeeVideoKey].muted
-  );
-  if (coffeePlaying) return 0.09;
   return BGM_VOLUME;
 }
 
-function syncBackgroundAudioMix(duration = 480) {
+function syncBackgroundAudioMix() {
   if (!backgroundMusic) return;
-  window.cancelAnimationFrame(backgroundVolumeAnimation);
-  const from = backgroundMusic.volume;
-  const target = getBackgroundMusicTargetVolume();
-  const startedAt = performance.now();
-  const tick = now => {
-    const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
-    const eased = 1 - Math.pow(1 - progress, 3);
-    backgroundMusic.volume = from + (target - from) * eased;
-    if (progress < 1) backgroundVolumeAnimation = window.requestAnimationFrame(tick);
-    else AudioSys.publishState();
-  };
-  backgroundVolumeAnimation = window.requestAnimationFrame(tick);
+  // This intentionally ignores scene state. Door, coffee, Room, Desk, and UI
+  // sounds must never fade, restart, or otherwise modulate the background bed.
+  backgroundMusic.volume = getBackgroundMusicTargetVolume();
 }
 
 if (localStorage.getItem("qroom-audio-mix-version") !== AUDIO_MIX_VERSION) {
@@ -1678,14 +1797,101 @@ const AudioSys = {
   keyboardTimer: null,
   roomTimer: null,
   soundChoiceMade: localStorage.getItem("qroom-muted") !== null,
+  roomAmbiencePrimed: false,
+  backgroundPrimed: false,
+  backgroundPrimePending: false,
+  backgroundStarted: false,
   lastClickAt: 0,
   armMediaTracks() {
     if (this.muted) return;
-    this.startBackgroundMusic();
+    if (this.backgroundStarted) this.startBackgroundMusic();
+    else this.primeBackgroundMusic();
+    // The Room pour needs gesture priming only at the entrance. Re-priming on
+    // a Desk/Chat back click can race the real Room playback and mute it.
+    if (scenes.door.classList.contains("active")) this.primeRoomAmbience();
     syncDoorVideoAudio();
     syncRoomVideoAudio();
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
+  },
+  primeBackgroundMusic() {
+    if (!backgroundMusic || this.muted || document.hidden) return;
+    if (this.backgroundStarted) {
+      this.startBackgroundMusic();
+      return;
+    }
+    if (this.backgroundPrimed || this.backgroundPrimePending) return;
+    this.backgroundPrimePending = true;
+    // Start the media element inside the real door gesture at zero volume and
+    // keep it alive. When Room appears we rewind and reveal it, avoiding a
+    // second autoplay request several seconds after the gesture has expired.
+    backgroundMusic.muted = false;
+    backgroundMusic.volume = 0;
+    try { backgroundMusic.currentTime = 0; } catch (error) { void error; }
+    const started = backgroundMusic.play();
+    if (!started) {
+      this.backgroundPrimePending = false;
+      return;
+    }
+    started.then(() => {
+      this.backgroundPrimePending = false;
+      this.backgroundPrimed = true;
+      if (this.backgroundStarted) {
+        backgroundMusic.muted = false;
+        syncBackgroundAudioMix();
+        this.startBackgroundMusic();
+      } else {
+        backgroundMusic.volume = 0;
+        backgroundMusic.muted = false;
+        document.body.dataset.audioBackground = "armed-silent-for-room";
+      }
+      this.publishState();
+    }).catch(() => {
+      this.backgroundPrimePending = false;
+      document.body.dataset.audioBackground = "blocked-before-room";
+      this.publishState();
+    });
+  },
+  beginBackgroundMusic() {
+    if (this.backgroundStarted) {
+      this.startBackgroundMusic();
+      return;
+    }
+    // The zero-volume priming track may have advanced during the door shot.
+    // Rewind here so the visitor hears the music from its intended first beat.
+    try { backgroundMusic.currentTime = 0; } catch (error) { void error; }
+    this.backgroundStarted = true;
+    document.body.dataset.audioBackgroundStartedAt = String(Date.now());
+    this.startBackgroundMusic();
+  },
+  primeRoomAmbience() {
+    if (!roomAmbienceAudio || this.muted || document.hidden) return;
+    if (this.roomAmbiencePrimed) {
+      if (scenes.room.classList.contains("active")) syncRoomAmbienceAudio();
+      return;
+    }
+    if (!roomAmbienceAudio.paused) {
+      this.roomAmbiencePrimed = true;
+      return;
+    }
+    // Unlock the clean Room pour loop inside the real pointer gesture, then
+    // rewind it. It begins audibly only when the Room scene becomes active.
+    roomAmbienceAudio.muted = true;
+    roomAmbienceAudio.volume = 0;
+    const started = roomAmbienceAudio.play();
+    if (started) {
+      started.then(() => {
+        roomAmbienceAudio.pause();
+        try { roomAmbienceAudio.currentTime = 0; } catch (error) { void error; }
+        this.roomAmbiencePrimed = true;
+        document.body.dataset.audioRoomAmbience = "primed";
+        if (scenes.room.classList.contains("active")) syncRoomAmbienceAudio();
+        this.publishState();
+      }).catch(() => {
+        document.body.dataset.audioRoomAmbience = "blocked";
+        this.publishState();
+      });
+    }
   },
   async ensureStarted() {
     // Arm HTML media while the pointer gesture is still active. Waiting for
@@ -1714,12 +1920,19 @@ const AudioSys = {
     this.publishState();
   },
   startBackgroundMusic() {
-    if (!backgroundMusic || this.muted || document.hidden) return;
-    backgroundMusic.volume = getBackgroundMusicTargetVolume();
+    if (!backgroundMusic || !this.backgroundStarted || this.muted || document.hidden) return;
+    syncBackgroundAudioMix();
     backgroundMusic.muted = false;
+    // Repeated scene/UI synchronization must never seek, reload, or restart the
+    // one persistent background track.
+    if (!backgroundMusic.paused && !backgroundMusic.ended) {
+      this.backgroundPrimed = true;
+      this.publishState();
+      return;
+    }
     document.body.dataset.audioBackgroundAttempt = String(Date.now());
     backgroundMusic.play().then(() => {
-      syncBackgroundAudioMix(260);
+      this.backgroundPrimed = true;
       this.publishState();
     }).catch(() => this.publishState());
   },
@@ -1735,9 +1948,11 @@ const AudioSys = {
     soundToggle.innerHTML = `<strong>${this.muted ? "Sound Off" : "Sound On"}</strong>`;
     if (!this.ctx) {
       if (this.muted) this.pauseBackgroundMusic();
-      else this.startBackgroundMusic();
+      else if (this.backgroundStarted) this.startBackgroundMusic();
+      else this.primeBackgroundMusic();
       syncDoorVideoAudio();
       syncRoomVideoAudio();
+      syncRoomAmbienceAudio();
       syncDeskVideoAudio();
       syncCoffeeVideoAudio();
       this.publishState();
@@ -1757,17 +1972,23 @@ const AudioSys = {
       this.pauseBackgroundMusic();
     } else {
       this.shimmer(720, 0.036);
-      this.startBackgroundMusic();
       this.syncSceneAudio();
     }
     syncDoorVideoAudio();
     syncRoomVideoAudio();
+    syncRoomAmbienceAudio();
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
     this.publishState();
   },
   publishState() {
-    const musicPlaying = Boolean(backgroundMusic && !backgroundMusic.paused && !backgroundMusic.muted);
+    const musicPlaying = Boolean(
+      this.backgroundStarted
+      && backgroundMusic
+      && !backgroundMusic.paused
+      && !backgroundMusic.muted
+      && backgroundMusic.volume > 0
+    );
     const videoTracks = [
       ["door", doorOpenVideo],
       ["room", roomLoopVideo],
@@ -1776,14 +1997,31 @@ const AudioSys = {
     const coffeeTracks = Object.entries(coffeeAudios)
       .filter(([, audio]) => audio && !audio.paused && !audio.muted)
       .map(([name]) => name);
-    document.body.dataset.audioMix = "click-video-music";
+    document.body.dataset.audioMix = "persistent-bgm+scene-sfx+ui-click";
     document.body.dataset.audioMuted = String(this.muted);
     document.body.dataset.audioClick = uiClickAudio?.error ? "error" : uiClickAudio?.readyState >= 2 ? "ready" : "loading";
     document.body.dataset.audioDoor = doorOpenAudio?.error ? "error" : doorOpenAudio && !doorOpenAudio.paused && !doorOpenAudio.muted ? "playing" : "ready";
     document.body.dataset.audioVideo = videoTracks.join(",") || "stopped";
     document.body.dataset.audioCoffee = coffeeTracks.join(",") || document.body.dataset.audioCoffee || "ready";
-    document.body.dataset.audioBackground = musicPlaying ? "playing-cafe-music" : "stopped";
+    document.body.dataset.audioBackground = musicPlaying
+      ? "playing-cafe-music"
+      : this.backgroundStarted
+        ? "started-awaiting-play"
+        : this.backgroundPrimed
+          ? "primed-for-room"
+          : "ready";
+    document.body.dataset.audioBackgroundStarted = String(this.backgroundStarted);
+    document.body.dataset.audioBackgroundPrimed = String(this.backgroundPrimed);
     document.body.dataset.audioBackgroundVolume = backgroundMusic ? String(backgroundMusic.volume) : "0";
+    document.body.dataset.audioRoomAmbience = roomAmbienceAudio?.error
+      ? "error"
+      : roomAmbienceAudio?.ended
+        ? "ended"
+      : roomAmbienceAudio && !roomAmbienceAudio.paused && roomAmbienceAudio.volume > 0 && !roomAmbienceAudio.muted
+        ? "playing"
+        : this.roomAmbiencePrimed
+          ? "primed"
+          : "ready";
     document.body.dataset.audioBuses = this.effectsBus ? "ready" : "pending";
     document.body.dataset.audioContext = this.ctx?.state || "not-created";
   },
@@ -1921,12 +2159,19 @@ const AudioSys = {
     this.stopRoomDetails();
     syncDoorVideoAudio();
     syncRoomVideoAudio();
+    syncRoomAmbienceAudio();
     syncDeskVideoAudio();
     syncCoffeeVideoAudio();
     if (this.muted) return;
-    this.startBackgroundMusic();
-    if (scenes.room.classList.contains("active")) this.startRoomDetails();
-    if (scenes.desk.classList.contains("active")) this.startKeyboard();
+    if (scenes.room.classList.contains("active") && !this.backgroundStarted) {
+      this.beginBackgroundMusic();
+    } else if (this.backgroundStarted) {
+      this.startBackgroundMusic();
+    }
+    // The clean Room source already contains its environmental detail. Do not
+    // layer the former synthetic noise/tone loop over it.
+    // Desk already carries its original typing/room sound. A second synthetic
+    // keyboard loop made the persistent music feel doubled when opening Work.
     if (scenes.chat.classList.contains("active") || scenes.contact.classList.contains("active")) {
       this.shimmer(620, 0.025);
     }
@@ -1947,12 +2192,20 @@ function applyMusicTrack(trackId, options = {}) {
   backgroundMusic.src = src;
   backgroundMusic.load();
   backgroundMusic.volume = BGM_VOLUME;
+  AudioSys.backgroundPrimed = false;
+  AudioSys.backgroundPrimePending = false;
   syncMusicControls(trackId, label);
   document.body.dataset.audioMusicTrack = trackId;
   if (options.persist !== false && preset) {
     try { localStorage.setItem("qroom-music-track", trackId); } catch (error) { void error; }
   }
-  if (options.play !== false && !AudioSys.muted) AudioSys.startBackgroundMusic();
+  if (options.play !== false && !AudioSys.muted) {
+    if (AudioSys.backgroundStarted || scenes.room.classList.contains("active")) {
+      AudioSys.beginBackgroundMusic();
+    } else {
+      AudioSys.primeBackgroundMusic();
+    }
+  }
 }
 
 let savedMusicId = "serene";
@@ -1969,9 +2222,20 @@ backgroundMusic?.addEventListener("pause", () => AudioSys.publishState());
 backgroundMusic?.addEventListener("error", () => AudioSys.publishState());
 uiClickAudio?.addEventListener("playing", () => AudioSys.publishState());
 uiClickAudio?.addEventListener("error", () => AudioSys.publishState());
-[backgroundMusic, uiClickAudio, doorOpenAudio, ...Object.values(coffeeAudios)].forEach(audio => {
+[backgroundMusic, roomAmbienceAudio, uiClickAudio, doorOpenAudio, ...Object.values(coffeeAudios)].forEach(audio => {
   audio?.addEventListener("loadeddata", () => AudioSys.publishState());
   audio?.addEventListener("canplay", () => AudioSys.publishState());
+});
+roomAmbienceAudio?.addEventListener("playing", () => {
+  AudioSys.roomAmbiencePrimed = true;
+  AudioSys.publishState();
+});
+roomAmbienceAudio?.addEventListener("pause", () => {
+  AudioSys.publishState();
+});
+roomAmbienceAudio?.addEventListener("ended", () => {
+  document.body.dataset.audioRoomAmbience = "ended";
+  AudioSys.publishState();
 });
 doorOpenAudio?.addEventListener("playing", () => {
   syncBackgroundAudioMix(180);
@@ -2014,6 +2278,10 @@ document.addEventListener("visibilitychange", () => {
     }
     if (doorOpenVideo) doorOpenVideo.muted = true;
     if (roomLoopVideo) roomLoopVideo.muted = true;
+    if (roomAmbienceAudio) {
+      roomAmbienceAudio.muted = true;
+      roomAmbienceAudio.pause();
+    }
     if (deskLoopVideo) deskLoopVideo.muted = true;
     Object.values(coffeeVideos).forEach(video => {
       if (video) video.muted = true;
@@ -2027,7 +2295,6 @@ document.addEventListener("visibilitychange", () => {
     return;
   }
   if (AudioSys.muted) return;
-  AudioSys.startBackgroundMusic();
   AudioSys.syncSceneAudio();
 });
 
@@ -2108,14 +2375,14 @@ function playDoorOpeningSound(audioReady) {
   // Keep a short Web Audio thud as a safety layer. It starts after the audio
   // context has resumed, so the door is still audible if HTMLAudio is denied.
   Promise.resolve(audioReady).finally(() => {
-    if (!AudioSys.muted) AudioSys.door(0.9);
+    if (!AudioSys.muted) AudioSys.door(0.76);
   });
   if (!doorOpenAudio) {
     return;
   }
   doorOpenAudio.pause();
   doorOpenAudio.muted = false;
-  doorOpenAudio.volume = 1;
+  doorOpenAudio.volume = DOOR_OPEN_VOLUME;
   try {
     doorOpenAudio.currentTime = 0;
   } catch (error) {
@@ -2182,24 +2449,61 @@ function syncRoomVideoAudio() {
   }
 }
 
+function syncRoomAmbienceAudio() {
+  if (!roomAmbienceAudio) return;
+  const sceneActive = scenes.room.classList.contains("active");
+  roomAmbienceAudio.loop = true;
+  if (AudioSys.muted || document.hidden) {
+    roomAmbienceAudio.muted = true;
+    roomAmbienceAudio.pause();
+    return;
+  }
+  if (!sceneActive) {
+    roomAmbienceAudio.pause();
+    roomAmbienceAudio.muted = true;
+    try { roomAmbienceAudio.currentTime = 0; } catch (error) { void error; }
+    document.body.dataset.audioRoomAmbience = AudioSys.roomAmbiencePrimed ? "primed" : "ready";
+    return;
+  }
+  if (!roomAmbienceAudio.paused) return;
+  roomAmbienceAudio.muted = false;
+  roomAmbienceAudio.volume = ROOM_AMBIENCE_VOLUME;
+  try { roomAmbienceAudio.currentTime = 0; } catch (error) { void error; }
+  const started = roomAmbienceAudio.play();
+  if (started) {
+    started.then(() => {
+      AudioSys.roomAmbiencePrimed = true;
+      document.body.dataset.audioRoomAmbience = "playing";
+      AudioSys.publishState();
+    }).catch(() => {
+      document.body.dataset.audioRoomAmbience = "blocked";
+      AudioSys.publishState();
+    });
+  }
+}
+
 function syncDeskVideoAudio() {
   if (!deskLoopVideo) return;
   const sceneActive = scenes.desk.classList.contains("active");
-  deskLoopVideo.volume = 0.45;
+  const workIsCoveringDesk = Boolean(workPanel?.classList.contains("open"));
+  deskLoopVideo.volume = 0.38;
   if (!sceneActive) {
     deskLoopVideo.muted = true;
     resetSceneVideo(deskLoopVideo);
     return;
   }
   if (!deskLoopVideo.paused) {
-    deskLoopVideo.muted = AudioSys.muted || document.hidden;
+    deskLoopVideo.muted = AudioSys.muted || document.hidden || workIsCoveringDesk;
     return;
   }
   deskLoopVideo.muted = true;
   const started = deskLoopVideo.play();
   if (started) {
     started.then(() => {
-      deskLoopVideo.muted = AudioSys.muted || document.hidden || !scenes.desk.classList.contains("active");
+      deskLoopVideo.muted = AudioSys.muted
+        || document.hidden
+        || !scenes.desk.classList.contains("active")
+        || workPanel?.classList.contains("open");
     }).catch(() => {
       deskLoopVideo.muted = true;
       deskLoopVideo.play().catch(() => {});
@@ -2608,7 +2912,6 @@ async function openDeskScene(openWorkPanel) {
   await primeAudio();
   activate("desk");
   AudioSys.click();
-  AudioSys.transition();
   if (openWorkPanel) {
     await openPanel();
   } else {
@@ -2880,7 +3183,6 @@ deskBackCue.addEventListener("click", async () => {
   await primeAudio();
   activate("room");
   AudioSys.click();
-  AudioSys.transition();
 });
 
 chatBackCue.addEventListener("click", async () => {

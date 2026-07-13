@@ -325,9 +325,20 @@ body{
   z-index:1;
   opacity:0;
   pointer-events:none;
-  transition:opacity .22s ease;
+  transition:none;
 }
 #scene-chat > video.chat-state-video.is-active.frame-ready{opacity:1}
+.chat-transition-anchor{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  opacity:0;
+  pointer-events:none;
+  background:url("./assets/chat-v4/chat-transition-neutral.jpg") 50% 50% / cover no-repeat;
+  filter:saturate(1.02) contrast(1.01) brightness(.94);
+  transition:opacity .18s ease;
+}
+.chat-transition-anchor.is-visible{opacity:1}
 #scene-contact > img{object-position:50% 50%}
 .scene-chat::after{
   background:
@@ -345,11 +356,14 @@ body{
   z-index:32;
   display:flex;
   justify-content:space-between;
-  align-items:flex-start;
+  align-items:center;
   gap:16px;
 }
 .brand{
+  display:flex;
+  align-items:center;
   font-size:12px;
+  line-height:1;
   letter-spacing:.22em;
   text-transform:uppercase;
   color:rgba(247,242,255,.82);
@@ -360,10 +374,13 @@ body{
   align-items:center;
   color:rgba(247,242,255,.54);
   font-size:11px;
+  line-height:1;
   letter-spacing:.12em;
   text-transform:uppercase;
 }
 .progress button{
+  display:flex;
+  align-items:center;
   appearance:none;
   border:0;
   padding:0;
@@ -615,8 +632,10 @@ body.mood-disco .scene.active > video{
   transform:translate(-50%,-50%) scale(1);
 }
 #scene-door .copy{
+  max-width:min(760px,82vw);
   transition:opacity .32s ease, transform .4s ease;
 }
+.copy h1.stacked-title span{display:block}
 #scene-door.farewell .copy{
   opacity:0;
   transform:translateY(10px);
@@ -3730,12 +3749,30 @@ a.ring{display:block;text-decoration:none}
     overscroll-behavior-y:contain;
     background:rgba(16,11,24,.97);
     backdrop-filter:none;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
   }
   .panel.open{transform:none}
   .panel-head{padding-right:126px}
   .panel-close-side{height:38px;padding:0 12px 0 14px;font-size:10px}
-  .browser-shell{gap:14px}
-  .browser-detail{padding:16px}
+  .browser-shell{
+    flex:1 1 auto;
+    min-height:0;
+    gap:14px;
+    display:flex;
+    flex-direction:column;
+  }
+  .browser-detail{
+    flex:1 1 auto;
+    min-height:0;
+    padding:16px;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+  }
   .published-detail{
     padding:16px;
     gap:18px;
@@ -3758,6 +3795,11 @@ a.ring{display:block;text-decoration:none}
   .wall-item{backdrop-filter:none}
   .browser-detail[data-mode="wall"],
   .wall{touch-action:pan-y}
+  .browser-detail[data-mode="wall"]{
+    overflow-x:hidden;
+    overflow-y:auto;
+    padding-bottom:calc(26px + env(safe-area-inset-bottom));
+  }
   .wall-item.span-half,
   .wall-item.span-third{grid-column:1;min-height:260px}
   .project-companion .overlap-preview .device.phone{width:88px}
@@ -3950,7 +3992,7 @@ a.ring{display:block;text-decoration:none}
     <img src="./assets/poster-door-idle.jpg" alt="Q studio door entrance">
     <div class="copy">
       <p>Q Studio is awake</p>
-      <h1>Knock. Enter The AI Room.</h1>
+      <h1 class="stacked-title"><span>Knock.</span><span>Enter The AI Room.</span></h1>
     </div>
     <div class="door-farewell" id="door-farewell" aria-live="polite">
       <span class="door-farewell__copy">
@@ -3977,7 +4019,7 @@ a.ring{display:block;text-decoration:none}
     </div>
     <div class="copy room-hint">
       <p>AI room map · choose an action</p>
-      <h1>What Do You Want To Do?</h1>
+      <h1 class="stacked-title"><span>Welcome.</span><span>Help Yourself.</span></h1>
     </div>
     <div class="room-actions" aria-label="Room controls">
       <div class="mood-dock">
@@ -4120,6 +4162,7 @@ a.ring{display:block;text-decoration:none}
     <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat-v4/chat-sit-sip-seedance2-imageonly-720.mp4?v=20260712-v4" poster="./assets/chat-v2/poster-chat-sit.jpg" muted playsinline preload="auto"></video>
     <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
     <video id="chat-talk-video" class="chat-state-video" src="./assets/chat-v4/chat-talk-seedance2-imageonly-720-loop-matched.mp4?v=20260712-v7" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
+    <div class="chat-transition-anchor" id="chat-transition-anchor" aria-hidden="true"></div>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <div class="q-stage-text" id="q-stage-text"></div>
     </div>
@@ -4195,10 +4238,11 @@ a.ring{display:block;text-decoration:none}
 </div>
 
 <audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
+<audio id="room-ambience-audio" src="./assets/room-coffee-pour-clean-loop.wav?v=20260713-clean-loop-v1" loop preload="auto" aria-hidden="true"></audio>
 <audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
 <audio id="door-open-audio" src="./assets/door-open-sfx.wav?v=20260712-v2" preload="auto" aria-hidden="true"></audio>
 <audio id="coffee-pourover-audio" src="./assets/coffee-pourover-sfx.m4a?v=20260712" preload="auto" aria-hidden="true"></audio>
 <audio id="coffee-americano-audio" src="./assets/coffee-americano-sfx.m4a?v=20260712" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260712-loader-audio-smooth-v46"></script>
+<script src="./app.js?v=20260714-room-audio-balance-v60"></script>
 </body>
 </html>
