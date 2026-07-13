@@ -3688,6 +3688,15 @@ a.ring{display:block;text-decoration:none}
 }
 
 @media (max-width: 680px){
+  html,
+  body,
+  .app{height:100dvh}
+  /*
+    Keep the work wall on one native scroller. iOS WebKit can drop vertical
+    gestures when an overflow scroller is nested inside both an
+    overflow:hidden flex panel and a transformed scene.
+  */
+  #scene-desk.active{transform:none}
   .site-loader__glass{width:214px}
   .site-loader__q{width:178px}
   .topbar{top:14px;left:14px;right:14px}
@@ -3749,28 +3758,39 @@ a.ring{display:block;text-decoration:none}
     overscroll-behavior-y:contain;
     background:rgba(16,11,24,.97);
     backdrop-filter:none;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
+    display:block;
+    overflow-x:hidden;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
   }
   .panel.open{transform:none}
-  .panel-head{padding-right:126px}
+  .panel-head{
+    position:sticky;
+    top:-1px;
+    z-index:8;
+    margin-top:-1px;
+    padding-top:1px;
+    padding-right:126px;
+    padding-bottom:12px;
+    background:rgba(16,11,24,.985);
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
   .panel-close-side{height:38px;padding:0 12px 0 14px;font-size:10px}
-  .browser-shell{
-    flex:1 1 auto;
+  .browser-shell,
+  .browser-shell.browser-shell-wall{
     min-height:0;
     gap:14px;
-    display:flex;
-    flex-direction:column;
+    display:block;
   }
-  .browser-detail{
-    flex:1 1 auto;
+  .browser-detail,
+  .browser-detail[data-mode="wall"]{
+    display:block;
     min-height:0;
     padding:16px;
     overflow-x:hidden;
-    overflow-y:auto;
-    overscroll-behavior-y:auto;
-    -webkit-overflow-scrolling:touch;
+    overflow-y:visible;
+    overscroll-behavior-y:contain;
     touch-action:pan-y;
   }
   .published-detail{
@@ -3797,7 +3817,7 @@ a.ring{display:block;text-decoration:none}
   .wall{touch-action:pan-y}
   .browser-detail[data-mode="wall"]{
     overflow-x:hidden;
-    overflow-y:auto;
+    overflow-y:visible;
     padding-bottom:calc(26px + env(safe-area-inset-bottom));
   }
   .wall-item.span-half,
