@@ -158,224 +158,29 @@ Object.values(chatStateVideos).forEach(bindChatSceneFallback);
 
 function startSiteLoader() {
   if (!siteLoader) return;
-  // The wall is rendered only after the visitor opens the desk. Preload its
-  // first-screen art now so mobile scrolling does not decode several large
-  // images during the first swipe.
-  const wallPreviewImages = [
-    "./assets/shipu-library.png",
-    "./assets/shipu-ipad-user.png",
-    "./assets/companion-app.png",
-    "./assets/companion-call.png",
-    "./assets/qstudio-homepage.png",
-    "./assets/work-project-reference.png",
-    "./assets/chat-v4/chat-transition-neutral.jpg"
-  ].map(src => {
-    const image = new Image();
-    image.decoding = "async";
-    image.src = src;
-    return image;
-  });
-  const criticalMedia = Array.from(new Set([
-    ...document.querySelectorAll(".scene > img"),
-    ...wallPreviewImages,
-    doorIdleVideo,
-    doorOpenVideo,
-    roomLoopVideo,
-    deskLoopVideo,
-    ...Object.values(chatStateVideos),
-    ...Object.values(coffeeVideos),
-    ...Object.values(coffeeAudios),
-    backgroundMusic,
-    roomAmbienceAudio,
-    uiClickAudio,
-    doorOpenAudio
-  ].filter(Boolean)));
-  let settled = 0;
-  let failed = 0;
-  const failedMedia = [];
-  const deferredMedia = [];
-  const total = Math.max(1, criticalMedia.length);
-  const update = () => {
-    const progress = settled / total;
-    if (loaderProgressBar) loaderProgressBar.style.width = `${Math.round(progress * 100)}%`;
-    document.body.dataset.loaderProgress = String(Math.round(progress * 100));
-    document.body.dataset.loaderFailed = String(failed);
-    if (loaderStatus) {
-      loaderStatus.textContent = settled >= total
-        ? "Sound, light, and coffee are ready."
-        : progress < .34
-          ? "Tracing a little light…"
-          : progress < .72
-            ? "Tuning the room and its sound…"
-            : "Warming the coffee bar…";
-    }
-  };
-  const pinnedObjectUrls = [];
-  const fullyBufferMedia = async element => {
-    if (!element) return;
-    const src = element.src || element.currentSrc;
-    if (!src || src.startsWith("blob:")) return;
-    const response = await fetch(src, { cache: "force-cache" });
-    if (!response.ok) throw new Error(`Unable to buffer ${src}`);
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    pinnedObjectUrls.push(objectUrl);
-    element.pause();
-    element.src = objectUrl;
-    element.load();
-    element.dataset.preloadedBytes = String(blob.size);
-    await new Promise(resolve => {
-      let complete = false;
-      const done = () => {
-        if (complete) return;
-        complete = true;
-        window.clearTimeout(timer);
-        element.removeEventListener("canplaythrough", done);
-        element.removeEventListener("canplay", done);
-        element.removeEventListener("error", done);
-        resolve();
-      };
-      const timer = window.setTimeout(done, 9000);
-      element.addEventListener("canplaythrough", done, { once: true });
-      element.addEventListener("canplay", done, { once: true });
-      element.addEventListener("error", done, { once: true });
-      if (element.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) done();
-    });
-  };
-  const waitForMedia = element => new Promise(resolve => {
-    const isImage = element instanceof HTMLImageElement;
-    const isMedia = element instanceof HTMLMediaElement;
-    const ready = isImage
-      ? element.complete && element.naturalWidth > 0
-      : isMedia && element.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
-    let finished = false;
-    const done = status => {
-      if (finished) return;
-      finished = true;
-      window.clearTimeout(timeoutId);
-      window.clearInterval(pollId);
-      element.removeEventListener(isImage ? "load" : "canplay", onReady);
-      element.removeEventListener("error", onError);
-      if (status !== "ready") deferredMedia.push(element.currentSrc || element.src || element.alt || element.id || "unknown");
-      settled += 1;
-      update();
-      document.body.dataset.loaderDeferredMedia = deferredMedia.map(src => src.split("/").pop()).join(",");
+  // Keep startup independent from media downloads. The instance has a small
+  // public egress link, so videos and audio load only when a visitor uses them.
+  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 700));
+  const doorPoster = scenes.door?.querySelector("img");
+  const posterReady = new Promise(resolve => {
+    if (!doorPoster || (doorPoster.complete && doorPoster.naturalWidth > 0)) {
       resolve();
-    };
-    const onReady = () => done("ready");
-    const onError = () => done("error");
-    const isReadyNow = () => isImage
-      ? element.complete && element.naturalWidth > 0
-      : isMedia && element.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
-    let pollId = 0;
-    const timeoutId = window.setTimeout(() => done(isReadyNow() ? "ready" : "timeout"), 15000);
-    if (ready) {
-      done("ready");
       return;
     }
-    element.addEventListener(isImage ? "load" : "canplay", onReady, { once: true });
-    element.addEventListener("error", onError, { once: true });
-    pollId = window.setInterval(() => {
-      if (isReadyNow()) done("ready");
-    }, 140);
-    if (isMedia && element.readyState < HTMLMediaElement.HAVE_METADATA) element.load();
+    const done = () => resolve();
+    doorPoster.addEventListener("load", done, { once: true });
+    doorPoster.addEventListener("error", done, { once: true });
+    window.setTimeout(done, 1800);
   });
-  update();
-  const warmVideo = async video => {
-    if (!video || video.error) return;
-    const previousTime = Number.isFinite(video.currentTime) ? video.currentTime : 0;
-    video.muted = true;
-    try {
-      await video.play();
-      await new Promise(resolve => {
-        let settled = false;
-        const done = () => {
-          if (settled) return;
-          settled = true;
-          resolve();
-        };
-        revealVideoFrame(video, done);
-        window.setTimeout(done, 900);
-      });
-    } catch (error) {
-      void error;
-    }
-    video.pause();
-    try {
-      video.currentTime = previousTime > 0 ? previousTime : 0.001;
-    } catch (error) {
-      void error;
-    }
-  };
-  const mediaReady = Promise.all(criticalMedia.map(waitForMedia));
-  // Wait until the browser has accepted every original URL before replacing
-  // priority media with fully buffered Blob URLs. Running both phases at once
-  // aborts the original requests and makes healthy media look like failures.
-  const fullyBufferedMedia = mediaReady.then(async () => {
-    const priorityMedia = [
-      doorOpenVideo,
-      roomLoopVideo,
-      roomAmbienceAudio,
-      backgroundMusic,
-      doorOpenAudio,
-      uiClickAudio
-    ].filter(Boolean);
-    const secondaryMedia = criticalMedia.filter(element => (
-      element instanceof HTMLMediaElement && !priorityMedia.includes(element)
-    ));
-    const images = criticalMedia.filter(element => element instanceof HTMLImageElement);
-    const verifyImage = async image => {
-      const src = image.currentSrc || image.src;
-      if (!src || src.startsWith("blob:")) return;
-      const response = await fetch(src, { cache: "force-cache" });
-      if (!response.ok) throw new Error(`Unable to preload ${src}`);
-      await response.blob();
-    };
-    const registerFailures = (elements, results) => {
-      results.forEach((result, index) => {
-        if (result.status === "fulfilled") return;
-        failed += 1;
-        const element = elements[index];
-        failedMedia.push(element?.currentSrc || element?.src || element?.alt || element?.id || "unknown");
-      });
-      document.body.dataset.loaderFailed = String(failed);
-      document.body.dataset.loaderFailedMedia = failedMedia.map(src => src.split("/").pop()).join(",");
-    };
-    const priorityResults = await Promise.allSettled(priorityMedia.map(fullyBufferMedia));
-    registerFailures(priorityMedia, priorityResults);
-    document.body.dataset.loaderPinnedPriority = String(priorityResults.filter(result => result.status === "fulfilled").length);
-    const secondaryResults = await Promise.allSettled(secondaryMedia.map(fullyBufferMedia));
-    registerFailures(secondaryMedia, secondaryResults);
-    document.body.dataset.loaderPinnedSecondary = String(secondaryResults.filter(result => result.status === "fulfilled").length);
-    const imageResults = await Promise.allSettled(images.map(verifyImage));
-    registerFailures(images, imageResults);
-    document.body.dataset.loaderPinnedBytes = String(
-      [...priorityMedia, ...secondaryMedia].reduce((sum, media) => sum + Number(media.dataset.preloadedBytes || 0), 0)
-    );
-  });
-  const warmedMedia = fullyBufferedMedia.then(async () => {
-    const warmQueue = [
-      doorOpenVideo,
-      roomLoopVideo,
-      deskLoopVideo,
-      ...Object.values(coffeeVideos),
-      chatRelaxedVideo,
-      chatTalkVideo
-    ].filter(Boolean);
-    for (const video of warmQueue) await warmVideo(video);
-  });
-  const safetyReady = new Promise(resolve => window.setTimeout(resolve, 32000));
-  const minimumGlow = new Promise(resolve => window.setTimeout(resolve, 4200));
-  Promise.all([Promise.race([warmedMedia, safetyReady]), minimumGlow]).then(() => {
+  if (loaderProgressBar) loaderProgressBar.style.width = "42%";
+  Promise.all([minimumGlow, posterReady]).then(() => {
     if (loaderProgressBar) loaderProgressBar.style.width = "100%";
-    if (loaderStatus) loaderStatus.textContent = failed
-      ? "The room is ready. A quiet fallback is standing by."
-      : "Sound, light, and coffee are ready.";
+    if (loaderStatus) loaderStatus.textContent = "The room is ready.";
     window.setTimeout(() => {
       siteLoader.classList.add("is-complete");
       document.body.classList.remove("site-loading");
       document.body.dataset.loaderComplete = "true";
-    }, 480);
+    }, 180);
   });
 }
 
@@ -1111,7 +916,7 @@ function renderWallPreview(item) {
 function renderMediaTag(media, withCaption) {
   if (media.type === "video") {
     return `
-      <video src="${media.src}"${media.poster ? ` poster="${media.poster}"` : ""}${media.fit === "contain" ? ' class="contain"' : ""} muted autoplay loop playsinline preload="auto" aria-label="${media.alt || ""}"></video>
+      <video src="${media.src}"${media.poster ? ` poster="${media.poster}"` : ""}${media.fit === "contain" ? ' class="contain"' : ""} muted autoplay loop playsinline preload="none" aria-label="${media.alt || ""}"></video>
       ${withCaption ? `<p>${media.caption || media.alt || ""}</p>` : ""}
     `;
   }

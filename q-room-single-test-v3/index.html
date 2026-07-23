@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<base href="https://jiejoe.github.io/q-room-single-test-v3/">
 <title>Q Room Four Step Flow Test</title>
 <style>
 :root{
@@ -4007,8 +4008,8 @@ a.ring{display:block;text-decoration:none}
   <button class="sound-toggle" id="sound-toggle" aria-label="Toggle room sound"><strong>Sound On</strong></button>
 
   <section class="scene active" id="scene-door">
-    <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/poster-door-idle.jpg" muted playsinline loop preload="auto"></video>
-    <video id="door-open-video" class="door-open" src="./assets/door_open.mp4" poster="./assets/poster-door-open.jpg" muted playsinline preload="auto"></video>
+    <video id="door-idle-video" class="door-idle" src="./assets/door_idle.mp4" poster="./assets/poster-door-idle.jpg" muted playsinline loop preload="metadata"></video>
+    <video id="door-open-video" class="door-open" src="./assets/door_open.mp4" poster="./assets/poster-door-open.jpg" muted playsinline preload="none"></video>
     <img src="./assets/poster-door-idle.jpg" alt="Q studio door entrance">
     <div class="copy">
       <p>Q Studio is awake</p>
@@ -4026,7 +4027,7 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene" id="scene-room">
     <img src="./assets/poster-room.jpg" alt="Q studio room overview">
-    <video id="room-loop-video" src="./assets/room-loop-smooth-15s.mp4?v=20260712-smooth-v1" muted playsinline loop preload="auto" poster="./assets/poster-room.jpg"></video>
+    <video id="room-loop-video" src="./assets/room-loop-smooth-15s.mp4?v=20260712-smooth-v1" muted playsinline loop preload="none" poster="./assets/poster-room.jpg"></video>
     <div class="room-map">
       <button class="ring depth-near" id="room-desk-trigger" style="left:26.6%;top:62.6%;" aria-label="See Q's work"></button>
       <button class="tag depth-near room-action-label" id="room-desk-label" type="button" style="left:26.6%;top:54.8%;">See My Work</button>
@@ -4073,8 +4074,8 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene scene-coffee" id="scene-coffee">
     <img src="./assets/poster-coffee-americano.jpg" alt="First-person view facing the Q Studio coffee bar">
-    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/coffee-pourover-visual.mp4?v=20260712" poster="./assets/poster-coffee-pourover.jpg" muted playsinline preload="auto"></video>
-    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/coffee-americano-visual.mp4?v=20260712" poster="./assets/poster-coffee-americano.jpg" muted playsinline preload="auto"></video>
+    <video id="coffee-pourover-video" class="coffee-action-video" src="./assets/coffee-pourover-visual.mp4?v=20260712" poster="./assets/poster-coffee-pourover.jpg" muted playsinline preload="none"></video>
+    <video id="coffee-americano-video" class="coffee-action-video" src="./assets/coffee-americano-visual.mp4?v=20260712" poster="./assets/poster-coffee-americano.jpg" muted playsinline preload="none"></video>
 
     <div class="coffee-order-badge" id="coffee-order-badge" aria-live="polite">Preparing your coffee</div>
     <div class="coffee-toast" id="coffee-toast" role="status" aria-live="polite">
@@ -4150,7 +4151,7 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene" id="scene-desk">
     <img src="./assets/poster-desk-typing.jpg" alt="Q studio desk scene">
-    <video id="desk-loop-video" src="./assets/desk_typing.mp4" muted playsinline loop preload="auto" poster="./assets/poster-desk-typing.jpg"></video>
+    <video id="desk-loop-video" src="./assets/desk_typing.mp4" muted playsinline loop preload="none" poster="./assets/poster-desk-typing.jpg"></video>
     <button class="ring" id="desk-trigger" style="left:42.2%;top:53%;" aria-label="Open work showcase"></button>
     <div class="tag" style="left:42.2%;top:46.5%;">See My Work</div>
     <button class="ring depth-far" id="desk-contact-trigger" style="left:12.8%;top:42%;" aria-label="Check Q's email"></button>
@@ -4178,10 +4179,10 @@ a.ring{display:block;text-decoration:none}
 
   <section class="scene scene-chat" id="scene-chat">
     <img src="./assets/chat-v2/poster-chat-neutral.jpg" alt="Q coffee chat scene">
-    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
-    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat-v4/chat-sit-sip-seedance2-imageonly-720.mp4?v=20260712-v4" poster="./assets/chat-v2/poster-chat-sit.jpg" muted playsinline preload="auto"></video>
-    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
-    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat-v4/chat-talk-seedance2-imageonly-720-loop-matched.mp4?v=20260712-v7" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="auto"></video>
+    <video id="chat-idle-video" class="chat-state-video is-active" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="none"></video>
+    <video id="chat-relaxed-video" class="chat-state-video" src="./assets/chat-v4/chat-sit-sip-seedance2-imageonly-720.mp4?v=20260712-v4" poster="./assets/chat-v2/poster-chat-sit.jpg" muted playsinline preload="none"></video>
+    <video id="chat-waiting-video" class="chat-state-video" src="./assets/chat-v4/chat-wait-seedance2-occasional-nod-16s-loop.mp4?v=20260712-v6" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="none"></video>
+    <video id="chat-talk-video" class="chat-state-video" src="./assets/chat-v4/chat-talk-seedance2-imageonly-720-loop-matched.mp4?v=20260712-v7" poster="./assets/chat-v2/poster-chat-neutral.jpg" muted playsinline loop preload="none"></video>
     <div class="chat-transition-anchor" id="chat-transition-anchor" aria-hidden="true"></div>
     <div class="q-stage-bubble" id="q-stage-bubble">
       <div class="q-stage-text" id="q-stage-text"></div>
@@ -4257,12 +4258,12 @@ a.ring{display:block;text-decoration:none}
   </div>
 </div>
 
-<audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="auto" aria-hidden="true"></audio>
-<audio id="room-ambience-audio" src="./assets/room-coffee-pour-clean-loop.wav?v=20260713-clean-loop-v1" loop preload="auto" aria-hidden="true"></audio>
-<audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="auto" aria-hidden="true"></audio>
-<audio id="door-open-audio" src="./assets/door-open-sfx.wav?v=20260712-v2" preload="auto" aria-hidden="true"></audio>
-<audio id="coffee-pourover-audio" src="./assets/coffee-pourover-sfx.m4a?v=20260712" preload="auto" aria-hidden="true"></audio>
-<audio id="coffee-americano-audio" src="./assets/coffee-americano-sfx.m4a?v=20260712" preload="auto" aria-hidden="true"></audio>
-<script src="./app.js?v=20260714-room-audio-balance-v60"></script>
+<audio id="background-music" src="./assets/music-serene-piano.mp3?v=20260712" loop preload="none" aria-hidden="true"></audio>
+<audio id="room-ambience-audio" src="./assets/room-coffee-pour-clean-loop.wav?v=20260713-clean-loop-v1" loop preload="none" aria-hidden="true"></audio>
+<audio id="ui-click-audio" src="./assets/ui-click-v2.wav?v=20260712-loud" preload="none" aria-hidden="true"></audio>
+<audio id="door-open-audio" src="./assets/door-open-sfx.wav?v=20260712-v2" preload="none" aria-hidden="true"></audio>
+<audio id="coffee-pourover-audio" src="./assets/coffee-pourover-sfx.m4a?v=20260712" preload="none" aria-hidden="true"></audio>
+<audio id="coffee-americano-audio" src="./assets/coffee-americano-sfx.m4a?v=20260712" preload="none" aria-hidden="true"></audio>
+<script src="/q-room-single-test-v3/app.js?v=20260723-mobile-fast-v61"></script>
 </body>
 </html>
