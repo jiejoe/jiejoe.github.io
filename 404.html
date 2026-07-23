@@ -4,11 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <meta http-equiv="refresh" content="0; url=/">
-  <title>返回 Q Studio</title>
-  <script>window.location.replace("/");</script>
+  <meta http-equiv="refresh" content="0; url=https://withq.space/">
+  <link rel="canonical" href="https://withq.space/">
+  <title>Q Studio 已迁移</title>
+  <script>
+    const destination = new URL(
+      window.location.pathname + window.location.search + window.location.hash,
+      "https://withq.space",
+    );
+    window.location.replace(destination.href);
+  </script>
 </head>
 <body>
-  <p>正在返回 <a href="/">Q Studio</a>…</p>
+  <p>Q Studio 已迁移至 <a href="https://withq.space/">withq.space</a>。</p>
 </body>
 </html>
